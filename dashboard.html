@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Harry & Rosh | Guest Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Montserrat:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <link rel="stylesheet" href="index.css">
+</head>
+
+<body class="dashboard-body">
+    <nav class="nav dashboard-nav">
+        <div class="logo">Harry & Rosh</div>
+        <a href="hello.html" class="nav-link logout-btn">Log Out</a>
+    </nav>
+
+    <main class="dashboard-container">
+        <!-- Header Section -->
+        <header class="dashboard-header">
+            <h1>Welcome, <span id="guest-name">Guest</span></h1>
+            <div class="status-badges">
+                <span id="badge-status" class="badge">Checking Status...</span>
+            </div>
+        </header>
+
+        <div class="gate-container">
+            <!-- RSVP Needed Section (Stays separate, acts as a 'blocker' if active) -->
+            <section id="rsvp-needed-section" class="dashboard-section hidden"
+                style="text-align: center; background: white; padding: 2rem; border-radius: 12px; border-left: 5px solid #d97706; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+                <h2 style="border: none; padding: 0; margin-bottom: 1rem; color: #d97706;">Action Required</h2>
+                <p style="margin-bottom: 1.5rem; font-size: 1.2rem;">Please complete your RSVP to unlock the weekend
+                    details.</p>
+                <a href="rsvp.html" id="btn-complete-rsvp" class="btn-primary"
+                    style="text-decoration: none; display: inline-block;">Go to
+                    RSVP</a>
+            </section>
+
+            <!-- SWIPER CONTAINER -->
+            <div id="dashboard-swiper" class="swiper hidden">
+                <div class="swiper-wrapper">
+
+                    <!-- Slide 1: The Hype (Countdown) -->
+                    <div class="swiper-slide" id="slide-countdown">
+                        <div class="dashboard-card card-countdown">
+                            <h2>Countdown</h2>
+                            <div class="card-content">
+                                <div class="countdown-display">
+                                    <span id="timer-val" class="timer-big">00:00:00:00</span>
+                                    <span id="timer-label" class="timer-label">Until the Weekend</span>
+                                </div>
+                            </div>
+                            <button id="btn-open-faq" class="btn-card-action">FAQs</button>
+                        </div>
+                    </div>
+
+                    <!-- Slide 2: The Plan (Itinerary) -->
+                    <div class="swiper-slide" id="slide-itinerary">
+                        <div class="dashboard-card card-itinerary">
+                            <h2>The Plan</h2>
+                            <div class="card-content">
+                                <h3>Next Up:</h3>
+                                <p id="next-event-name">Checking schedule...</p>
+                            </div>
+                            <button id="btn-view-schedule" class="btn-card-action">View Timetable</button>
+                        </div>
+                    </div>
+
+                    <!-- Slide 3: The VIP Room (Conditional) -->
+                    <div class="swiper-slide" id="slide-room">
+                        <div class="dashboard-card card-room">
+                            <h2>Your Suite</h2>
+                            <div class="card-content">
+                                <h3 id="room-name-display">Allocating...</h3>
+                                <p id="room-desc-display">Your room at Huntsham Court</p>
+                            </div>
+                            <button class="btn-card-action">View Room</button>
+                        </div>
+                    </div>
+
+                    <!-- Slide: The Estate -->
+                    <div class="swiper-slide" id="slide-estate">
+                        <div class="dashboard-card card-estate">
+                            <h2>The Estate</h2>
+                            <div class="card-content">
+                                <p>Discover our home for the weekend.</p>
+                            </div>
+                            <button id="btn-explore-estate" class="btn-card-action">Explore the House</button>
+                        </div>
+                    </div>
+
+                    <!-- Slide 4: Photo Feed -->
+                    <div class="swiper-slide" id="slide-photos">
+                        <div class="dashboard-card card-photos">
+                            <h2>Moments</h2>
+                            <div class="card-content">
+                                <p>Share your memories with us.</p>
+                            </div>
+                            <button class="btn-card-action">Open Gallery</button>
+                        </div>
+                    </div>
+
+                    <!-- Slide 5: Admin / RSVP -->
+                    <div class="swiper-slide" id="slide-admin">
+                        <div class="dashboard-card card-admin">
+                            <h2>Your RSVP</h2>
+                            <div class="card-content">
+                                <p>Need to changes plans?</p>
+                            </div>
+                            <a href="rsvp.html" id="btn-update-rsvp" class="btn-card-action">Update RSVP</a>
+                        </div>
+                    </div>
+
+                </div>
+                <!-- Navigation -->
+                <div class="swiper-button-next"></div>
+                <div class="swiper-button-prev"></div>
+                <!-- Pagination -->
+                <div class="swiper-pagination"></div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- FAQ / Chatbot Modal -->
+    <div id="faq-modal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="close-modal close-faq">&times;</span>
+            <h2 class="section-title">Wedding Help</h2>
+
+            <div id="chat-container">
+                <div id="faq-chat-output">
+                    <!-- Chat bubbles go here -->
+                    <div class="chat-bubble bot">Hello! I'm your AI assistant. Ask me anything about the wedding!</div>
+                </div>
+                <div class="chat-input-area">
+                    <input type="text" id="faq-chat-input" placeholder="e.g. What time is the ceremony?">
+                    <button id="faq-chat-submit">Send</button>
+                </div>
+            </div>
+
+            <h3 class="faq-divider" id="faq-toggle">
+                <span>Browse All FAQs</span>
+                <span class="chevron-down">▼</span>
+            </h3>
+            <div id="faq-static-list" class="hidden">
+                <!-- Static list populated by JS -->
+                <p>Loading...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Itinerary Modal (Refactored) -->
+    <div id="itinerary-modal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2 class="section-title">The Weekend Plan</h2>
+
+            <div class="itinerary-scroll-container">
+
+                <!-- Friday -->
+                <div class="day-block">
+                    <h3 class="day-title">Friday, June 18th</h3>
+
+                    <details class="event-item">
+                        <summary class="event-summary">
+                            <span class="time">3:00 PM</span>
+                            <span class="event-name">Check-in & Garden Party</span>
+                            <span class="chevron">▼</span>
+                        </summary>
+                        <div class="event-details">
+                            <p>Arrive at the estate, grab a drink, and enjoy some lawn games. The vibe is relaxed!</p>
+                            <p><em>Location: The Great Lawn</em></p>
+                        </div>
+                    </details>
+
+                    <details class="event-item">
+                        <summary class="event-summary">
+                            <span class="time">7:00 PM</span>
+                            <span class="event-name">Welcome Dinner</span>
+                            <span class="chevron">▼</span>
+                        </summary>
+                        <div class="event-details">
+                            <p>A casual feast in the Great Hall. Come hungry!</p>
+                            <p><em>Location: Main Hall</em></p>
+                        </div>
+                    </details>
+                </div>
+
+                <!-- Saturday -->
+                <div class="day-block">
+                    <h3 class="day-title">Saturday, June 19th</h3>
+
+                    <details class="event-item highlight">
+                        <summary class="event-summary">
+                            <span class="time">2:00 PM</span>
+                            <span class="event-name">The Ceremony</span>
+                            <span class="chevron">▼</span>
+                        </summary>
+                        <div class="event-details">
+                            <p><strong>The Main Event!</strong> Please be seated by 1:45 PM.</p>
+                            <p><em>Location: The Orangery</em></p>
+                        </div>
+                    </details>
+
+                    <details class="event-item highlight">
+                        <summary class="event-summary">
+                            <span class="time">4:30 PM</span>
+                            <span class="event-name">Wedding Breakfast</span>
+                            <span class="chevron">▼</span>
+                        </summary>
+                        <div class="event-details">
+                            <p>Dinner, speeches, and toasts.</p>
+                            <p><em>Location: The Marquee</em></p>
+                        </div>
+                    </details>
+
+                    <details class="event-item">
+                        <summary class="event-summary">
+                            <span class="time">7:30 PM</span>
+                            <span class="event-name">Evening Reception</span>
+                            <span class="chevron">▼</span>
+                        </summary>
+                        <div class="event-details">
+                            <p>First dance followed by music until late.</p>
+                            <p><em>Location: The Ballroom</em></p>
+                        </div>
+                    </details>
+                </div>
+
+                <!-- Sunday -->
+                <div class="day-block">
+                    <h3 class="day-title">Sunday, June 20th</h3>
+
+                    <details class="event-item">
+                        <summary class="event-summary">
+                            <span class="time">11:00 AM</span>
+                            <span class="event-name">Farewell Brunch</span>
+                            <span class="chevron">▼</span>
+                        </summary>
+                        <div class="event-details">
+                            <p>Coffee, pastries, and goodbyes before heading home.</p>
+                            <p><em>Location: The Terrace</em></p>
+                        </div>
+                    </details>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Instructions Modal -->
+    <div id="payment-modal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 500px; text-align: center;">
+            <span class="close-modal close-payment">&times;</span>
+            <div style="font-size: 3rem; margin-bottom: 1rem;">🏰</div>
+            <h2 class="section-title" style="font-size: 1.8rem;">Secure Your Suite</h2>
+            <p style="color: #666; margin-bottom: 2rem;">To confirm your booking for <br><strong id="pay-room-name"
+                    style="color: var(--primary);">[Room Name]</strong>, please transfer the room cost.</p>
+
+            <div
+                style="background: #f9fafb; padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; text-align: left; border: 1px solid #eee;">
+                <p style="margin: 0.5rem 0;"><strong>Bank:</strong> <span id="pay-bank">Barclays</span></p>
+                <p style="margin: 0.5rem 0;"><strong>Account No:</strong> <span id="pay-account">12345678</span></p>
+                <p style="margin: 0.5rem 0;"><strong>Sort Code:</strong> <span id="pay-sort">20-40-60</span></p>
+                <hr style="border: 0; border-top: 1px dashed #ccc; margin: 1rem 0;">
+                <p style="margin: 0.5rem 0; font-size: 1.1rem;"><strong>Reference:</strong> <span id="pay-ref"
+                        style="background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 4px; font-family: monospace;">[CODE]</span>
+                </p>
+            </div>
+
+            <p style="font-size: 0.9rem; color: #888; font-style: italic;">
+                Once received, we will mark your room as <strong style="color: #166534;">Confirmed</strong> on your
+                dashboard!
+            </p>
+        </div>
+    </div>
+
+    <!-- Gallery Modal -->
+    <div id="gallery-modal" class="modal-overlay">
+        <span class="close-modal close-gallery">&times;</span>
+        <div class="swiper swiper-gallery">
+            <div class="swiper-wrapper" id="gallery-wrapper">
+                <!-- Slides injected by JS -->
+            </div>
+            <div class="swiper-button-next"></div>
+            <div class="swiper-button-prev"></div>
+            <div class="swiper-pagination"></div>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="supabase.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <script src="auth.js"></script>
+    <script src="events.js"></script>
+    <script src="faq_data.js"></script>
+    <script src="room_data.js"></script>
+    <script src="dashboard.js"></script>
+</body>
+
+</html>

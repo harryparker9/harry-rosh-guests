@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Harry & Rosh | Command Center</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Montserrat:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="index.css">
+    <style>
+        /* Admin Specific Styles */
+        .admin-header {
+            padding: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.8);
+            margin-bottom: 2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            max-width: 1200px;
+            margin: 0 auto 3rem auto;
+            padding: 0 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            text-align: center;
+            border-bottom: 4px solid var(--primary);
+        }
+
+        .stat-value {
+            font-family: 'Playfair Display', serif;
+            font-size: 3rem;
+            color: var(--text-main);
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 0.1em;
+        }
+
+        .data-section {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem 5rem 2rem;
+        }
+
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+
+        .search-bar {
+            padding: 0.8rem 1.5rem;
+            border-radius: 50px;
+            border: 1px solid #ccc;
+            width: 300px;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 1rem 1.5rem;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .data-table th {
+            background-color: var(--primary);
+            color: white;
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.05em;
+        }
+
+        .data-table tr:hover {
+            background-color: #f9f9f9;
+        }
+
+        .btn-icon {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            transition: color 0.2s;
+        }
+
+        .btn-icon:hover {
+            color: var(--primary);
+        }
+
+        .modal-form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .modal-form-group input,
+        .modal-form-group select {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .alert-control {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .alert-input {
+            flex: 1;
+            max-width: 600px;
+            padding: 0.8rem 1.2rem;
+            border: 2px solid #ef4444;
+            /* Alert Red */
+            border-radius: 50px;
+            outline: none;
+        }
+
+        .btn-alert {
+            background-color: #ef4444;
+            color: white;
+        }
+
+        .btn-alert:hover {
+            background-color: #dc2626;
+        }
+
+        .tag.onsite-yes {
+            background: #dcfce7;
+            color: #166534;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+        }
+
+        .tag.onsite-no {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Nav -->
+    <nav class="nav">
+        <div class="logo">Harry & Rosh | Admin</div>
+        <div>
+            <a href="dashboard.html" class="nav-link-subtle" style="margin-right: 1rem;">Back to Dashboard</a>
+            <a href="hello.html" class="nav-link logout-btn">Log Out</a>
+        </div>
+    </nav>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <span class="stat-value" id="stat-total">0</span>
+            <span class="stat-label">Total Guests</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-value" id="stat-confirmed">0</span>
+            <span class="stat-label">Confirmed Guests</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-value" id="stat-onsite">0</span>
+            <span class="stat-label">Staying Onsite</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-value" id="stat-pending">0</span>
+            <span class="stat-label">Pending RSVPs</span>
+        </div>
+    </div>
+
+    <!-- Data Table -->
+    <section class="data-section">
+        <div class="toolbar">
+            <h2 class="section-title" style="margin: 0; font-size: 2rem; text-align: left;">Guest List</h2>
+            <input type="text" id="admin-search" class="search-bar" placeholder="Search guests...">
+        </div>
+
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Status</th>
+                    <th>Day</th>
+                    <th>Dietary</th>
+                    <th>Room</th>
+                    <th>Onsite?</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="guest-table-body">
+                <!-- Rows injected by JS -->
+            </tbody>
+        </table>
+    </section>
+
+    <!-- Live Alert Footer -->
+    <div class="alert-control">
+        <span style="font-weight: 600; color: #ef4444;">🚨 LIVE ALERT SYSTEM:</span>
+        <input type="text" id="alert-message" class="alert-input"
+            placeholder="Type a message to push to all dashboards...">
+        <button id="btn-push-alert" class="btn-primary btn-alert">PUSH UPDATE</button>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="edit-modal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 500px;">
+            <span class="close-modal close-edit">&times;</span>
+            <h2 class="section-title" style="font-size: 1.8rem; margin-bottom: 1.5rem;">Edit Guest</h2>
+
+            <form id="edit-form">
+                <input type="hidden" id="edit-access-code">
+
+                <div class="modal-form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="edit-fullname" readonly style="background: #f3f4f6;">
+                </div>
+
+                <div class="modal-form-group">
+                    <label>Room Assignment</label>
+                    <select id="edit-room">
+                        <option value="">-- No Room Assigned --</option>
+                        <!-- Populated by JS -->
+                    </select>
+                </div>
+
+                <div class="modal-form-group">
+                    <label>Room Status</label>
+                    <select id="edit-room-status">
+                        <option value="offered">Offered (Payment Pending)</option>
+                        <option value="confirmed">Confirmed (Paid)</option>
+                    </select>
+                </div>
+
+                <div class="modal-form-group">
+                    <label>Onsite Allowed?</label>
+                    <select id="edit-onsite">
+                        <option value="true">Yes - Allowed</option>
+                        <option value="false">No - Offsite</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn-primary" style="width: 100%;">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="supabase.js"></script>
+    <script src="auth.js"></script>
+    <script src="room_data.js"></script>
+    <script src="admin.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Harry & Rosh | RSVP</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Montserrat:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="index.css">
+    <script src="config.js"></script>
+    <script src="supabase.js"></script>
+    <script src="auth.js"></script>
+</head>
+
+<body>
+    <nav class="nav">
+        <div class="logo">Harry & Rosh</div>
+        <a href="hello.html" class="nav-link">← Back to Home</a>
+    </nav>
+
+    <!-- RSVP Section -->
+    <section id="rsvp-section" class="rsvp-section dedicated-page">
+        <h2 class="section-title">RSVP</h2>
+
+        <!-- Gate Section -->
+        <div id="rsvp-gate">
+            <p style="text-align: center; margin-bottom: 1.5rem; font-family: 'Montserrat', sans-serif;">Welcome! Please
+                unlock your RSVP.</p>
+            <div class="form-group">
+                <input type="text" id="gate-code" placeholder="Enter your Access Code" style="text-align: center;">
+            </div>
+            <button id="btn-unlock" class="btn-primary" style="width: 100%;">Unlock RSVP</button>
+            <p id="gate-error" class="error-message hidden" style="text-align: center; margin-top: 1rem;">Invalid Code
+            </p>
+        </div>
+
+        <!-- Main Form (Hidden by default) -->
+        <form id="rsvp-form" class="rsvp-form hidden">
+            <input type="hidden" id="accessCode" name="accessCode">
+            <!-- Part A: Guest Details -->
+            <fieldset class="form-section">
+                <legend>Step 1: Guest Details</legend>
+                <div class="form-group">
+                    <label for="fullName">Full Name</label>
+                    <input type="text" id="fullName" name="fullName" required placeholder="Your Name">
+                </div>
+                <div class="form-group">
+                    <label for="phone">Phone Number (for WhatsApp updates)</label>
+                    <input type="tel" id="phone" name="phone" required placeholder="+44 7...">
+                </div>
+            </fieldset>
+
+            <!-- Part A-2: Your Plus One (Conditional) -->
+            <fieldset id="plus-one-section" class="form-section hidden">
+                <legend>Your Plus One</legend>
+                <div class="form-group">
+                    <label for="plusOneName">Partner's Full Name</label>
+                    <input type="text" id="plusOneName" name="plusOneName" placeholder="Partner's Name">
+                </div>
+                <div class="form-group">
+                    <label for="plusOneDietary">Partner's Dietary Requirements</label>
+                    <textarea id="plusOneDietary" name="plusOneDietary" rows="2"
+                        placeholder="Any allergies?"></textarea>
+                </div>
+            </fieldset>
+
+            <!-- Part B: The Weekend Plan -->
+            <fieldset class="form-section">
+                <legend>Step 2: The Weekend Plan</legend>
+                <div class="form-group">
+                    <label>Attendance</label>
+                    <div class="radio-group">
+                        <label class="radio-option">
+                            <input type="radio" name="attendance" value="full_weekend" required>
+                            <span>Yes! Ready for the full weekend (Thu - Sun)</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="attendance" value="friday_arrival" required>
+                            <span>Joining the party Friday afternoon (Fri - Sun)</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="attendance" value="decline" required>
+                            <span>Sadly, cannot make it</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group" id="accommodation-group">
+                    <label>Accommodation Preference <a href="https://www.youtube.com/watch?v=whc_XCoT8mc&t=15s"
+                            target="_blank" class="venue-link">(Watch Venue Tour)</a></label>
+                    <div class="radio-group">
+                        <label class="radio-option">
+                            <input type="radio" name="accommodation" value="onsite">
+                            <span>We would love to stay on-site at Huntsham Court</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="accommodation" value="offsite">
+                            <span>We will find our own accommodation nearby</span>
+                        </label>
+                    </div>
+                </div>
+            </fieldset>
+
+            <!-- Part C: Food & Drink -->
+            <fieldset class="form-section">
+                <legend>Step 3: Food & Drink</legend>
+                <div class="form-group">
+                    <label for="dietary">Dietary Requirements</label>
+                    <textarea id="dietary" name="dietary" rows="3"
+                        placeholder="Any allergies or preferences?"></textarea>
+                </div>
+            </fieldset>
+
+            <!-- Part D: The Fun Stuff -->
+            <fieldset class="form-section">
+                <legend>Step 4: The Fun Stuff</legend>
+                <div class="form-group">
+                    <label for="songRequest">Favorite dancefloor song</label>
+                    <input type="text" id="songRequest" name="songRequest" placeholder="Artist - Song Name">
+                </div>
+                <div class="form-group">
+                    <label for="funnyStory">Share a funny story about Harry or Rosh</label>
+                    <textarea id="funnyStory" name="funnyStory" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="advice">Best advice for a happy marriage</label>
+                    <textarea id="advice" name="advice" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="speechBet">Predict the length of the Best Man's speech</label>
+                    <input type="text" id="speechBet" name="speechBet" placeholder="e.g. 12 mins 30 secs">
+                </div>
+                <div class="form-group">
+                    <label for="photoUpload">Upload a favorite photo of us</label>
+                    <input type="file" id="photoUpload" name="photoUpload" accept="image/*">
+                </div>
+            </fieldset>
+
+            <button type="submit" class="btn-primary" style="width: 100%; margin-top: 2rem;">Send RSVP</button>
+        </form>
+
+        <div id="rsvp-confirmation" class="rsvp-confirmation hidden">
+            <h3>Thank You!</h3>
+            <p id="confirmation-message"></p>
+        </div>
+    </section>
+
+    <script src="rsvp.js"></script>
+</body>
+
+</html>
