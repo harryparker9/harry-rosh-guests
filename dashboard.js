@@ -178,11 +178,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             // Check Status
-            if (user.room_status === 'confirmed') {
-                // CONFIRMED
+            if (user.room_status === 'confirmed' || user.room_status === 'paid') {
+                // CONFIRMED / PAID
                 if (roomSlideActionBtn) {
                     roomSlideActionBtn.style.display = 'inline-block';
-                    roomSlideActionBtn.textContent = '✓ Booking Confirmed';
+                    roomSlideActionBtn.textContent = '✓ Room Paid';
                     roomSlideActionBtn.style.backgroundColor = 'transparent';
                     roomSlideActionBtn.style.color = '#166534';
                     roomSlideActionBtn.style.border = '1px solid #166534';
@@ -675,11 +675,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         let actionHtml = '';
-        if (roomStatus === 'confirmed') {
+        if (roomStatus === 'confirmed' || roomStatus === 'paid') {
             actionHtml = `
                 <div style="background: #f0fdf4; border: 1px solid #22c55e; color: #166534; padding: 1rem; border-radius: 8px; text-align: center;">
                     <strong>✓ Booking Secured</strong>
-                    <p style="margin:0; font-size:0.9rem;">You are all set for the weekend!</p>
+                    <p style="margin:0; font-size:0.9rem;">This room is fully paid. No further action is needed.</p>
                 </div>
             `;
         } else {
