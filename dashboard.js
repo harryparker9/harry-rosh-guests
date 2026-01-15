@@ -279,11 +279,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         slidesPerView: 'auto',
         loop: true, // Infinite loop
         coverflowEffect: {
-            rotate: 50, // Standard 3D rotation
+            rotate: 20, // Gentler rotation (was 50)
             stretch: 0,
-            depth: 100, // Standard depth
+            depth: 30, // Less depth (was 100)
             modifier: 1,
-            slideShadows: true, // Enable shadows for depth
+            slideShadows: true,
         },
         pagination: {
             el: '.swiper-pagination',

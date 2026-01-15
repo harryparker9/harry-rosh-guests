@@ -1536,3 +1536,26 @@ details[open] .timeline-dot.gold {
     transform: translate(-50%, 0);
   }
 }
+/* --- MOBILE OPTIMIZATIONS --- */
+@media (max-width: 768px) {
+    .nav { padding: 1rem 1.5rem; }
+    .logo { font-size: 1.4rem; }
+
+    .hero { margin-top: 10px; padding: 1rem; }
+    h1 { font-size: 2.8rem; }
+    p.subtitle { font-size: 1.1rem; margin-bottom: 2rem; }
+
+    .dashboard-container { padding: 1rem; }
+    .dashboard-header h1 { font-size: 2rem; }
+    .dashboard-header { margin-bottom: 2rem; }
+
+    /* Make slides responsive on mobile */
+    .swiper-slide {
+        width: 80vw; /* Shows a bit of the next slide */
+        max-width: 320px;
+        height: 380px; /* Slightly shorter */
+    }
+    
+    /* Ensure no horizontal overflow */
+    body { overflow-x: hidden; }
+}
