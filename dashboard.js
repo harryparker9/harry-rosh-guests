@@ -182,11 +182,22 @@ document.addEventListener('DOMContentLoaded', async () => {
                 // CONFIRMED / PAID
                 if (roomSlideActionBtn) {
                     roomSlideActionBtn.style.display = 'inline-block';
-                    roomSlideActionBtn.textContent = '✓ Room Paid';
-                    roomSlideActionBtn.style.backgroundColor = 'transparent';
+                    roomSlideActionBtn.textContent = '✓ Booking Confirmed (View)';
+
+                    // Make it readable (White background, Green text)
+                    roomSlideActionBtn.style.backgroundColor = 'white';
                     roomSlideActionBtn.style.color = '#166534';
-                    roomSlideActionBtn.style.border = '1px solid #166534';
-                    roomSlideActionBtn.style.cursor = 'default';
+                    roomSlideActionBtn.style.border = '1px solid white';
+                    roomSlideActionBtn.style.fontWeight = 'bold';
+
+                    // Make it clickable
+                    roomSlideActionBtn.style.cursor = 'pointer';
+                    roomSlideActionBtn.onclick = () => {
+                        const roomData = window.ROOM_LIBRARY ? window.ROOM_LIBRARY[user.room_assigned] : null;
+                        if (roomData) {
+                            openRoomModal(roomData, user.room_assigned, user.room_status, user.access_code);
+                        }
+                    };
                 }
             } else {
                 // OFFERED (Pending Payment)
@@ -194,8 +205,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                     roomSlideActionBtn.style.display = 'inline-block';
                     roomSlideActionBtn.textContent = 'Find Out More';
                     roomSlideActionBtn.className = 'btn-card-action';
-                    roomSlideActionBtn.style.backgroundColor = 'white';
-                    roomSlideActionBtn.style.color = 'var(--primary)';
+                    roomSlideActionBtn.style.backgroundColor = 'rgba(255, 255, 255, 0.2)'; // Revert to glass
+                    roomSlideActionBtn.style.color = 'inherit';
+                    roomSlideActionBtn.style.border = '1px solid rgba(255, 255, 255, 0.5)';
                     roomSlideActionBtn.style.cursor = 'pointer';
 
                     roomSlideActionBtn.onclick = () => {
