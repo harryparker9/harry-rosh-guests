@@ -1538,24 +1538,51 @@ details[open] .timeline-dot.gold {
 }
 /* --- MOBILE OPTIMIZATIONS --- */
 @media (max-width: 768px) {
-    .nav { padding: 1rem 1.5rem; }
+    /* STRICT RESET for Mobile */
+    html, body {
+        overflow-x: hidden !important;
+        width: 100% !important;
+        position: relative;
+    }
+
+    .nav { 
+        padding: 1rem; 
+        width: 100%;
+        box-sizing: border-box;
+    }
+
     .logo { font-size: 1.4rem; }
 
-    .hero { margin-top: 10px; padding: 1rem; }
-    h1 { font-size: 2.8rem; }
+    .hero { 
+        margin-top: 10px; 
+        padding: 1rem; 
+        width: 100%;
+        box-sizing: border-box;
+        overflow-x: hidden;
+    }
+
+    h1 { font-size: 2.5rem; word-wrap: break-word; }
     p.subtitle { font-size: 1.1rem; margin-bottom: 2rem; }
 
-    .dashboard-container { padding: 1rem; }
+    .dashboard-container { 
+        padding: 1rem; 
+        width: 100%;
+        box-sizing: border-box;
+        overflow-x: hidden;
+    }
+
     .dashboard-header h1 { font-size: 2rem; }
     .dashboard-header { margin-bottom: 2rem; }
 
-    /* Make slides responsive on mobile */
-    .swiper-slide {
-        width: 80vw; /* Shows a bit of the next slide */
-        max-width: 320px;
-        height: 380px; /* Slightly shorter */
+    /* Swiper Adjustments - Keep visual style but ensure fit */
+    .swiper {
+        width: 100% !important;
+        overflow: visible !important; /* Allow 3D overflow but clip at body */
     }
-    
-    /* Ensure no horizontal overflow */
-    body { overflow-x: hidden; }
+
+    /* Make slides responsive on mobile but respect 3D */
+    .swiper-slide {
+        width: 280px; /* Specific mobile width */
+        height: 380px;
+    }
 }
