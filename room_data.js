@@ -393,21 +393,33 @@ window.ROOM_LIBRARY = {
         "photos": [
             "https://jkxxswxpykdyrpjriizx.supabase.co/storage/v1/object/public/guest-photos/Lackaroe1.jpg",
             "https://jkxxswxpykdyrpjriizx.supabase.co/storage/v1/object/public/guest-photos/Lackaroe2.jpg"
-        ]
+        ],
+        "mapCoords": {
+            "x": 21.7,
+            "y": 22.0
+        }
     },
     "Kenmare": {
         "description": "Double bedroom with shared bathroom.",
         "floor": "Garden Wing",
         "photos": [
             "https://jkxxswxpykdyrpjriizx.supabase.co/storage/v1/object/public/guest-photos/Kenmare1.jpg"
-        ]
+        ],
+        "mapCoords": {
+            "x": 22.3,
+            "y": 40.2
+        }
     },
     "Kennington": {
         "description": "Double bed with shared bathroom.",
         "floor": "Garden Wing",
         "photos": [
             "https://jkxxswxpykdyrpjriizx.supabase.co/storage/v1/object/public/guest-photos/Kennington1.jpg"
-        ]
+        ],
+        "mapCoords": {
+            "x": 31.1,
+            "y": 39.3
+        }
     },
     "Tenby": {
         "description": "Ground floor zip-link super-king with en-suite shower.",
