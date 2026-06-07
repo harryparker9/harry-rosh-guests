@@ -1382,8 +1382,8 @@ details[open] .timeline-dot.gold {
   background-size: cover;
   background-position: center;
   color: white;
-  border-left: 5px solid #a3b18a;
-  /* Sage Green border */
+  border-left: 5px solid var(--primary);
+  /* Elegant Gold/Taupe border */
 }
 
 .card-estate h2 {
@@ -1403,20 +1403,21 @@ details[open] .timeline-dot.gold {
   display: flex;
   justify-content: center;
   gap: 0.5rem;
-  margin-bottom: 1rem;
-  background: #f1f5f9;
-  padding: 0.5rem;
+  margin-bottom: 1.5rem;
+  background: rgba(193, 162, 122, 0.1);
+  padding: 0.4rem;
   border-radius: 50px;
+  border: 1px solid rgba(193, 162, 122, 0.15);
 }
 
 .floor-tab {
-  padding: 0.5rem 1.2rem;
+  padding: 0.5rem 1.5rem;
   border: none;
   background: transparent;
   border-radius: 25px;
   font-family: 'Montserrat', sans-serif;
   font-size: 0.9rem;
-  color: #64748b;
+  color: var(--text-muted);
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -1424,49 +1425,54 @@ details[open] .timeline-dot.gold {
 .floor-tab.active {
   background: white;
   color: var(--primary);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 8px rgba(193, 162, 122, 0.2);
   font-weight: 600;
 }
 
 .map-wrapper {
   position: relative;
   width: 100%;
-  border-radius: 12px;
+  border-radius: 16px;
   overflow: hidden;
-  /* For zooming crop if needed */
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background: rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(193, 162, 122, 0.2);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
 }
 
 .map-scroll-container {
   width: 100%;
-  overflow: auto;
-  /* Allow scrolling on zoom */
+  overflow: hidden; /* Prevent scrolling since it fits fully */
   position: relative;
-  max-height: 500px;
-  cursor: grab;
 }
 
 .floor-map-img {
   width: 100%;
-  min-width: 600px;
-  /* Force scroll on small screens */
+  height: auto;
+  min-width: 0 !important; /* Reset forced min-width */
   display: block;
-  transition: transform 0.3s ease;
 }
 
-/* Hotspots (Ground Floor) */
+/* Hotspots (Ground Floor general areas) */
 .map-hotspot {
   position: absolute;
-  width: 20px;
-  height: 20px;
-  background: rgba(255, 215, 0, 0.6);
-  border: 2px solid #FFD700;
+  width: 18px;
+  height: 18px;
+  background: rgba(193, 162, 122, 0.75);
+  border: 2px solid white;
   border-radius: 50%;
   transform: translate(-50%, -50%);
   cursor: pointer;
   z-index: 10;
+  box-shadow: 0 0 0 2px rgba(193, 162, 122, 0.3), 0 2px 4px rgba(0, 0, 0, 0.15);
   animation: pulseGold 2s infinite;
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.map-hotspot:hover {
+  transform: translate(-50%, -50%) scale(1.3);
+  background: var(--primary);
+  box-shadow: 0 0 0 4px rgba(193, 162, 122, 0.45), 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 21;
 }
 
 .map-hotspot::after {
@@ -1475,41 +1481,62 @@ details[open] .timeline-dot.gold {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   background: #fff;
   border-radius: 50%;
 }
 
 @keyframes pulseGold {
   0% {
-    box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7);
+    box-shadow: 0 0 0 0 rgba(193, 162, 122, 0.7);
   }
-
   70% {
-    box-shadow: 0 0 0 10px rgba(255, 215, 0, 0);
+    box-shadow: 0 0 0 10px rgba(193, 162, 122, 0);
   }
-
   100% {
-    box-shadow: 0 0 0 0 rgba(255, 215, 0, 0);
+    box-shadow: 0 0 0 0 rgba(193, 162, 122, 0);
   }
 }
 
-/* User Room Pin */
+/* General Room Pins (Gold Dots) */
+.room-pin {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  background: rgba(193, 162, 122, 0.75);
+  border: 2px solid white;
+  box-shadow: 0 0 0 2px rgba(193, 162, 122, 0.3), 0 2px 4px rgba(0, 0, 0, 0.15);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  z-index: 15;
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.room-pin:hover {
+  transform: translate(-50%, -50%) scale(1.3);
+  background: var(--primary);
+  box-shadow: 0 0 0 4px rgba(193, 162, 122, 0.45), 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 21;
+}
+
+/* User Room Pin ("You are here") */
 .user-pin {
   position: absolute;
   transform: translate(-50%, -100%);
   /* Bottom tip at coords */
   background: var(--primary);
   color: white;
-  padding: 4px 8px;
-  border-radius: 4px;
+  padding: 5px 10px;
+  border-radius: 20px;
   font-size: 0.75rem;
   font-weight: bold;
   white-space: nowrap;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
   z-index: 20;
-  border: 2px solid white;
+  border: 1.5px solid white;
+  margin-top: -6px; /* offset slightly above the actual room dot */
 }
 
 .user-pin::after {
@@ -1523,21 +1550,25 @@ details[open] .timeline-dot.gold {
   border-top: 6px solid var(--primary);
 }
 
-/* Popover */
+/* Popover overlay styled matching gold/cream theme */
 .map-popover {
   position: absolute;
-  bottom: 2rem;
+  bottom: 1.25rem;
   left: 50%;
   transform: translateX(-50%);
-  background: white;
-  padding: 1rem;
-  border-radius: 8px;
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
-  width: 200px;
-  text-align: center;
+  background: rgba(253, 251, 247, 0.96);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(193, 162, 122, 0.3);
+  padding: 1.25rem;
+  border-radius: 16px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+  width: 90%;
+  max-width: 320px;
+  text-align: left;
   z-index: 30;
   display: none;
-  animation: popUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .map-popover.visible {
@@ -1545,15 +1576,19 @@ details[open] .timeline-dot.gold {
 }
 
 .map-popover h4 {
-  color: var(--primary);
-  margin-bottom: 0.5rem;
-  font-size: 1rem;
+  font-family: 'Playfair Display', serif;
+  font-size: 1.1rem;
+  color: var(--text-main);
+  margin-bottom: 0.35rem;
+  font-weight: 600;
 }
 
 .map-popover p {
-  font-size: 0.8rem;
-  color: #666;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.85rem;
+  color: var(--text-muted);
   line-height: 1.4;
+  margin: 0;
 }
 
 @keyframes popUp {
@@ -1874,4 +1909,74 @@ details[open] .timeline-dot.gold {
   .amenity-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* --- ESTATE MODAL THEME OVERRIDES --- */
+.estate-modal-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 2.2rem;
+  color: var(--text-main);
+  text-align: center;
+  margin-bottom: 0.5rem;
+  line-height: 1.2;
+}
+
+.estate-modal-subtitle {
+  text-align: center;
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: 0.95rem;
+  margin-bottom: 2rem;
+}
+
+.estate-section {
+  margin-bottom: 1.5rem;
+  text-align: left;
+}
+
+.estate-section h3 {
+  font-family: 'Playfair Display', serif;
+  color: var(--primary);
+  margin-bottom: 0.8rem;
+  font-size: 1.3rem;
+  font-weight: 500;
+}
+
+.estate-section p {
+  color: #444;
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+.estate-divider {
+  border: 0;
+  border-top: 1px solid rgba(193, 162, 122, 0.15);
+  margin: 2rem 0;
+}
+
+.btn-estate-map {
+  display: block;
+  width: 100%;
+  text-align: center;
+  background: var(--primary);
+  color: white;
+  text-decoration: none;
+  padding: 12px;
+  border-radius: 50px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  box-shadow: 0 4px 12px rgba(193, 162, 122, 0.35);
+  transition: all 0.3s ease;
+}
+
+.btn-estate-map:hover {
+  background: var(--primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(193, 162, 122, 0.45);
+}
+
+.btn-estate-map:active {
+  transform: translateY(0);
 }

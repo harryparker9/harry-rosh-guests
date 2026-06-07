@@ -795,7 +795,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // I. Estate Modal Logic
     const btnExploreEstate = document.getElementById('btn-explore-estate');
-
     window.openEstateModal = function () {
         if (!galleryModal) return;
 
@@ -807,41 +806,72 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             contentContainer = document.createElement('div');
             contentContainer.id = 'room-detail-content';
-            contentContainer.style.background = 'white';
-            contentContainer.style.width = '90%';
-            contentContainer.style.maxWidth = '600px';
-            contentContainer.style.maxHeight = '90vh';
-            contentContainer.style.overflowY = 'auto';
-            contentContainer.style.borderRadius = '12px';
-            contentContainer.style.padding = '2rem';
-            contentContainer.style.position = 'relative';
-            contentContainer.style.margin = 'auto'; // Center it
-            contentContainer.style.marginTop = '5vh';
+            contentContainer.className = 'modal-content';
             galleryModal.appendChild(contentContainer);
         } else {
             contentContainer.style.display = 'block';
+            contentContainer.className = 'modal-content';
+            // Clear any inline styles that might clash
+            contentContainer.style.background = '';
+            contentContainer.style.width = '';
+            contentContainer.style.maxWidth = '';
+            contentContainer.style.maxHeight = '';
+            contentContainer.style.overflowY = '';
+            contentContainer.style.borderRadius = '';
+            contentContainer.style.padding = '';
+            contentContainer.style.position = '';
+            contentContainer.style.margin = '';
+            contentContainer.style.marginTop = '';
             const oldSwiper = galleryModal.querySelector('.swiper-gallery');
             if (oldSwiper) oldSwiper.style.display = 'none';
         }
 
         // Estate Content
         contentContainer.innerHTML = `
-            <h2 style="color: var(--primary); text-align: center; margin-bottom: 0.5rem; font-family: 'Lato', sans-serif;">The Estate</h2>
-            <p style="text-align: center; color: #666; font-style: italic; margin-bottom: 2rem;">A Victorian Gothic Masterpiece</p>
+            <span class="close-modal" onclick="document.getElementById('gallery-modal').classList.remove('open')">&times;</span>
+            <h2 class="estate-modal-title">The Estate</h2>
+            <p class="estate-modal-subtitle">A Victorian Gothic Masterpiece</p>
             
             <div class="estate-section">
-                <h3 style="color: #556b2f; margin-bottom: 0.8rem; font-size:1.2rem;">Our Home for the Weekend</h3>
-                <p style="color: #444; line-height: 1.6; font-size: 0.95rem;">
+                <h3>Our Home for the Weekend</h3>
+                <p>
                    Huntsham Court is a Grade II* listed Victorian Gothic mansion, built in 1869 by Benjamin Ferrey for the Troyte family. 
                    With 33,000 sq ft of space, it blends historic grandeur with a relaxed, 'home-from-home' atmosphere. 
                    We have exclusive use of the entire estate, so feel free to explore the Library, the Great Hall, and the beautiful grounds.
                 </p>
             </div>
 
-            <hr style="border:0; border-top:1px solid #eee; margin: 2rem 0;">
+            <hr class="estate-divider">
 
             <div class="estate-section">
-                <h3 style="color: #556b2f; margin-bottom: 0.8rem; font-size:1.2rem;">Navigate the Mansion</h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
+                    <h3 style="margin: 0;">Navigate the Mansion</h3>
+                    <button id="btn-toggle-mapper" class="btn-card-action" style="margin: 0; padding: 0.4rem 1rem; font-size: 0.8rem; border-color: var(--primary); color: var(--primary); background: transparent;">
+                        Open Dev Mapper
+                    </button>
+                </div>
+                
+                <!-- Mapper panel (Hidden by default) -->
+                <div id="mapper-panel" class="hidden" style="background: rgba(193, 162, 122, 0.08); border: 1px solid rgba(193, 162, 122, 0.25); padding: 1.25rem; border-radius: 16px; margin-bottom: 1.5rem; text-align: left;">
+                    <h4 style="font-family: 'Playfair Display', serif; color: var(--primary); margin-bottom: 0.5rem; font-size: 1.1rem;">Coordinate Mapper Tool</h4>
+                    <p style="font-size: 0.85rem; margin-bottom: 1rem; color: var(--text-muted); line-height: 1.4;">
+                        Select a room from the dropdown, then click on its location on the floor plan map below. The coordinate will be assigned immediately.
+                    </p>
+                    <div style="display: flex; gap: 0.75rem; align-items: center; margin-bottom: 1rem; flex-wrap: wrap;">
+                        <label style="font-size: 0.9rem; font-weight: 600; color: var(--text-main);">Target Room:</label>
+                        <select id="mapper-room-select" style="flex: 1; min-width: 180px; padding: 0.5rem; border-radius: 8px; border: 1px solid rgba(193, 162, 122, 0.3); font-family: 'Montserrat', sans-serif; font-size: 0.9rem; outline: none; background: white;"></select>
+                    </div>
+                    <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                        <button id="btn-mapper-clear" style="padding: 0.5rem 1rem; border-radius: 50px; border: 1px solid rgba(193, 162, 122, 0.3); background: white; color: var(--text-main); font-size: 0.8rem; cursor: pointer; font-weight: 500; transition: all 0.2s;">Clear Coordinate</button>
+                        <button id="btn-mapper-export" style="padding: 0.5rem 1.2rem; border-radius: 50px; border: none; background: var(--primary); color: white; font-size: 0.8rem; cursor: pointer; font-weight: 600; transition: all 0.2s; box-shadow: 0 2px 5px rgba(193, 162, 122, 0.3);">Export room_data.js</button>
+                    </div>
+                    
+                    <div id="mapper-export-box" class="hidden" style="margin-top: 1.25rem; border-top: 1px dashed rgba(193, 162, 122, 0.25); padding-top: 1.25rem;">
+                        <p style="font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-main);">Copy this text and paste it to overwrite your room_data.js file:</p>
+                        <textarea id="mapper-export-text" readonly style="width: 100%; height: 180px; font-family: monospace; font-size: 0.75rem; padding: 0.75rem; border-radius: 8px; border: 1px solid rgba(193, 162, 122, 0.25); background: rgba(255, 255, 255, 0.8); box-sizing: border-box; resize: vertical; outline: none;"></textarea>
+                        <button id="btn-mapper-copy" style="margin-top: 0.75rem; width: 100%; padding: 0.6rem; border: none; background: #22c55e; color: white; font-weight: 600; border-radius: 50px; cursor: pointer; font-size: 0.85rem; letter-spacing: 0.05em; text-transform: uppercase; transition: all 0.2s;">Copy to Clipboard</button>
+                    </div>
+                </div>
                 
                 <!-- Floor Tabs -->
                 <div class="floor-tabs" id="floor-tabs">
@@ -853,36 +883,35 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <!-- Map Container -->
                 <div class="map-wrapper">
                      <div class="map-scroll-container" id="map-scroll">
-                         <img id="floor-map-img" class="floor-map-img" src="https://jkxxswxpykdyrpjriizx.supabase.co/storage/v1/object/public/floor-plan/Groundfloor.png" alt="Floor Plan">
-                         
-                         <!-- Hotspots/Pins Container -->
-                         <div id="map-markers"></div>
+                          <img id="floor-map-img" class="floor-map-img" src="https://jkxxswxpykdyrpjriizx.supabase.co/storage/v1/object/public/floor-plan/Groundfloor.png" alt="Floor Plan">
+                          
+                          <!-- Hotspots/Pins Container -->
+                          <div id="map-markers"></div>
                      </div>
                      
                      <!-- Popover (Hidden by default) -->
                      <div id="map-popover" class="map-popover">
-                         <h4 id="popover-title">Room Name</h4>
-                         <p id="popover-desc">Room description goes here.</p>
+                          <h4 id="popover-title">Room Name</h4>
+                          <p id="popover-desc">Room description goes here.</p>
                      </div>
                 </div>
             </div>
 
-            <hr style="border:0; border-top:1px solid #eee; margin: 2rem 0;">
+            <hr class="estate-divider">
 
             <div class="estate-section">
-                <h3 style="color: #556b2f; margin-bottom: 0.8rem; font-size:1.2rem;">Getting to Huntsham</h3>
-                <p style="color: #444; line-height: 1.6; font-size: 0.95rem; margin-bottom: 1rem;">
+                <h3>Getting to Huntsham</h3>
+                <p style="margin-bottom: 1.25rem;">
                     The estate is located 12 minutes from Tiverton Parkway Station (2 hours from London Paddington). 
                     The main entrance is via an 800-yard driveway leading directly to the house. Ample parking is available on-site.
                 </p>
                 
-                <a href="https://www.google.com/maps/search/?api=1&query=Huntsham+Court+EX16+7NA" target="_blank" 
-                   style="display: block; width: 100%; text-align: center; background: #2f4f4f; color: white; text-decoration: none; padding: 12px; border-radius: 8px; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <a href="https://www.google.com/maps/search/?api=1&query=Huntsham+Court+EX16+7NA" target="_blank" class="btn-estate-map">
                    Open in Google Maps
                 </a>
             </div>
             
-            <div style="height:30px;"></div>
+            <div style="height:10px;"></div>
         `;
 
         galleryModal.classList.add('open');
@@ -896,10 +925,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Ground Floor Hotspots (x,y in %)
         const groundHotspots = [
-            { name: "Great Hall", desc: "The heart of the house with a grand fireplace.", x: 50, y: 55 },
-            { name: "Library", desc: "A cozy retreat with thousands of books.", x: 25, y: 60 },
-            { name: "Yellow Room", desc: "Bright and airy reception room.", x: 75, y: 40 },
-            { name: "Snug Bar", desc: "Late night drinks and conversation.", x: 60, y: 75 }
+            { name: "Butlers Pantry", desc: "A historic pantry connecting the dining spaces and kitchen, once the nerve center of mansion service.", x: 40.8, y: 8.9 },
+            { name: "Diamond room", desc: "An elegant, smaller reception room with fine architectural details.", x: 65.9, y: 13.6 },
+            { name: "Yellow room", desc: "A bright, beautiful south-facing reception room, perfect for morning tea and socializing.", x: 85.6, y: 12.9 },
+            { name: "Library", desc: "A cozy retreat filled with thousands of books, rich woodwork, and comfortable seating.", x: 88.2, y: 37.8 },
+            { name: "Great Hall", desc: "The grand heart of Huntsham Court, featuring a majestic fireplace and oak paneling.", x: 72.4, y: 51.0 },
+            { name: "Snug Bar", desc: "A warm and inviting space for late-night cocktails, drafts, and lively conversation.", x: 55.9, y: 41.6 },
+            { name: "Entrance Hall", desc: "The grand entrance foyer welcoming you into the historic Victorian estate.", x: 84.2, y: 65.5 },
+            { name: "Kitchen", desc: "The expansive, fully equipped country-style commercial kitchen of the mansion.", x: 25.9, y: 31.4 }
         ];
 
         let currentFloor = 0;
@@ -908,11 +941,163 @@ document.addEventListener('DOMContentLoaded', async () => {
         const popover = document.getElementById('map-popover');
         const tabs = document.querySelectorAll('.floor-tab');
 
+        // Mapper Panel Elements
+        const btnToggleMapper = document.getElementById('btn-toggle-mapper');
+        const mapperPanel = document.getElementById('mapper-panel');
+        const roomSelect = document.getElementById('mapper-room-select');
+        const btnClearCoord = document.getElementById('btn-mapper-clear');
+        const btnExport = document.getElementById('btn-mapper-export');
+        const exportBox = document.getElementById('mapper-export-box');
+        const exportText = document.getElementById('mapper-export-text');
+        const btnCopy = document.getElementById('btn-mapper-copy');
+
+        // Helper to get floor index based on floor name string
+        function getRoomFloorIndex(roomData) {
+            let rFloorIndex = roomData.floorIndex;
+            if (typeof rFloorIndex === 'undefined') {
+                const fl = roomData.floor.toLowerCase();
+                
+                // Always ignore outbuildings/wings outside the main building
+                if (fl.includes("garden") || fl.includes("lodge") || fl.includes("gate")) {
+                    return -1;
+                }
+                
+                // If it already has mapCoords, map it to the tab so it renders
+                if (roomData.mapCoords) {
+                    if (fl.includes("ground")) {
+                        return 0;
+                    } else if (fl.includes("first")) {
+                        return 1;
+                    } else if (fl.includes("second") || fl.includes("third") || fl.includes("loft") || fl.includes("eaves")) {
+                        return 2;
+                    }
+                }
+                
+                if (fl.includes("ground")) {
+                    rFloorIndex = 0;
+                } else if (fl.includes("first")) {
+                    rFloorIndex = 1;
+                } else if (fl.includes("second") || fl.includes("third") || fl.includes("loft") || fl.includes("eaves")) {
+                    rFloorIndex = 2;
+                } else {
+                    rFloorIndex = -1; // Ignore unknown floors
+                }
+            }
+            return rFloorIndex;
+        }
+
+        // Function to populate rooms select dropdown
+        function populateRoomSelect() {
+            if (!roomSelect || !window.ROOM_LIBRARY) return;
+            roomSelect.innerHTML = '';
+            
+            // Filter rooms by active floor tab
+            Object.entries(window.ROOM_LIBRARY).forEach(([roomName, roomData]) => {
+                const floorIdx = getRoomFloorIndex(roomData);
+                if (floorIdx === currentFloor) {
+                    const option = document.createElement('option');
+                    option.value = roomName;
+                    const hasCoord = roomData.mapCoords ? ' (Mapped)' : '';
+                    option.textContent = `${roomName}${hasCoord}`;
+                    roomSelect.appendChild(option);
+                }
+            });
+        }
+
+        if (btnToggleMapper) {
+            btnToggleMapper.onclick = () => {
+                mapperPanel.classList.toggle('hidden');
+                const isOpen = !mapperPanel.classList.contains('hidden');
+                btnToggleMapper.textContent = isOpen ? 'Close Dev Mapper' : 'Open Dev Mapper';
+                if (isOpen) {
+                    populateRoomSelect();
+                    renderMarkers();
+                } else {
+                    exportBox.classList.add('hidden');
+                    renderMarkers();
+                }
+            };
+        }
+
+        // Coordinates Helper & click event for dev mapper
+        mapImg.addEventListener('click', (e) => {
+            const rect = mapImg.getBoundingClientRect();
+            const x = parseFloat(((e.clientX - rect.left) / rect.width * 100).toFixed(1));
+            const y = parseFloat(((e.clientY - rect.top) / rect.height * 100).toFixed(1));
+            
+            console.log(`Click coordinates relative to map size: "mapCoords": { "x": ${x}, "y": ${y} }`);
+            
+            // If dev mapper is open, record the coordinate
+            const isMapperOpen = mapperPanel && !mapperPanel.classList.contains('hidden');
+            if (isMapperOpen && roomSelect && roomSelect.value && window.ROOM_LIBRARY) {
+                const selectedRoom = roomSelect.value;
+                window.ROOM_LIBRARY[selectedRoom].mapCoords = { x, y };
+                
+                // Re-render markers (showing all mapped rooms on the current floor in Dev Mode)
+                renderMarkers();
+                
+                // Re-populate dropdown to show it's mapped, preserving selection or moving to next
+                const currentIndex = roomSelect.selectedIndex;
+                populateRoomSelect();
+                
+                // Select the next room in dropdown list automatically to make it lightning fast
+                if (currentIndex + 1 < roomSelect.options.length) {
+                    roomSelect.selectedIndex = currentIndex + 1;
+                } else {
+                    roomSelect.selectedIndex = 0;
+                }
+            }
+        });
+
+        if (btnClearCoord) {
+            btnClearCoord.onclick = () => {
+                if (roomSelect && roomSelect.value && window.ROOM_LIBRARY) {
+                    const selectedRoom = roomSelect.value;
+                    delete window.ROOM_LIBRARY[selectedRoom].mapCoords;
+                    renderMarkers();
+                    populateRoomSelect();
+                }
+            };
+        }
+
+        if (btnExport) {
+            btnExport.onclick = () => {
+                if (!window.ROOM_LIBRARY || !exportBox || !exportText) return;
+                
+                // Construct the full JS code
+                const code = `// room_data.js - Huntsham Court Hospitality Database\nwindow.ROOM_LIBRARY = ${JSON.stringify(window.ROOM_LIBRARY, null, 4)};\n`;
+                exportText.value = code;
+                exportBox.classList.remove('hidden');
+                exportText.select();
+            };
+        }
+
+        if (btnCopy) {
+            btnCopy.onclick = () => {
+                if (!exportText) return;
+                exportText.select();
+                navigator.clipboard.writeText(exportText.value)
+                    .then(() => {
+                        const originalText = btnCopy.textContent;
+                        btnCopy.textContent = 'Copied!';
+                        btnCopy.style.background = '#15803d'; // dark green
+                        setTimeout(() => {
+                            btnCopy.textContent = originalText;
+                            btnCopy.style.background = '#22c55e'; // reset green
+                        }, 2000);
+                    })
+                    .catch(err => {
+                        console.error('Failed to copy: ', err);
+                        alert('Please copy manually.');
+                    });
+            };
+        }
+
         function renderMarkers() {
             markersContainer.innerHTML = '';
             popover.classList.remove('visible');
 
-            // 1. Render Hotspots (Only on Ground)
+            // 1. Render General Hotspots (Only on Ground)
             if (currentFloor === 0) {
                 groundHotspots.forEach(spot => {
                     const el = document.createElement('div');
@@ -930,29 +1115,44 @@ document.addEventListener('DOMContentLoaded', async () => {
                 });
             }
 
-            // 2. Render User Pin (If applicable)
-            const user = JSON.parse(localStorage.getItem('user'));
-            if (user && user.room_assigned && window.ROOM_LIBRARY) {
-                const roomData = window.ROOM_LIBRARY[user.room_assigned];
-                // Check if room is on current floor
-                // We use optional chaining or default to ensure safety
-                let rFloorIndex = roomData.floorIndex;
+            // 2. Render Room Pins for ALL rooms in ROOM_LIBRARY that have coordinates
+            if (window.ROOM_LIBRARY) {
+                const isMapperOpen = mapperPanel && !mapperPanel.classList.contains('hidden');
+                
+                Object.entries(window.ROOM_LIBRARY).forEach(([roomName, roomData]) => {
+                    if (!roomData.mapCoords) return;
 
-                // Fallback text matching if index not set (legacy data safety)
-                if (typeof rFloorIndex === 'undefined') {
-                    if (roomData.floor.includes("Ground")) rFloorIndex = 0;
-                    else if (roomData.floor.includes("First")) rFloorIndex = 1;
-                    else if (roomData.floor.includes("Second")) rFloorIndex = 2;
-                }
+                    let rFloorIndex = getRoomFloorIndex(roomData);
 
-                if (rFloorIndex === currentFloor && roomData.mapCoords) {
-                    const pin = document.createElement('div');
-                    pin.className = 'user-pin';
-                    pin.textContent = 'You are here';
-                    pin.style.left = roomData.mapCoords.x + '%';
-                    pin.style.top = roomData.mapCoords.y + '%';
-                    markersContainer.appendChild(pin);
-                }
+                    if (rFloorIndex === currentFloor) {
+                        // Check if this is the logged-in user's assigned room
+                        const currentUser = JSON.parse(localStorage.getItem('user'));
+                        const isUserRoom = currentUser && currentUser.room_assigned === roomName;
+                        
+                        // IF Dev Mapper is open, render ALL pins. Otherwise, ONLY render the user's room
+                        if (!isMapperOpen && !isUserRoom) return;
+
+                        const el = document.createElement('div');
+                        el.className = isUserRoom ? 'user-pin' : 'room-pin';
+                        if (isUserRoom) {
+                            el.textContent = 'You are here';
+                        }
+                        
+                        el.style.left = roomData.mapCoords.x + '%';
+                        el.style.top = roomData.mapCoords.y + '%';
+
+                        el.onclick = (e) => {
+                            e.stopPropagation();
+                            document.getElementById('popover-title').textContent = roomName;
+                            
+                            // Compile short details
+                            let desc = roomData.description ? roomData.description.replace(/\[cite:.*?\]/g, '').trim() : "No description available.";
+                            document.getElementById('popover-desc').textContent = desc;
+                            popover.classList.add('visible');
+                        };
+                        markersContainer.appendChild(el);
+                    }
+                });
             }
         }
 
@@ -965,6 +1165,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 // Update State
                 currentFloor = parseInt(tab.getAttribute('data-floor'));
                 mapImg.src = floorImages[currentFloor];
+
+                // If Dev Mapper is open, update room list for the new floor
+                const isMapperOpen = mapperPanel && !mapperPanel.classList.contains('hidden');
+                if (isMapperOpen) {
+                    populateRoomSelect();
+                }
 
                 // Re-render
                 renderMarkers();
