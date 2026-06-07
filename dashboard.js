@@ -21,19 +21,30 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- HELPER: Render Itinerary ---
     // Moved to bottom of file
 
+    // Itinerary Modal States (declared early to avoid temporal dead zone reference errors)
+    let itineraryActiveDay = (localUser && localUser.attendance_option === 'friday_arrival') ? 'Friday' : 'Thursday';
+    let itineraryViewMode = 'storybook'; // 'storybook' (zoomed in) or 'overview' (zoomed out)
+    let itinerarySwiper = null;
 
-
-
-    // 2. Fetch Fresh Data from Supabase
+    // 2. Fetch Fresh Data from Supabase (with a 5-second timeout fallback)
     const supabase = window.Auth.client;
     let user = null;
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+        console.warn('Supabase fetch timed out after 5s, falling back to local cache.');
+        controller.abort();
+    }, 5000);
 
     try {
         const { data, error } = await supabase
             .from('guests')
             .select('*')
             .eq('access_code', localUser.access_code)
-            .single();
+            .single()
+            .abortSignal(controller.signal);
+
+        clearTimeout(timeoutId);
 
         if (error || !data) {
             console.error('Session Invalid:', error);
@@ -45,6 +56,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.Auth.user = user; // Update global state
 
     } catch (err) {
+        clearTimeout(timeoutId);
         console.error('Fetch Error:', err);
         user = localUser;
     }
@@ -293,6 +305,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     const btnViewSchedule = document.getElementById('btn-view-schedule');
     const closeBtn = document.querySelector('#itinerary-modal .close-modal'); // Specific Selector
 
+    // Itinerary Modal States (declared early at top of DOMContentLoaded)
+
+    function updateItineraryBackground(timeStr) {
+        const modalContent = document.querySelector('#itinerary-modal .modal-content');
+        if (!modalContent) return;
+        if (!timeStr) return;
+        
+        const timeLower = timeStr.toLowerCase();
+        if (timeLower.includes('am') || timeLower.includes('8:') || timeLower.includes('9:') || timeLower.includes('11:')) {
+            // Morning (Soft Peach/Cream Sunrise)
+            modalContent.style.background = 'linear-gradient(180deg, rgba(253, 251, 247, 0.98) 0%, rgba(254, 243, 199, 0.9) 100%)';
+        } else if (timeLower.includes('pm') && (timeLower.includes('12:') || timeLower.includes('1:') || timeLower.includes('2:') || timeLower.includes('3:') || timeLower.includes('4:') || timeLower.includes('5:'))) {
+            // Afternoon (Sky Blue/Teal Refresh)
+            modalContent.style.background = 'linear-gradient(180deg, rgba(253, 251, 247, 0.98) 0%, rgba(191, 219, 254, 0.8) 100%)';
+        } else {
+            // Evening/Night (Deep Indigo Night)
+            modalContent.style.background = 'linear-gradient(180deg, rgba(253, 251, 247, 0.98) 0%, rgba(30, 27, 75, 0.45) 100%)';
+        }
+        modalContent.style.transition = 'background 0.5s ease-out';
+    }
+
     // NEW: Render Itinerary Function
     function renderItineraryContent(currentUser) {
         const timelineContainer = document.querySelector('.itinerary-scroll-container');
@@ -300,103 +333,209 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (!timelineContainer || !schedule) return;
 
-        // Clear existing content
-        timelineContainer.innerHTML = '';
+        // Date labels mapping
+        const dayLabels = {
+            "Thursday": "Thursday, August 5th",
+            "Friday": "Friday, August 6th",
+            "Saturday": "Saturday, August 7th",
+            "Sunday": "Sunday, August 8th"
+        };
 
-        schedule.forEach(daySchedule => {
-            // Filter: If Friday Arrival, skip Thursday
-            if (currentUser && currentUser.attendance_option === 'friday_arrival' && daySchedule.day === 'Thursday') {
-                return; // Skip this iteration
-            }
+        // Filter out Thursday if Friday arrival
+        const days = schedule.filter(d => !(currentUser && currentUser.attendance_option === 'friday_arrival' && d.day === 'Thursday'));
+        
+        // Ensure active day is valid
+        if (!days.some(d => d.day === itineraryActiveDay)) {
+            itineraryActiveDay = days[0] ? days[0].day : 'Friday';
+        }
 
-            const dayGroup = document.createElement('div');
-            dayGroup.className = 'day-group';
+        const activeDaySchedule = days.find(d => d.day === itineraryActiveDay);
+        const dayEvents = activeDaySchedule ? activeDaySchedule.events : [];
 
-            const dayHeader = document.createElement('h3');
-            // Simple date logic for display
-            let dateSuffix = "8th";
-            if (daySchedule.day === 'Friday') dateSuffix = "6th";
-            if (daySchedule.day === 'Saturday') dateSuffix = "7th";
-            dayHeader.textContent = daySchedule.events[0] ? `${daySchedule.day}, August ${dateSuffix}` : daySchedule.day;
-
-            dayHeader.className = 'day-header';
-            dayGroup.appendChild(dayHeader);
-
-            const timelineItems = document.createElement('div');
-            timelineItems.className = 'timeline-items';
-
-            daySchedule.events.forEach(event => {
-                const detailsEl = document.createElement('details');
-                detailsEl.className = 'timeline-event';
-
-                // Add Gold Highlight for Saturday
-                if (daySchedule.day === 'Saturday') {
-                    detailsEl.classList.add('highlight-gold');
-                }
-
-                const summaryEl = document.createElement('summary');
-                summaryEl.className = 'timeline-summary';
-
-                // 1. Time Column
-                const timeCol = document.createElement('div');
-                timeCol.className = 'time-column';
-                timeCol.innerHTML = `<span class="event-time">${event.time.split(' - ')[0]}</span>`;
-
-                // 2. Marker Column
-                const markerCol = document.createElement('div');
-                markerCol.className = 'marker-column';
-                const dot = document.createElement('div');
-                dot.className = `timeline-dot ${daySchedule.day === 'Saturday' ? 'gold' : ''}`;
-                const line = document.createElement('div');
-                line.className = `timeline-line ${daySchedule.day === 'Saturday' ? 'gold' : ''}`;
-                markerCol.appendChild(dot);
-                markerCol.appendChild(line);
-
-                // 3. Content Column
-                const contentCol = document.createElement('div');
-                contentCol.className = 'content-column';
-                contentCol.innerHTML = `<span class="event-title">${event.summary}</span>`;
-
-                // Assemble Summary
-                summaryEl.appendChild(timeCol);
-                summaryEl.appendChild(markerCol);
-                summaryEl.appendChild(contentCol);
-
-                // 4. Chevron (Arrow)
-                const chevron = document.createElement('span');
-                chevron.className = 'chevron';
-                chevron.textContent = '▼';
-                summaryEl.appendChild(chevron);
-
-                detailsEl.appendChild(summaryEl);
-
-                // Accordion Content
-                if (event.details) {
-                    const accordionContent = document.createElement('div');
-                    accordionContent.className = 'event-accordion-content';
-                    accordionContent.innerHTML = `<p>${event.details}</p>`;
-                    detailsEl.appendChild(accordionContent);
-                } else {
-                    summaryEl.addEventListener('click', (e) => {
-                        e.preventDefault();
-                    });
-                    detailsEl.classList.add('no-details');
-                }
-
-                timelineItems.appendChild(detailsEl);
-            });
-
-            dayGroup.appendChild(timelineItems);
-            timelineContainer.appendChild(dayGroup);
+        let controlsHtml = `
+            <div class="itinerary-wrapper">
+                <!-- Day Tabs and Toggle row -->
+                <div class="itinerary-controls" style="display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.25rem;">
+                    <div class="itinerary-day-tabs" style="display: flex; gap: 0.4rem; background: rgba(193, 162, 122, 0.1); padding: 0.35rem; border-radius: 50px; border: 1px solid rgba(193, 162, 122, 0.15); width: 100%; box-sizing: border-box; justify-content: space-around;">
+        `;
+        
+        days.forEach(d => {
+            const isActive = d.day === itineraryActiveDay;
+            controlsHtml += `
+                <button class="floor-tab itinerary-day-tab ${isActive ? 'active' : ''}" data-day="${d.day}" style="flex: 1; text-align: center; font-size: 0.85rem; padding: 0.4rem 0.6rem; border: none; cursor: pointer; transition: all 0.2s; border-radius: 25px;">
+                    ${d.day.substring(0, 3)}
+                </button>
+            `;
         });
+
+        controlsHtml += `
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0 0.25rem;">
+                         <span id="itinerary-date-label" style="font-family: 'Playfair Display', serif; font-size: 1.15rem; color: var(--text-main); font-weight: 700;">
+                             ${dayLabels[itineraryActiveDay]}
+                         </span>
+                         <button id="btn-itinerary-toggle" class="btn-card-action" style="margin: 0; padding: 0.4rem 0.8rem; font-size: 0.8rem; border-color: var(--primary); color: var(--primary); background: transparent; border-radius: 50px; cursor: pointer; font-weight: 600;">
+                             ${itineraryViewMode === 'storybook' ? '🔍 Zoom Out (List)' : '📖 Zoom In (Story)'}
+                         </button>
+                    </div>
+                </div>
+
+                <!-- Active Content Container -->
+                <div id="itinerary-active-content" style="transition: all 0.3s ease;">
+        `;
+
+        if (itineraryViewMode === 'storybook') {
+            // Storybook Swiper HTML
+            controlsHtml += `
+                <div class="swiper swiper-itinerary" style="width: 100%; height: 380px; border-radius: 20px; position: relative;">
+                    <div class="swiper-wrapper">
+            `;
+            
+            dayEvents.forEach((event, idx) => {
+                controlsHtml += `
+                    <div class="swiper-slide" data-time="${event.time}">
+                        <div class="itinerary-storybook-card" style="position: relative; border-radius: 20px; overflow: hidden; height: 100%; box-shadow: 0 10px 30px rgba(0,0,0,0.12); display: flex; flex-direction: column; justify-content: flex-end; background: #eee;">
+                            <img src="${event.image || 'huntsham_exterior.jpg'}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1;">
+                            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.15) 60%, rgba(0,0,0,0.3) 100%); z-index: 2;"></div>
+                            
+                            <!-- Header Time/Location Overlay -->
+                            <div style="position: absolute; top: 1.25rem; left: 1.25rem; z-index: 3; display: flex; flex-direction: column; gap: 0.25rem; text-align: left;">
+                                <span style="background: rgba(255, 255, 255, 0.25); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 0.3rem 0.8rem; border-radius: 50px; font-size: 0.8rem; font-weight: 700; width: fit-content; text-shadow: 0 1px 2px rgba(0,0,0,0.3);">${event.time}</span>
+                                <span style="color: rgba(255, 255, 255, 0.95); font-size: 0.85rem; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,0.4);">📍 ${event.location}</span>
+                            </div>
+                            
+                            <!-- Content Overlay -->
+                            <div style="position: relative; z-index: 3; padding: 1.5rem; color: white; text-align: left;">
+                                <h3 style="font-family: 'Playfair Display', serif; font-size: 1.6rem; font-weight: 600; margin-bottom: 0.5rem; text-shadow: 0 1px 3px rgba(0,0,0,0.5);">${event.summary}</h3>
+                                <p style="font-family: 'Montserrat', sans-serif; font-size: 0.85rem; line-height: 1.45; color: rgba(255, 255, 255, 0.9); margin: 0; text-shadow: 0 1px 2px rgba(0,0,0,0.4);">${event.details || 'No details available.'}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            controlsHtml += `
+                    </div>
+                    <div class="swiper-pagination"></div>
+                    <div class="swiper-button-next" style="color: white !important;"></div>
+                    <div class="swiper-button-prev" style="color: white !important;"></div>
+                </div>
+            `;
+        } else {
+            // Overview List HTML
+            controlsHtml += `
+                <div class="itinerary-overview-list" style="display: flex; flex-direction: column; gap: 0.8rem; text-align: left;">
+            `;
+            
+            dayEvents.forEach((event, idx) => {
+                controlsHtml += `
+                    <div class="itinerary-overview-card" data-index="${idx}" style="display: flex; gap: 1rem; background: white; border: 1px solid rgba(193, 162, 122, 0.2); padding: 0.75rem; border-radius: 16px; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.02); align-items: center;">
+                        <img src="${event.image || 'huntsham_exterior.jpg'}" style="width: 65px; height: 65px; object-fit: cover; border-radius: 12px; border: 1px solid rgba(193, 162, 122, 0.15); flex-shrink: 0;">
+                        <div style="flex: 1; min-width: 0;">
+                            <span style="color: var(--primary); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 0.15rem;">${event.time} • ${event.location}</span>
+                            <h4 style="font-family: 'Playfair Display', serif; font-size: 1.1rem; color: var(--text-main); margin-bottom: 0.15rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600;">${event.summary}</h4>
+                            <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${event.details || ''}</p>
+                        </div>
+                        <span style="color: var(--primary); font-size: 1.2rem; flex-shrink: 0; padding-right: 0.25rem;">›</span>
+                    </div>
+                `;
+            });
+            
+            controlsHtml += `
+                </div>
+            `;
+        }
+
+        controlsHtml += `
+                </div>
+            </div>
+        `;
+
+        timelineContainer.innerHTML = controlsHtml;
+
+        // Setup Event Listeners
+        const dayButtons = timelineContainer.querySelectorAll('.itinerary-day-tab');
+        dayButtons.forEach(btn => {
+            btn.onclick = () => {
+                itineraryActiveDay = btn.getAttribute('data-day');
+                renderItineraryContent(currentUser);
+            };
+        });
+
+        const toggleBtn = timelineContainer.querySelector('#btn-itinerary-toggle');
+        if (toggleBtn) {
+            toggleBtn.onclick = () => {
+                itineraryViewMode = itineraryViewMode === 'storybook' ? 'overview' : 'storybook';
+                renderItineraryContent(currentUser);
+            };
+        }
+
+        if (itineraryViewMode === 'storybook' && dayEvents.length > 0) {
+            // Initialize Swiper
+            setTimeout(() => {
+                if (itinerarySwiper) {
+                    itinerarySwiper.destroy(true, true);
+                }
+                itinerarySwiper = new Swiper('.swiper-itinerary', {
+                    pagination: { el: '.swiper-itinerary .swiper-pagination', clickable: true },
+                    navigation: { nextEl: '.swiper-itinerary .swiper-button-next', prevEl: '.swiper-itinerary .swiper-button-prev' },
+                    loop: dayEvents.length > 1,
+                    observer: true,
+                    observeParents: true,
+                    on: {
+                        init: function () {
+                            const activeSlide = this.slides[this.activeIndex];
+                            if (activeSlide) {
+                                const time = activeSlide.getAttribute('data-time');
+                                updateItineraryBackground(time);
+                            }
+                        },
+                        slideChange: function () {
+                            const activeSlide = this.slides[this.activeIndex];
+                            if (activeSlide) {
+                                const time = activeSlide.getAttribute('data-time');
+                                updateItineraryBackground(time);
+                            }
+                        }
+                    }
+                });
+            }, 0);
+        } else {
+            // Overview card click events
+            const overviewCards = timelineContainer.querySelectorAll('.itinerary-overview-card');
+            overviewCards.forEach(card => {
+                card.onclick = () => {
+                    const idx = parseInt(card.getAttribute('data-index'));
+                    itineraryViewMode = 'storybook';
+                    
+                    // Render first
+                    renderItineraryContent(currentUser);
+                    
+                    // Set active slide
+                    setTimeout(() => {
+                        if (itinerarySwiper) {
+                            itinerarySwiper.slideToLoop(idx);
+                        }
+                    }, 50);
+                };
+            });
+            
+            // Clean modal background for Overview Mode (standard cream)
+            const modalContent = document.querySelector('#itinerary-modal .modal-content');
+            if (modalContent) {
+                modalContent.style.background = 'rgba(253, 251, 247, 0.95)';
+            }
+        }
     }
 
     // Open Modal
     if (btnViewSchedule) {
         btnViewSchedule.addEventListener('click', () => {
             modal.classList.add('open');
-            // Re-render on open to ensure fresh state
             const currentUser = JSON.parse(localStorage.getItem('user'));
+            // Reset state on open
+            itineraryActiveDay = (currentUser && currentUser.attendance_option === 'friday_arrival') ? 'Friday' : 'Thursday';
+            itineraryViewMode = 'storybook';
             renderItineraryContent(currentUser);
         });
     }
@@ -405,6 +544,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (closeBtn) {
         closeBtn.addEventListener('click', () => {
             modal.classList.remove('open');
+            const modalContent = document.querySelector('#itinerary-modal .modal-content');
+            if (modalContent) {
+                modalContent.style.background = '';
+            }
         });
     }
 
@@ -412,6 +555,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.addEventListener('click', (e) => {
         if (e.target === modal) {
             modal.classList.remove('open');
+            const modalContent = document.querySelector('#itinerary-modal .modal-content');
+            if (modalContent) {
+                modalContent.style.background = '';
+            }
         }
         if (e.target === faqModal) {
             faqModal.classList.remove('open');
@@ -873,25 +1020,29 @@ document.addEventListener('DOMContentLoaded', async () => {
                     </div>
                 </div>
 
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.8rem; font-style: italic; text-align: center; line-height: 1.4;">
+                    💡 Tip: Tap the map or the <strong>Fullscreen ⛶</strong> button to zoom & pan the floor plans on mobile screens.
+                </p>
+
                 <!-- Map Container -->
                 <div class="map-wrapper" id="map-wrapper-container" style="padding: 1rem; box-sizing: border-box;">
-                     <div class="map-header-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; width: 100%;">
-                          <div class="floor-tabs" id="floor-tabs" style="margin-bottom: 0; flex: 1; margin-right: 0.5rem;">
+                     <div class="map-header-bar" style="display: flex; justify-content: center; align-items: center; margin-bottom: 1rem; width: 100%;">
+                          <div class="floor-tabs" id="floor-tabs" style="margin-bottom: 0; width: 100%; display: flex; justify-content: space-around;">
                                <button class="floor-tab active" data-floor="0">Ground</button>
                                <button class="floor-tab" data-floor="1">First</button>
                                <button class="floor-tab" data-floor="2">Second</button>
                           </div>
-                          <div style="display: flex; gap: 0.5rem; flex-shrink: 0;">
-                              <button id="btn-map-fullscreen" class="btn-card-action" style="margin: 0; padding: 0.4rem 0.8rem; font-size: 0.8rem; display: flex; align-items: center; gap: 0.3rem; border-color: var(--primary); color: var(--primary); background: transparent;">
-                                  <span>⛶</span> Fullscreen
-                              </button>
-                              <button id="btn-close-map-fullscreen" class="btn-card-action" style="display: none; margin: 0; padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--primary); color: white; border: none; border-radius: 50px;">
-                                  ✕ Close
-                              </button>
-                          </div>
                      </div>
 
-                     <div class="map-scroll-container" id="map-scroll">
+                     <div class="map-scroll-container" id="map-scroll" style="position: relative;">
+                          <!-- Floating Controls Pinned to Top-Right -->
+                          <button id="btn-map-fullscreen" class="btn-card-action" style="position: absolute; top: 12px; right: 12px; z-index: 100; margin: 0; padding: 0; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(253, 251, 247, 0.95); border: 1px solid rgba(193, 162, 122, 0.45); color: var(--primary); box-shadow: 0 4px 10px rgba(0,0,0,0.12); cursor: pointer; font-size: 1.1rem; transition: all 0.2s;">
+                              ⛶
+                          </button>
+                          <button id="btn-close-map-fullscreen" class="btn-card-action" style="display: none; position: absolute; top: 12px; right: 12px; z-index: 100; margin: 0; padding: 0; width: 40px; height: 40px; border-radius: 50%; align-items: center; justify-content: center; background: var(--primary); color: white; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.25); cursor: pointer; font-size: 1rem; transition: all 0.2s;">
+                              ✕
+                          </button>
+
                           <div class="map-zoom-area" style="position: relative; display: inline-block; width: 100%;">
                                <img id="floor-map-img" class="floor-map-img" src="https://jkxxswxpykdyrpjriizx.supabase.co/storage/v1/object/public/floor-plan/Groundfloor.png" alt="Floor Plan">
                                <div id="map-markers" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></div>
@@ -1269,8 +1420,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Click map to close popover
         document.getElementById('map-scroll').onclick = (e) => {
-            if (!e.target.classList.contains('map-hotspot') && !e.target.classList.contains('room-pin') && !e.target.classList.contains('user-pin')) {
+            const isHotspot = e.target.classList.contains('map-hotspot') || e.target.classList.contains('room-pin') || e.target.classList.contains('user-pin');
+            if (!isHotspot) {
                 popover.classList.remove('visible');
+                
+                // On mobile, clicking the map background toggles fullscreen
+                if (window.innerWidth <= 768) {
+                    const isFullscreen = mapWrapper.classList.contains('fullscreen-active');
+                    if (!isFullscreen) {
+                        mapWrapper.classList.add('fullscreen-active');
+                    }
+                }
             }
         };
 

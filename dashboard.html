@@ -11,10 +11,34 @@
         href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Montserrat:wght@300;400;500;600&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
-    <link rel="stylesheet" href="index.css">
+    <link rel="stylesheet" href="index.css?v=1.0.1">
 </head>
 
 <body class="dashboard-body">
+    <!-- Visual Error Logger for Local Debugging -->
+    <div id="visual-error-logger" style="display:none; background:#fee2e2; border: 2px solid #ef4444; color:#991b1b; padding:1.25rem; margin:1rem; border-radius:12px; font-family:monospace; z-index:999999; position:relative; text-align:left; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        <h3 style="margin:0 0 0.5rem 0; color:#b91c1c; font-size:1.1rem;">⚠️ JavaScript Error Detected</h3>
+        <pre id="visual-error-text" style="margin:0; white-space:pre-wrap; font-size:0.85rem; line-height:1.4;"></pre>
+    </div>
+    <script>
+    (function() {
+        const logError = function(msg) {
+            const logger = document.getElementById('visual-error-logger');
+            const text = document.getElementById('visual-error-text');
+            if (logger && text) {
+                logger.style.display = 'block';
+                text.textContent += msg + '\n';
+            }
+        };
+        window.addEventListener('error', function(e) {
+            logError(e.message + ' at ' + e.filename + ':' + e.lineno);
+        });
+        window.addEventListener('unhandledrejection', function(e) {
+            logError('Unhandled Promise Rejection: ' + (e.reason?.message || e.reason || 'Unknown error'));
+        });
+    })();
+    </script>
+
     <nav class="nav dashboard-nav">
         <div class="logo">Harry & Rosh</div>
         <a href="index.html" class="nav-link logout-btn">Log Out</a>
@@ -294,10 +318,10 @@
     <script src="supabase.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     <script src="auth.js"></script>
-    <script src="events.js"></script>
+    <script src="events.js?v=1.0.1"></script>
     <script src="faq_data.js"></script>
     <script src="room_data.js"></script>
-    <script src="dashboard.js"></script>
+    <script src="dashboard.js?v=1.0.1"></script>
 </body>
 
 </html>

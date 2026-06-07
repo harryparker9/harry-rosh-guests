@@ -1495,7 +1495,11 @@ details[open] .timeline-dot.gold {
 }
 
 .map-wrapper.fullscreen-active #btn-close-map-fullscreen {
-  display: inline-block !important;
+  display: flex !important;
+  position: fixed !important;
+  top: 16px !important;
+  right: 16px !important;
+  z-index: 12000 !important;
 }
 
 .map-scroll-container {
@@ -1709,6 +1713,41 @@ details[open] .timeline-dot.gold {
     #dashboard-swiper .swiper-slide {
         width: 280px; /* Specific mobile width */
         height: 380px;
+    }
+
+    /* Refined Modals for Mobile Portrait */
+    .modal-content {
+        padding: 1.5rem 1rem !important;
+        width: 95% !important;
+        max-height: 90vh !important;
+        border-radius: 20px !important;
+    }
+
+    /* Keep Floor Tabs responsive & prevent horizontal overflow */
+    .floor-tabs {
+        gap: 0.25rem !important;
+        padding: 0.25rem !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .floor-tab {
+        padding: 0.45rem 0.5rem !important;
+        font-size: 0.8rem !important;
+        flex: 1 !important;
+        text-align: center !important;
+        white-space: nowrap !important;
+    }
+
+    .map-wrapper {
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        overflow: hidden !important;
+    }
+
+    .map-scroll-container {
+        max-width: 100% !important;
+        box-sizing: border-box !important;
     }
 }
 
