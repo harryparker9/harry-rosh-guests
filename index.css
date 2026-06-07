@@ -1,16 +1,18 @@
 :root {
-  --primary: #9DC183;
-  /* Sage Green */
-  --primary-hover: #7da364;
-  /* Darker Sage */
-  --bg-gradient-start: #FFFDD0;
-  /* Cream */
-  --bg-gradient-end: #f7f5e6;
-  /* Lighter Cream */
-  --text-main: #2F4F4F;
-  /* Dark Slate Gray for softer contrast */
-  --text-muted: #556B2F;
-  /* Dark Olive Green */
+  --primary: #C1A27A;
+  /* Elegant Gold/Taupe */
+  --primary-hover: #A88B64;
+  /* Darker Gold/Taupe */
+  --bg-gradient-start: #FAF9F5;
+  /* Fine Off-white / Cream */
+  --bg-gradient-end: #F0EDE6;
+  /* Soft warm grey/cream */
+  --text-main: #2C2C2C;
+  /* Soft Charcoal for high readability */
+  --text-muted: #7E7B77;
+  /* Muted warm grey */
+  --accent-light: #FDFBF7;
+  /* Light Cream */
 }
 
 * {
@@ -21,8 +23,7 @@
 
 body {
   font-family: 'Montserrat', sans-serif;
-  background: radial-gradient(circle at center, var(--bg-gradient-start) 0%, #d4e0c8 100%);
-  /* Gentle cream to very soft sage vignette */
+  background: radial-gradient(circle at center, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
   color: var(--text-main);
   min-height: 100vh;
   display: flex;
@@ -93,7 +94,7 @@ p.subtitle {
   /* Rounded */
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(157, 193, 131, 0.4);
+  box-shadow: 0 4px 15px rgba(193, 162, 122, 0.4);
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
@@ -101,7 +102,7 @@ p.subtitle {
 .btn-primary:hover {
   background-color: var(--primary-hover);
   transform: translateY(-3px);
-  box-shadow: 0 8px 25px rgba(157, 193, 131, 0.6);
+  box-shadow: 0 8px 25px rgba(193, 162, 122, 0.6);
 }
 
 /* Image Styles */
@@ -160,7 +161,7 @@ p.subtitle {
 }
 
 .event-item.active {
-  box-shadow: 0 8px 15px rgba(157, 193, 131, 0.3);
+  box-shadow: 0 8px 15px rgba(193, 162, 122, 0.3);
 }
 
 .event-summary {
@@ -221,7 +222,7 @@ p.subtitle {
   padding: 2rem;
   background-color: var(--bg-gradient-start);
   /* Blend but distinct */
-  border: 1px solid rgba(157, 193, 131, 0.3);
+  border: 1px solid rgba(193, 162, 122, 0.3);
   border-radius: 20px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
 }
@@ -289,12 +290,12 @@ p.subtitle {
   margin-bottom: 1.5rem;
   padding-bottom: 0.5rem;
   width: 100%;
-  border-bottom: 2px solid rgba(157, 193, 131, 0.2);
+  border-bottom: 2px solid rgba(193, 162, 122, 0.2);
   display: block;
 }
 
 /* --- NEW DASHBOARD STYLES (Swiper) --- */
-.swiper {
+#dashboard-swiper {
   width: 100%;
   padding-bottom: 50px !important;
   /* Space for pagination */
@@ -303,7 +304,7 @@ p.subtitle {
   /* Allow side slides to bleed out */
 }
 
-.swiper-slide {
+#dashboard-swiper .swiper-slide {
   width: 300px;
   /* Fixed width for better carousel effect */
   height: 400px;
@@ -317,13 +318,13 @@ p.subtitle {
   transition: opacity 0.3s ease, transform 0.3s;
 }
 
-.swiper-slide-active,
-.swiper-slide-prev,
-.swiper-slide-next {
+#dashboard-swiper .swiper-slide-active,
+#dashboard-swiper .swiper-slide-prev,
+#dashboard-swiper .swiper-slide-next {
   opacity: 1;
 }
 
-.swiper-slide-active {
+#dashboard-swiper .swiper-slide-active {
   /* Scale handled by coverflow effect mostly, but we can keep minimal */
   z-index: 10;
 }
@@ -449,8 +450,6 @@ p.subtitle {
 /* 3. VIP Room */
 .card-room {
   background-image: url('AccomodationImage.jpg');
-  border: 2px solid rgba(255, 215, 0, 0.6);
-  /* Gold border preserved */
 }
 
 /* 4. Photos */
@@ -459,7 +458,7 @@ p.subtitle {
 }
 
 /* 5. RSVP */
-.card-admin {
+.card-rsvp {
   background-image: url('RSVPimage.jpg');
 }
 
@@ -519,10 +518,7 @@ p.subtitle {
   color: white;
 }
 
-.card-room h2 {
-  color: #FFD700;
-  /* Gold header */
-}
+
 
 .swiper-pagination-bullet-active {
   background: var(--primary) !important;
@@ -1077,8 +1073,9 @@ details[open] .timeline-dot.gold {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(5px);
+  background: rgba(44, 44, 44, 0.45);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   z-index: 1000;
   display: none;
   /* Hidden by default */
@@ -1094,17 +1091,19 @@ details[open] .timeline-dot.gold {
 }
 
 .modal-content {
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(253, 251, 247, 0.85);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
   width: 90%;
   max-width: 600px;
   max-height: 85vh;
   overflow-y: auto;
   padding: 2.5rem;
-  border-radius: 20px;
-  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.2);
+  border-radius: 24px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.6);
   position: relative;
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  animation: slideUp 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes slideUp {
@@ -1149,38 +1148,70 @@ details[open] .timeline-dot.gold {
 #faq-chat-output {
   height: 300px;
   overflow-y: auto;
-  border: 1px solid #eee;
-  border-radius: 12px;
-  padding: 1rem;
-  margin-bottom: 1rem;
-  background: #f9f9f9;
+  border: 1px solid rgba(193, 162, 122, 0.2);
+  border-radius: 16px;
+  padding: 1.25rem;
+  margin-bottom: 1.25rem;
+  background: rgba(255, 255, 255, 0.45);
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.85rem;
 }
 
 .chat-bubble {
-  max-width: 80%;
-  padding: 0.8rem 1.2rem;
-  border-radius: 15px;
+  max-width: 85%;
+  padding: 0.75rem 1.1rem;
+  border-radius: 18px;
   font-size: 0.95rem;
-  line-height: 1.4;
+  line-height: 1.45;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
 }
 
 .chat-bubble.bot {
-  background-color: #dcfce7;
-  /* Light Green */
-  color: #166534;
+  background-color: rgba(193, 162, 122, 0.12);
+  color: var(--text-main);
   align-self: flex-start;
-  border-bottom-left-radius: 2px;
+  border-bottom-left-radius: 4px;
 }
 
 .chat-bubble.user {
-  background-color: #f3f4f6;
-  /* Light Grey */
-  color: #1f2937;
+  background-color: #FAF9F5;
+  border: 1px solid rgba(193, 162, 122, 0.15);
+  color: var(--text-main);
   align-self: flex-end;
-  border-bottom-right-radius: 2px;
+  border-bottom-right-radius: 4px;
+}
+
+.chat-chips {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.chat-chip {
+  background: white;
+  border: 1px solid rgba(193, 162, 122, 0.3);
+  border-radius: 50px;
+  padding: 0.45rem 1rem;
+  font-size: 0.8rem;
+  color: var(--text-main);
+  font-family: 'Montserrat', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+}
+
+.chat-chip:hover {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(193, 162, 122, 0.25);
+}
+
+.chat-chip:active {
+  transform: translateY(0);
 }
 
 .chat-input-area {
@@ -1575,14 +1606,272 @@ details[open] .timeline-dot.gold {
     .dashboard-header { margin-bottom: 2rem; }
 
     /* Swiper Adjustments - Keep visual style but ensure fit */
-    .swiper {
+    #dashboard-swiper {
         width: 100% !important;
         overflow: visible !important; /* Allow 3D overflow but clip at body */
     }
 
     /* Make slides responsive on mobile but respect 3D */
-    .swiper-slide {
+    #dashboard-swiper .swiper-slide {
         width: 280px; /* Specific mobile width */
         height: 380px;
     }
+}
+
+/* --- LANDING PAGE STYLES --- */
+.landing-body {
+  background: linear-gradient(rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.55)), url('harryandrosh1.jpg') no-repeat center center / cover;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.floating-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 4rem;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  z-index: 1000;
+}
+
+.floating-header .logo {
+  color: white !important;
+  font-family: 'Playfair Display', serif;
+  font-weight: 500;
+  font-size: 1.8rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.header-right {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.floating-login-form {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.floating-login-form input {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50px;
+  padding: 0.7rem 1.4rem;
+  color: white;
+  font-size: 0.9rem;
+  font-family: 'Montserrat', sans-serif;
+  outline: none;
+  transition: all 0.3s ease;
+  width: 220px;
+}
+
+.floating-login-form input:focus {
+  border-color: var(--primary);
+  background: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 0 10px rgba(193, 162, 122, 0.4);
+}
+
+.floating-login-form input::placeholder {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.floating-login-form button.btn-enter {
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 50px;
+  padding: 0.7rem 1.8rem;
+  font-weight: 600;
+  font-family: 'Montserrat', sans-serif;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.floating-login-form button.btn-enter:hover {
+  background: var(--primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(193, 162, 122, 0.4);
+}
+
+.floating-login-form button.btn-enter:active {
+  transform: translateY(0);
+}
+
+.header-right #login-error.error-message {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  background: rgba(220, 38, 38, 0.85);
+  backdrop-filter: blur(4px);
+  color: white;
+  padding: 0.5rem 1.2rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  z-index: 1001;
+  border: 1px solid rgba(220, 38, 38, 0.2);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.landing-hero {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 2rem;
+  min-height: 100vh;
+}
+
+.landing-content {
+  margin-top: 60px; /* offset the fixed header */
+}
+
+.wedding-headline {
+  font-family: 'Playfair Display', serif;
+  font-size: 5rem;
+  font-weight: 300;
+  color: white;
+  line-height: 1.1;
+  margin-bottom: 1.5rem;
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
+  letter-spacing: 0.02em;
+}
+
+.wedding-details {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.4rem;
+  font-weight: 400;
+  color: white;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  opacity: 0.9;
+}
+
+@media (max-width: 768px) {
+  .floating-header {
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1.5rem;
+  }
+  .floating-header .logo {
+    font-size: 1.5rem;
+  }
+  .floating-login-form input {
+    width: 160px;
+    padding: 0.6rem 1rem;
+  }
+  .floating-login-form button.btn-enter {
+    padding: 0.6rem 1.2rem;
+  }
+  .wedding-headline {
+    font-size: 3rem;
+  }
+  .wedding-details {
+    font-size: 1.1rem;
+  }
+}
+
+/* --- HOTEL BOOKING POPUP STYLES --- */
+.room-photo-swiper {
+  width: 100%;
+  height: 280px;
+  border-radius: 16px;
+  overflow: hidden !important;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  position: relative;
+}
+
+.room-photo-swiper .swiper-slide {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.room-photo-swiper .swiper-slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.room-photo-swiper .swiper-button-next,
+.room-photo-swiper .swiper-button-prev {
+  color: white !important;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 50%;
+  box-shadow: none !important;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.room-photo-swiper .swiper-button-next:after,
+.room-photo-swiper .swiper-button-prev:after {
+  font-size: 1rem !important;
+}
+
+.room-photo-swiper .swiper-pagination-bullet {
+  background: white !important;
+  opacity: 0.6;
+}
+
+.room-photo-swiper .swiper-pagination-bullet-active {
+  background: var(--primary) !important;
+  opacity: 1;
+}
+
+.room-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background: rgba(193, 162, 122, 0.12);
+  color: var(--primary);
+  border-radius: 50px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.amenity-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  margin: 1.25rem 0;
+}
+
+.amenity-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--text-main);
+}
+
+@media (max-width: 600px) {
+  .room-photo-swiper {
+    height: 200px;
+  }
+  .amenity-grid {
+    grid-template-columns: 1fr;
+  }
 }

@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Redirect if no user
     if (!localUser || !localUser.access_code) {
-        window.location.href = 'hello.html';
+        window.location.href = 'index.html';
         return;
     }
 
@@ -22,27 +22,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Moved to bottom of file
 
 
-    // --- ADMIN LINK INJECTION ---
-    if (window.Auth.isAdmin()) {
-        const nav = document.querySelector('.dashboard-nav .logout-btn');
-        // We want to insert BEFORE the logout button or alongside it.
-        const navContainer = document.querySelector('.dashboard-nav > div:last-child') || document.querySelector('.dashboard-nav');
 
-        // Check if link already exists to prevent duplicates
-        if (!document.querySelector('a[href="admin.html"]')) {
-            const adminBtn = document.createElement('a');
-            adminBtn.href = "admin.html";
-            adminBtn.className = "nav-link-subtle";
-            adminBtn.style.marginRight = "1rem";
-            adminBtn.textContent = "👑 Admin Panel";
-
-            // Insert before logout
-            const logoutBtn = document.querySelector('.logout-btn');
-            if (logoutBtn) {
-                logoutBtn.parentNode.insertBefore(adminBtn, logoutBtn);
-            }
-        }
-    }
 
     // 2. Fetch Fresh Data from Supabase
     const supabase = window.Auth.client;
@@ -595,6 +575,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
     }
 
+    window.askFAQ = function (query) {
+        if (!chatInput) return;
+        chatInput.value = query;
+        handleChatSubmit();
+    };
+
     if (chatSubmit) {
         chatSubmit.addEventListener('click', handleChatSubmit);
     }
@@ -637,34 +623,28 @@ document.addEventListener('DOMContentLoaded', async () => {
     const galleryModal = document.getElementById('gallery-modal');
     const closeGalleryBtn = document.querySelector('.close-gallery');
     let gallerySwiper = null; // Keeping reference in case we revert, but not used in new flow
-
-
     window.openRoomModal = function (roomData, roomName, roomStatus, accessCode) {
         if (!galleryModal) return;
 
-        // Remove Swiper container if it exists, replace with scrollable content
         let contentContainer = document.getElementById('room-detail-content');
         if (!contentContainer) {
-            // Clear entire modal content first to remove old Swiper structure
-            // But we keep the close button
             const oldSwiper = galleryModal.querySelector('.swiper-gallery');
             if (oldSwiper) oldSwiper.style.display = 'none';
 
             contentContainer = document.createElement('div');
             contentContainer.id = 'room-detail-content';
-            contentContainer.style.background = 'white';
+            contentContainer.className = 'modal-content';
+            contentContainer.style.background = 'rgba(253, 251, 247, 0.95)';
             contentContainer.style.width = '90%';
             contentContainer.style.maxWidth = '600px';
             contentContainer.style.maxHeight = '90vh';
             contentContainer.style.overflowY = 'auto';
-            contentContainer.style.borderRadius = '12px';
-            contentContainer.style.padding = '2rem';
+            contentContainer.style.borderRadius = '24px';
+            contentContainer.style.padding = '2.5rem';
             contentContainer.style.position = 'relative';
-            contentContainer.style.margin = 'auto'; // Center it
+            contentContainer.style.margin = 'auto';
             contentContainer.style.marginTop = '5vh';
             galleryModal.appendChild(contentContainer);
-
-            // Move close button inside or keep absolute
         } else {
             contentContainer.style.display = 'block';
             const oldSwiper = galleryModal.querySelector('.swiper-gallery');
@@ -674,63 +654,133 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Clean Description
         let cleanDesc = roomData.description ? roomData.description.replace(/\[cite:.*?\]/g, '').trim() : "No description available.";
 
-        // HTML Strings
-        let imagesHtml = '';
-        if (roomData.photos && roomData.photos.length > 0) {
-            imagesHtml = `<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; margin: 1.5rem 0;">`;
-            roomData.photos.forEach(url => {
-                imagesHtml += `<img src="${url}" class="gallery-thumb" style="width:100%; height:100px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 1px solid #ddd;" data-src="${url}">`;
-            });
-            imagesHtml += `</div><p style="text-align:center; font-size:0.8rem; color:#666; margin-bottom:2rem;">(Click images to view full size)</p>`;
+        // Compile Amenities dynamically based on description keywords
+        const amenities = [
+            "📶 High-speed Wi-Fi",
+            "☕ Coffee & Tea Station",
+            "🧴 Luxury Linens & Toiletries",
+            "🏰 Estate Gardens Access"
+        ];
+
+        // Parse bed details
+        if (cleanDesc.toLowerCase().includes("four-poster")) {
+            amenities.unshift("🛏&nbsp;King Four-Poster Bed");
+        } else if (cleanDesc.toLowerCase().includes("super-king")) {
+            amenities.unshift("🛏&nbsp;Super-King Bed");
+        } else if (cleanDesc.toLowerCase().includes("king-size")) {
+            amenities.unshift("🛏&nbsp;King Bed");
+        } else if (cleanDesc.toLowerCase().includes("double bed")) {
+            amenities.unshift("🛏&nbsp;Double Bed");
+        } else if (cleanDesc.toLowerCase().includes("sofa bed")) {
+            amenities.unshift("🛏&nbsp;Sofa Bed Option");
         } else {
-            imagesHtml = `<p>No photos available for this room.</p>`;
+            amenities.unshift("🛏&nbsp;Premium Bedding");
         }
 
-        let actionHtml = '';
-        if (roomStatus === 'confirmed' || roomStatus === 'paid') {
-            actionHtml = `
-                <div style="background: #f0fdf4; border: 1px solid #22c55e; color: #166534; padding: 1rem; border-radius: 8px; text-align: center;">
-                    <strong>✓ Booking Secured</strong>
-                    <p style="margin:0; font-size:0.9rem;">This room is fully paid. No further action is needed.</p>
+        // Parse bathroom details
+        if (cleanDesc.toLowerCase().includes("twin baths")) {
+            amenities.push("🛁 Twin Bathrooms");
+        } else if (cleanDesc.toLowerCase().includes("bath and separate shower")) {
+            amenities.push("🛁 Bath & Separate Shower");
+        } else if (cleanDesc.toLowerCase().includes("wet room")) {
+            amenities.push("🚿 Accessible Wet Room");
+        } else if (cleanDesc.toLowerCase().includes("shower")) {
+            amenities.push("🚿 En-suite Shower");
+        } else if (cleanDesc.toLowerCase().includes("bathroom")) {
+            amenities.push("🛁 Private Bathroom");
+        }
+
+        // Build Slider HTML
+        let sliderHtml = '';
+        if (roomData.photos && roomData.photos.length > 0) {
+            sliderHtml = `
+                <div class="swiper room-photo-swiper">
+                    <div class="swiper-wrapper">
+            `;
+            roomData.photos.forEach(url => {
+                sliderHtml += `
+                    <div class="swiper-slide">
+                        <img src="${url}" alt="${roomName}">
+                    </div>
+                `;
+            });
+            sliderHtml += `
+                    </div>
+                    <div class="swiper-pagination"></div>
+                    <div class="swiper-button-next"></div>
+                    <div class="swiper-button-prev"></div>
                 </div>
             `;
         } else {
-            actionHtml = `
-                <div style="background: #fff7ed; border: 1px solid #f97316; padding: 1.5rem; border-radius: 8px; text-align: center;">
-                    <button id="btn-modal-pay-now" class="btn-primary" style="width:100%; margin-bottom:1rem; font-size:1.1rem; padding: 12px;">
+            sliderHtml = `
+                <div style="width:100%; height:200px; background:#f5f5f5; border-radius:12px; display:flex; align-items:center; justify-content:center; color:#888; margin-bottom:1.5rem;">
+                    No photos available for this room
+                </div>
+            `;
+        }
+
+        // Build Status HTML
+        let statusHtml = '';
+        if (roomStatus === 'confirmed' || roomStatus === 'paid') {
+            statusHtml = `
+                <div style="background: rgba(34, 197, 94, 0.08); border: 1px solid rgba(34, 197, 94, 0.25); color: #166534; padding: 1.25rem; border-radius: 12px; display: flex; align-items: center; gap: 1rem; margin-top: 1.5rem;">
+                    <span style="font-size: 2rem; line-height: 1;">✓</span>
+                    <div style="text-align: left;">
+                        <strong style="display:block; font-size: 0.95rem;">Booking Guaranteed</strong>
+                        <span style="font-size: 0.85rem; opacity: 0.9;">Your payment has been received and your suite is secured.</span>
+                    </div>
+                </div>
+            `;
+        } else {
+            statusHtml = `
+                <div style="background: rgba(249, 115, 22, 0.08); border: 1px solid rgba(249, 115, 22, 0.25); color: #c2410c; padding: 1.25rem; border-radius: 12px; margin-top: 1.5rem; text-align: left;">
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                        <span style="font-size: 2rem; line-height: 1;">⏳</span>
+                        <div>
+                            <strong style="display:block; font-size: 0.95rem;">Awaiting Payment</strong>
+                            <span style="font-size: 0.85rem; opacity: 0.9;">Please secure your reservation. Deadline: 1st December 2026.</span>
+                        </div>
+                    </div>
+                    <button id="btn-modal-pay-now" class="btn-primary" style="width: 100%; font-size: 1rem; padding: 10px; text-transform: none; box-shadow: none;">
                         Secure Room (Pay Now)
                     </button>
-                    <p style="margin:0; font-size: 0.9rem; color: #c2410c;">
-                        <strong>Warning:</strong> Your room is not secure until paid.<br>
-                        Deadline for payment is 1st December 2026.
-                    </p>
                 </div>
             `;
         }
 
-        // Render Content
+        // Render HTML inside container (keeping the close button we prepended)
+        const closeBtnHtml = `<span class="close-modal" onclick="document.getElementById('gallery-modal').classList.remove('open')">&times;</span>`;
         contentContainer.innerHTML = `
-            <h2 style="color: var(--primary); text-align: center; margin-bottom: 0.5rem;">${roomName}</h2>
-            <p style="text-align: center; color: #666; font-weight: bold; margin-bottom: 1.5rem;">${roomData.floor}</p>
-            
-            <hr style="border:0; border-top:1px solid #eee; margin: 1rem 0;">
-            
-            <h3 style="font-size: 1.1rem; color: #333; margin-bottom: 0.5rem;">Description</h3>
-            <p style="color: #444; line-height: 1.6;">${cleanDesc}</p>
-            
-            <hr style="border:0; border-top:1px solid #eee; margin: 1.5rem 0;">
-
-            <h3 style="font-size: 1.1rem; color: #333; margin-bottom: 0.5rem;">Gallery</h3>
-            ${imagesHtml}
-
-            <hr style="border:0; border-top:1px solid #eee; margin: 1.5rem 0;">
-
-            ${actionHtml}
-            <div style="height:50px;"></div> <!-- Spacer -->
+            ${closeBtnHtml}
+            ${sliderHtml}
+            <div style="text-align: left;">
+                <span class="room-badge">${roomData.floor}</span>
+                <h2 style="font-family: 'Playfair Display', serif; font-size: 2.2rem; color: var(--text-main); margin-bottom: 0.5rem; line-height:1.2;">${roomName}</h2>
+                
+                <p style="color: #444; line-height: 1.6; font-size: 0.95rem; margin-bottom: 1.5rem;">${cleanDesc}</p>
+                
+                <h3 style="font-family: 'Montserrat', sans-serif; font-size: 1rem; font-weight:600; margin-bottom: 0.75rem; color: var(--text-main);">Suite Amenities</h3>
+                <div class="amenity-grid">
+                    ${amenities.map(a => '<div class="amenity-item">' + a + '</div>').join('')}
+                </div>
+                
+                ${statusHtml}
+            </div>
+            <div style="height:10px;"></div>
         `;
 
-        // Attach Event
+        // Initialize Swiper for photos
         setTimeout(() => {
+            if (roomData.photos && roomData.photos.length > 0) {
+                new Swiper('.room-photo-swiper', {
+                    pagination: { el: '.room-photo-swiper .swiper-pagination', clickable: true },
+                    navigation: { nextEl: '.room-photo-swiper .swiper-button-next', prevEl: '.room-photo-swiper .swiper-button-prev' },
+                    loop: roomData.photos.length > 1,
+                    observer: true,
+                    observeParents: true
+                });
+            }
+
             const payBtn = document.getElementById('btn-modal-pay-now');
             if (payBtn) {
                 payBtn.onclick = () => {
@@ -738,57 +788,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                     window.openPaymentModal(roomName, accessCode);
                 };
             }
-
-            // Lightbox Logic
-            const thumbs = contentContainer.querySelectorAll('.gallery-thumb');
-            thumbs.forEach(thumb => {
-                thumb.onclick = () => {
-                    const src = thumb.getAttribute('data-src');
-                    let lightbox = document.getElementById('app-lightbox');
-
-                    if (!lightbox) {
-                        lightbox = document.createElement('div');
-                        lightbox.id = 'app-lightbox';
-                        lightbox.style.position = 'fixed';
-                        lightbox.style.top = '0';
-                        lightbox.style.left = '0';
-                        lightbox.style.width = '100%';
-                        lightbox.style.height = '100%';
-                        lightbox.style.background = 'rgba(0,0,0,0.9)';
-                        lightbox.style.zIndex = '3000';
-                        lightbox.style.display = 'flex';
-                        lightbox.style.justifyContent = 'center';
-                        lightbox.style.alignItems = 'center';
-                        lightbox.style.opacity = '0';
-                        lightbox.style.transition = 'opacity 0.3s';
-
-                        const img = document.createElement('img');
-                        img.id = 'lightbox-img';
-                        img.style.maxWidth = '90%';
-                        img.style.maxHeight = '90%';
-                        img.style.objectFit = 'contain';
-                        img.style.borderRadius = '4px';
-                        img.style.boxShadow = '0 0 20px rgba(0,0,0,0.5)';
-
-                        // Close on click anywhere
-                        lightbox.onclick = () => {
-                            lightbox.style.opacity = '0';
-                            setTimeout(() => { lightbox.remove(); }, 300);
-                        };
-
-                        lightbox.appendChild(img);
-                        document.body.appendChild(lightbox);
-                    }
-
-                    const lbImg = document.getElementById('lightbox-img');
-                    if (lbImg) lbImg.src = src;
-
-                    // Show
-                    // Force reflow
-                    lightbox.offsetHeight;
-                    lightbox.style.opacity = '1';
-                };
-            });
         }, 0);
 
         galleryModal.classList.add('open');

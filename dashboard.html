@@ -17,7 +17,7 @@
 <body class="dashboard-body">
     <nav class="nav dashboard-nav">
         <div class="logo">Harry & Rosh</div>
-        <a href="hello.html" class="nav-link logout-btn">Log Out</a>
+        <a href="index.html" class="nav-link logout-btn">Log Out</a>
     </nav>
 
     <main class="dashboard-container">
@@ -105,9 +105,9 @@
                         </div>
                     </div>
 
-                    <!-- Slide 5: Admin / RSVP -->
-                    <div class="swiper-slide" id="slide-admin">
-                        <div class="dashboard-card card-admin">
+                    <!-- Slide 5: RSVP -->
+                    <div class="swiper-slide" id="slide-rsvp">
+                        <div class="dashboard-card card-rsvp">
                             <h2>Your RSVP</h2>
                             <div class="card-content">
                                 <p>Need to changes plans?</p>
@@ -137,6 +137,12 @@
                 <div id="faq-chat-output">
                     <!-- Chat bubbles go here -->
                     <div class="chat-bubble bot">Hello! I'm your AI assistant. Ask me anything about the wedding!</div>
+                </div>
+                <div class="chat-chips">
+                    <button class="chat-chip" onclick="askFAQ('What room am I staying in?')">My Room</button>
+                    <button class="chat-chip" onclick="askFAQ('What time is the ceremony on Saturday?')">Ceremony Time</button>
+                    <button class="chat-chip" onclick="askFAQ('What is the dress code?')">Dress Code</button>
+                    <button class="chat-chip" onclick="askFAQ('Are kids allowed?')">Kids Info</button>
                 </div>
                 <div class="chat-input-area">
                     <input type="text" id="faq-chat-input" placeholder="e.g. What time is the ceremony?">

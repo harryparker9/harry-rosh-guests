@@ -48,29 +48,12 @@
         logout: function () {
             this.user = null;
             localStorage.removeItem('user');
-            window.location.href = 'hello.html';
-        },
-
-        isAdmin: function () {
-            if (!this.user) return false;
-            // Check DB flag or hardcoded Master Code
-            return this.user.is_admin === true || this.user.access_code === CONFIG.adminCode;
+            window.location.href = 'index.html';
         },
 
         requireAuth: function () {
             if (!this.user) {
-                window.location.href = 'hello.html';
-                return false;
-            }
-            return true;
-        },
-
-        requireAdmin: function () {
-            if (!this.requireAuth()) return false;
-
-            if (!this.isAdmin()) {
-                alert("Access Denied: Admins Only");
-                window.location.href = 'dashboard.html';
+                window.location.href = 'index.html';
                 return false;
             }
             return true;
