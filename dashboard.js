@@ -846,7 +846,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             <div class="estate-section">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
                     <h3 style="margin: 0;">Navigate the Mansion</h3>
-                    <button id="btn-toggle-mapper" class="btn-card-action" style="margin: 0; padding: 0.4rem 1rem; font-size: 0.8rem; border-color: var(--primary); color: var(--primary); background: transparent;">
+                    <button id="btn-toggle-mapper" class="btn-card-action" style="display: none; margin: 0; padding: 0.4rem 1rem; font-size: 0.8rem; border-color: var(--primary); color: var(--primary); background: transparent;">
                         Open Dev Mapper
                     </button>
                 </div>
@@ -872,21 +872,30 @@ document.addEventListener('DOMContentLoaded', async () => {
                         <button id="btn-mapper-copy" style="margin-top: 0.75rem; width: 100%; padding: 0.6rem; border: none; background: #22c55e; color: white; font-weight: 600; border-radius: 50px; cursor: pointer; font-size: 0.85rem; letter-spacing: 0.05em; text-transform: uppercase; transition: all 0.2s;">Copy to Clipboard</button>
                     </div>
                 </div>
-                
-                <!-- Floor Tabs -->
-                <div class="floor-tabs" id="floor-tabs">
-                     <button class="floor-tab active" data-floor="0">Ground</button>
-                     <button class="floor-tab" data-floor="1">First</button>
-                     <button class="floor-tab" data-floor="2">Second</button>
-                </div>
 
                 <!-- Map Container -->
-                <div class="map-wrapper">
+                <div class="map-wrapper" id="map-wrapper-container" style="padding: 1rem; box-sizing: border-box;">
+                     <div class="map-header-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; width: 100%;">
+                          <div class="floor-tabs" id="floor-tabs" style="margin-bottom: 0; flex: 1; margin-right: 0.5rem;">
+                               <button class="floor-tab active" data-floor="0">Ground</button>
+                               <button class="floor-tab" data-floor="1">First</button>
+                               <button class="floor-tab" data-floor="2">Second</button>
+                          </div>
+                          <div style="display: flex; gap: 0.5rem; flex-shrink: 0;">
+                              <button id="btn-map-fullscreen" class="btn-card-action" style="margin: 0; padding: 0.4rem 0.8rem; font-size: 0.8rem; display: flex; align-items: center; gap: 0.3rem; border-color: var(--primary); color: var(--primary); background: transparent;">
+                                  <span>⛶</span> Fullscreen
+                              </button>
+                              <button id="btn-close-map-fullscreen" class="btn-card-action" style="display: none; margin: 0; padding: 0.4rem 0.8rem; font-size: 0.8rem; background: var(--primary); color: white; border: none; border-radius: 50px;">
+                                  ✕ Close
+                              </button>
+                          </div>
+                     </div>
+
                      <div class="map-scroll-container" id="map-scroll">
-                          <img id="floor-map-img" class="floor-map-img" src="https://jkxxswxpykdyrpjriizx.supabase.co/storage/v1/object/public/floor-plan/Groundfloor.png" alt="Floor Plan">
-                          
-                          <!-- Hotspots/Pins Container -->
-                          <div id="map-markers"></div>
+                          <div class="map-zoom-area" style="position: relative; display: inline-block; width: 100%;">
+                               <img id="floor-map-img" class="floor-map-img" src="https://jkxxswxpykdyrpjriizx.supabase.co/storage/v1/object/public/floor-plan/Groundfloor.png" alt="Floor Plan">
+                               <div id="map-markers" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></div>
+                          </div>
                      </div>
                      
                      <!-- Popover (Hidden by default) -->
@@ -957,8 +966,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (typeof rFloorIndex === 'undefined') {
                 const fl = roomData.floor.toLowerCase();
                 
-                // Always ignore outbuildings/wings outside the main building
-                if (fl.includes("garden") || fl.includes("lodge") || fl.includes("gate")) {
+                // Garden wing belongs to Ground floor (index 0)
+                if (fl.includes("garden")) {
+                    return 0;
+                }
+                
+                // Always ignore other outbuildings/wings outside the main building
+                if (fl.includes("lodge") || fl.includes("gate")) {
                     return -1;
                 }
                 
@@ -1004,7 +1018,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         }
 
+        const isDevMode = new URLSearchParams(window.location.search).has('dev');
         if (btnToggleMapper) {
+            if (isDevMode) {
+                btnToggleMapper.style.display = 'inline-block';
+            } else {
+                btnToggleMapper.style.display = 'none';
+            }
             btnToggleMapper.onclick = () => {
                 mapperPanel.classList.toggle('hidden');
                 const isOpen = !mapperPanel.classList.contains('hidden');
@@ -1156,30 +1176,95 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         }
 
+        function switchFloor(floorIdx) {
+            currentFloor = floorIdx;
+            tabs.forEach(t => {
+                if (parseInt(t.getAttribute('data-floor')) === floorIdx) {
+                    t.classList.add('active');
+                } else {
+                    t.classList.remove('active');
+                }
+            });
+            mapImg.src = floorImages[currentFloor];
+            const isMapperOpen = mapperPanel && !mapperPanel.classList.contains('hidden');
+            if (isMapperOpen) {
+                populateRoomSelect();
+            }
+            renderMarkers();
+        }
+
         tabs.forEach(tab => {
             tab.onclick = () => {
-                // Update UI
-                tabs.forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-
-                // Update State
-                currentFloor = parseInt(tab.getAttribute('data-floor'));
-                mapImg.src = floorImages[currentFloor];
-
-                // If Dev Mapper is open, update room list for the new floor
-                const isMapperOpen = mapperPanel && !mapperPanel.classList.contains('hidden');
-                if (isMapperOpen) {
-                    populateRoomSelect();
-                }
-
-                // Re-render
-                renderMarkers();
+                switchFloor(parseInt(tab.getAttribute('data-floor')));
             };
         });
 
+        // Touch Swiping logic for switching floors
+        let touchStartX = 0;
+        let touchStartY = 0;
+        const mapScroll = document.getElementById('map-scroll');
+        
+        if (mapScroll) {
+            mapScroll.addEventListener('touchstart', (e) => {
+                if (e.touches.length > 1) return;
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+            }, { passive: true });
+            
+            mapScroll.addEventListener('touchend', (e) => {
+                if (e.changedTouches.length === 0) return;
+                const touchEndX = e.changedTouches[0].clientX;
+                const touchEndY = e.changedTouches[0].clientY;
+                
+                const deltaX = touchEndX - touchStartX;
+                const deltaY = touchEndY - touchStartY;
+                
+                if (Math.abs(deltaX) > 60 && Math.abs(deltaX) > Math.abs(deltaY) * 1.5) {
+                    const isFullscreen = document.getElementById('map-wrapper-container').classList.contains('fullscreen-active');
+                    if (isFullscreen) {
+                        const scrollLeft = mapScroll.scrollLeft;
+                        const maxScroll = mapScroll.scrollWidth - mapScroll.clientWidth;
+                        if (deltaX < 0 && scrollLeft < maxScroll - 15) return;
+                        if (deltaX > 0 && scrollLeft > 15) return;
+                    }
+                    
+                    if (deltaX < 0) {
+                        if (currentFloor < 2) {
+                            switchFloor(currentFloor + 1);
+                        }
+                    } else {
+                        if (currentFloor > 0) {
+                            switchFloor(currentFloor - 1);
+                        }
+                    }
+                }
+            }, { passive: true });
+        }
+
+        // Fullscreen map logic
+        const btnFullscreen = document.getElementById('btn-map-fullscreen');
+        const btnCloseFullscreen = document.getElementById('btn-close-map-fullscreen');
+        const mapWrapper = document.getElementById('map-wrapper-container');
+
+        if (btnFullscreen && mapWrapper) {
+            btnFullscreen.onclick = () => {
+                mapWrapper.classList.add('fullscreen-active');
+                popover.classList.remove('visible');
+            };
+        }
+
+        if (btnCloseFullscreen && mapWrapper) {
+            btnCloseFullscreen.onclick = () => {
+                mapWrapper.classList.remove('fullscreen-active');
+                popover.classList.remove('visible');
+            };
+        }
+
         // Click map to close popover
-        document.getElementById('map-scroll').onclick = () => {
-            popover.classList.remove('visible');
+        document.getElementById('map-scroll').onclick = (e) => {
+            if (!e.target.classList.contains('map-hotspot') && !e.target.classList.contains('room-pin') && !e.target.classList.contains('user-pin')) {
+                popover.classList.remove('visible');
+            }
         };
 
         // Initial Render

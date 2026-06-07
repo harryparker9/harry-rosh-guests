@@ -416,7 +416,11 @@ window.ROOM_LIBRARY = {
             "https://jkxxswxpykdyrpjriizx.supabase.co/storage/v1/object/public/guest-photos/Tenby1.jpg",
             "https://jkxxswxpykdyrpjriizx.supabase.co/storage/v1/object/public/guest-photos/Tenby2.jpg",
             "https://jkxxswxpykdyrpjriizx.supabase.co/storage/v1/object/public/guest-photos/Tenby3.jpg"
-        ]
+        ],
+        "mapCoords": {
+            "x": 7.4,
+            "y": 33.1
+        }
     },
     "Elby": {
         "description": "Ground floor zip-link super-king with en-suite shower.",
@@ -425,7 +429,11 @@ window.ROOM_LIBRARY = {
             "https://jkxxswxpykdyrpjriizx.supabase.co/storage/v1/object/public/guest-photos/Elby1.jpg",
             "https://jkxxswxpykdyrpjriizx.supabase.co/storage/v1/object/public/guest-photos/Elby2.jpg",
             "https://jkxxswxpykdyrpjriizx.supabase.co/storage/v1/object/public/guest-photos/Elby3.jpg"
-        ]
+        ],
+        "mapCoords": {
+            "x": 17.7,
+            "y": 41.6
+        }
     },
     "Gate House Back": {
         "description": "King bed with shared bathroom upstairs.",
