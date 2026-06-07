@@ -1040,34 +1040,41 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         // Coordinates Helper & click event for dev mapper
-        mapImg.addEventListener('click', (e) => {
-            const rect = mapImg.getBoundingClientRect();
-            const x = parseFloat(((e.clientX - rect.left) / rect.width * 100).toFixed(1));
-            const y = parseFloat(((e.clientY - rect.top) / rect.height * 100).toFixed(1));
-            
-            console.log(`Click coordinates relative to map size: "mapCoords": { "x": ${x}, "y": ${y} }`);
-            
-            // If dev mapper is open, record the coordinate
-            const isMapperOpen = mapperPanel && !mapperPanel.classList.contains('hidden');
-            if (isMapperOpen && roomSelect && roomSelect.value && window.ROOM_LIBRARY) {
-                const selectedRoom = roomSelect.value;
-                window.ROOM_LIBRARY[selectedRoom].mapCoords = { x, y };
-                
-                // Re-render markers (showing all mapped rooms on the current floor in Dev Mode)
-                renderMarkers();
-                
-                // Re-populate dropdown to show it's mapped, preserving selection or moving to next
-                const currentIndex = roomSelect.selectedIndex;
-                populateRoomSelect();
-                
-                // Select the next room in dropdown list automatically to make it lightning fast
-                if (currentIndex + 1 < roomSelect.options.length) {
-                    roomSelect.selectedIndex = currentIndex + 1;
-                } else {
-                    roomSelect.selectedIndex = 0;
+        const mapScrollElement = document.getElementById('map-scroll');
+        if (mapScrollElement) {
+            mapScrollElement.addEventListener('click', (e) => {
+                if (e.target.classList.contains('map-hotspot') || e.target.classList.contains('room-pin') || e.target.classList.contains('user-pin')) {
+                    return;
                 }
-            }
-        });
+                
+                const rect = mapImg.getBoundingClientRect();
+                const x = parseFloat(((e.clientX - rect.left) / rect.width * 100).toFixed(1));
+                const y = parseFloat(((e.clientY - rect.top) / rect.height * 100).toFixed(1));
+                
+                console.log(`Click coordinates relative to map size: "mapCoords": { "x": ${x}, "y": ${y} }`);
+                
+                // If dev mapper is open, record the coordinate
+                const isMapperOpen = mapperPanel && !mapperPanel.classList.contains('hidden');
+                if (isMapperOpen && roomSelect && roomSelect.value && window.ROOM_LIBRARY) {
+                    const selectedRoom = roomSelect.value;
+                    window.ROOM_LIBRARY[selectedRoom].mapCoords = { x, y };
+                    
+                    // Re-render markers (showing all mapped rooms on the current floor in Dev Mode)
+                    renderMarkers();
+                    
+                    // Re-populate dropdown to show it's mapped, preserving selection or moving to next
+                    const currentIndex = roomSelect.selectedIndex;
+                    populateRoomSelect();
+                    
+                    // Select the next room in dropdown list automatically to make it lightning fast
+                    if (currentIndex + 1 < roomSelect.options.length) {
+                        roomSelect.selectedIndex = currentIndex + 1;
+                    } else {
+                        roomSelect.selectedIndex = 0;
+                    }
+                }
+            });
+        }
 
         if (btnClearCoord) {
             btnClearCoord.onclick = () => {
