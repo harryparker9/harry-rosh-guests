@@ -88,6 +88,11 @@
                             <span class="radio-label">Joining the party Friday afternoon (Fri - Sun)</span>
                         </label>
                         <label class="radio-option">
+                            <input type="radio" name="attendance" value="ceremony_only" required>
+                            <span class="custom-radio-circle"></span>
+                            <span class="radio-label">I will attend the ceremony only (Saturday 7th August)</span>
+                        </label>
+                        <label class="radio-option">
                             <input type="radio" name="attendance" value="decline" required>
                             <span class="custom-radio-circle"></span>
                             <span class="radio-label">Sadly, cannot make it</span>
@@ -96,8 +101,12 @@
                 </div>
 
                 <div class="form-group" id="accommodation-group">
-                    <label id="accommodation-label">Accommodation Preference <a href="https://www.youtube.com/watch?v=whc_XCoT8mc&t=15s"
-                            target="_blank" class="venue-link">(Watch Venue Tour)</a></label>
+                    <label id="accommodation-label">Accommodation Preference
+                        <span style="display:block; font-size:0.85rem; font-weight:normal; margin-top:0.25rem; color:#666; line-height: 1.4;">
+                            We have a number of rooms available for guests to stay at the venue. Prices for 3 nights will be up to £360 for singles and £525 for couples. Please indicate if you would like to stay onsite and we will do our best to allocate you a room!
+                        </span>
+                        <a href="https://www.youtube.com/watch?v=whc_XCoT8mc&t=15s" target="_blank" class="venue-link" style="margin-top:0.25rem; display:inline-block;">(Watch Venue Tour)</a>
+                    </label>
                     <div class="radio-group">
                         <label class="radio-option">
                             <input type="radio" name="accommodation" value="onsite">
@@ -120,6 +129,71 @@
                     <label for="dietary">Dietary Requirements</label>
                     <input type="text" id="dietary" name="dietary" placeholder="Any allergies or preferences?">
                 </div>
+                <div class="form-group" style="margin-top: 1.5rem;">
+                    <label>Drink Preferences</label>
+                    <p class="field-description" style="font-size:0.85rem; color:#666; margin-bottom: 0.75rem; line-height:1.4;">As Huntsham Court is a self-catered venue, we will be providing all food and drink across the weekend. Please indicate your drink preferences (you can select more than one!) to give us an idea of how much to order.</p>
+                    <div class="checkbox-grid">
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="drink_pref" value="Red wine">
+                            <span class="custom-checkbox"></span>
+                            <span class="checkbox-label">Red wine</span>
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="drink_pref" value="White wine">
+                            <span class="custom-checkbox"></span>
+                            <span class="checkbox-label">White wine</span>
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="drink_pref" value="Rose">
+                            <span class="custom-checkbox"></span>
+                            <span class="checkbox-label">Rose</span>
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="drink_pref" value="Prosecco">
+                            <span class="custom-checkbox"></span>
+                            <span class="checkbox-label">Prosecco</span>
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="drink_pref" value="Lager">
+                            <span class="custom-checkbox"></span>
+                            <span class="checkbox-label">Lager</span>
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="drink_pref" value="IPA">
+                            <span class="custom-checkbox"></span>
+                            <span class="checkbox-label">IPA</span>
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="drink_pref" value="Vodka">
+                            <span class="custom-checkbox"></span>
+                            <span class="checkbox-label">Vodka</span>
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="drink_pref" value="Gin">
+                            <span class="custom-checkbox"></span>
+                            <span class="checkbox-label">Gin</span>
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="drink_pref" value="Pimms">
+                            <span class="custom-checkbox"></span>
+                            <span class="checkbox-label">Pimms</span>
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="drink_pref" value="Aperol Spritz">
+                            <span class="custom-checkbox"></span>
+                            <span class="checkbox-label">Aperol Spritz</span>
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="drink_pref" value="Hugo Spritz">
+                            <span class="custom-checkbox"></span>
+                            <span class="checkbox-label">Hugo Spritz</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group" style="margin-top: 1.25rem;">
+                    <label for="special_drink_requests">Special Drink Requests / Comments</label>
+                    <input type="text" id="special_drink_requests" name="special_drink_requests" placeholder="e.g. Alcohol-free options, specific brands...">
+                </div>
             </fieldset>
 
             <!-- Part D: The Fun Stuff -->
@@ -136,6 +210,10 @@
                 <div class="form-group">
                     <label for="speechBet">Predict the length of the Best Man's speech</label>
                     <input type="text" id="speechBet" name="speechBet" placeholder="e.g. 12 mins 30 secs">
+                </div>
+                <div class="form-group">
+                    <label for="song_request">Song that will get me on the dancefloor</label>
+                    <input type="text" id="song_request" name="song_request" placeholder="Track name & artist">
                 </div>
                 <div class="form-group">
                     <label for="photoUpload">Upload a favorite photo of us</label>

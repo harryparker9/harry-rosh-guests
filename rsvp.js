@@ -130,6 +130,27 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data.funny_story) document.getElementById('funnyStory').value = data.funny_story;
             if (data.marriage_advice) document.getElementById('advice').value = data.marriage_advice;
             if (data.speech_prediction) document.getElementById('speechBet').value = data.speech_prediction;
+            if (data.song_request) document.getElementById('song_request').value = data.song_request;
+
+            // Load Drink Preferences
+            document.querySelectorAll('input[name="drink_pref"]').forEach(cb => cb.checked = false);
+            document.getElementById('special_drink_requests').value = '';
+            if (data.drink_preferences) {
+                try {
+                    const parsed = JSON.parse(data.drink_preferences);
+                    if (parsed && Array.isArray(parsed.drinks)) {
+                        parsed.drinks.forEach(val => {
+                            const cb = document.querySelector(`input[name="drink_pref"][value="${val}"]`);
+                            if (cb) cb.checked = true;
+                        });
+                    }
+                    if (parsed && parsed.special) {
+                        document.getElementById('special_drink_requests').value = parsed.special;
+                    }
+                } catch (e) {
+                    document.getElementById('special_drink_requests').value = data.drink_preferences;
+                }
+            }
 
             // Radio Buttons: Attendance
             if (data.attendance_option) {
@@ -279,15 +300,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const codeToUpdate = document.getElementById('gate-code').value || formData.get('accessCode');
         if (!codeToUpdate) return;
 
+        const selectedDrinks = Array.from(document.querySelectorAll('input[name="drink_pref"]:checked')).map(el => el.value);
+        const specialRequests = document.getElementById('special_drink_requests').value;
+
         const payload = {
             full_name: formData.get('fullName'),
             phone: formData.get('phone'),
             attendance_option: formData.get('attendance'),
             accommodation_preference: formData.get('accommodation') || null,
             dietary_requirements: formData.get('dietary'),
+            drink_preferences: JSON.stringify({ drinks: selectedDrinks, special: specialRequests }),
             funny_story: formData.get('funnyStory'),
             marriage_advice: formData.get('advice'),
             speech_prediction: formData.get('speechBet'),
+            song_request: formData.get('song_request'),
             plus_one_full_name: formData.get('plusOneName') || null,
             plus_one_dietary: formData.get('plusOneDietary') || null
         };
@@ -361,6 +387,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (e.target.name === 'attendance') {
                 handleAttendanceChange(e.target.value);
             }
+            triggerAutoSave();
+        }
+        if (e.target.tagName === 'INPUT' && e.target.type === 'checkbox') {
             triggerAutoSave();
         }
         if ((e.target.tagName === 'INPUT' && (e.target.type === 'text' || e.target.type === 'tel')) || e.target.tagName === 'TEXTAREA') {

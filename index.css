@@ -2653,4 +2653,110 @@ details[open] .timeline-dot.gold {
   100% { transform: rotate(360deg); }
 }
 
+/* Suite and Lodge Dynamic Notes styling */
+.suite-note {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.85rem;
+  color: #c2410c; /* Warm rust/amber color */
+  background: rgba(249, 115, 22, 0.05);
+  border: 1px solid rgba(249, 115, 22, 0.15);
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  margin-top: 1rem;
+  line-height: 1.5;
+}
+
+.lodge-note {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.85rem;
+  color: #1e3a8a; /* Deep elegant blue */
+  background: rgba(30, 58, 138, 0.05);
+  border: 1px solid rgba(30, 58, 138, 0.15);
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  margin-top: 0.75rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  line-height: 1.5;
+}
+
+/* Custom premium checkboxes */
+.checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 0.8rem;
+  margin-top: 0.5rem;
+}
+
+.checkbox-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(193, 162, 122, 0.15);
+  padding: 10px 14px;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.checkbox-option:hover {
+  background: rgba(255, 255, 255, 0.8);
+  border-color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(193, 162, 122, 0.06);
+}
+
+.checkbox-option input[type="checkbox"] {
+  display: none;
+}
+
+.custom-checkbox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(193, 162, 122, 0.4);
+  border-radius: 6px;
+  background: white;
+  flex-shrink: 0;
+  transition: all 0.25s ease;
+}
+
+.custom-checkbox::after {
+  content: "✓";
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 900;
+  color: white;
+  transform: scale(0);
+  transition: transform 0.2s ease;
+}
+
+.checkbox-option:has(input[type="checkbox"]:checked) {
+  background: rgba(253, 251, 247, 0.95);
+  border-color: var(--primary);
+  border-width: 1.5px;
+  box-shadow: 0 8px 24px rgba(193, 162, 122, 0.08);
+}
+
+.checkbox-option input[type="checkbox"]:checked + .custom-checkbox {
+  border-color: var(--primary);
+  background: var(--primary);
+}
+
+.checkbox-option input[type="checkbox"]:checked + .custom-checkbox::after {
+  transform: scale(1);
+}
+
+.checkbox-label {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-main);
+}
+
 

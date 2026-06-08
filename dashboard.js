@@ -22,7 +22,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Moved to bottom of file
 
     // Itinerary Modal States (declared early to avoid temporal dead zone reference errors)
-    let itineraryActiveDay = (localUser && localUser.attendance_option === 'friday_arrival') ? 'Friday' : 'Thursday';
+    let itineraryActiveDay = 'Thursday';
+    if (localUser) {
+        if (localUser.attendance_option === 'friday_arrival') {
+            itineraryActiveDay = 'Friday';
+        } else if (localUser.attendance_option === 'ceremony_only') {
+            itineraryActiveDay = 'Saturday';
+        }
+    }
     let itineraryViewMode = 'storybook'; // 'storybook' (zoomed in) or 'overview' (zoomed out)
     let itinerarySwiper = null;
     let rsvpAutoSaveTimeout = null;
@@ -360,6 +367,27 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('rsvp-funnyStory').value = data.funny_story || '';
         document.getElementById('rsvp-advice').value = data.marriage_advice || '';
         document.getElementById('rsvp-speechBet').value = data.speech_prediction || '';
+        document.getElementById('rsvp-song_request').value = data.song_request || '';
+
+        // Checkboxes: Drinks
+        rsvpModalForm.querySelectorAll('input[name="drink_pref"]').forEach(cb => cb.checked = false);
+        document.getElementById('rsvp-special_drink_requests').value = '';
+        if (data.drink_preferences) {
+            try {
+                const parsed = JSON.parse(data.drink_preferences);
+                if (parsed && Array.isArray(parsed.drinks)) {
+                    parsed.drinks.forEach(val => {
+                        const cb = rsvpModalForm.querySelector(`input[name="drink_pref"][value="${val}"]`);
+                        if (cb) cb.checked = true;
+                    });
+                }
+                if (parsed && parsed.special) {
+                    document.getElementById('rsvp-special_drink_requests').value = parsed.special;
+                }
+            } catch (e) {
+                document.getElementById('rsvp-special_drink_requests').value = data.drink_preferences;
+            }
+        }
 
         // Radio Buttons: Attendance
         if (data.attendance_option) {
@@ -417,15 +445,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         const accessCode = user.access_code;
         if (!accessCode) return;
 
+        const selectedDrinks = Array.from(rsvpModalForm.querySelectorAll('input[name="drink_pref"]:checked')).map(el => el.value);
+        const specialRequests = document.getElementById('rsvp-special_drink_requests').value;
+
         const payload = {
             full_name: formData.get('fullName'),
             phone: formData.get('phone'),
             attendance_option: formData.get('attendance'),
             accommodation_preference: formData.get('accommodation') || null,
             dietary_requirements: formData.get('dietary'),
+            drink_preferences: JSON.stringify({ drinks: selectedDrinks, special: specialRequests }),
             funny_story: formData.get('funnyStory'),
             marriage_advice: formData.get('advice'),
             speech_prediction: formData.get('speechBet'),
+            song_request: formData.get('song_request'),
             plus_one_full_name: formData.get('plusOneName') || null,
             plus_one_dietary: formData.get('plusOneDietary') || null
         };
@@ -475,6 +508,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (e.target.name === 'attendance') {
                     handleModalAttendanceChange(e.target.value);
                 }
+                triggerRsvpAutoSave();
+            }
+            if (e.target.tagName === 'INPUT' && e.target.type === 'checkbox') {
                 triggerRsvpAutoSave();
             }
             if ((e.target.tagName === 'INPUT' && (e.target.type === 'text' || e.target.type === 'tel')) || e.target.tagName === 'TEXTAREA') {
@@ -834,8 +870,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             "Sunday": "Sunday, August 8th"
         };
 
-        // Filter out Thursday if Friday arrival
-        const days = schedule.filter(d => !(currentUser && currentUser.attendance_option === 'friday_arrival' && d.day === 'Thursday'));
+        // Filter days based on attendance: Friday arrival hides Thursday; Ceremony only displays Saturday only.
+        const days = schedule.filter(d => {
+            if (!currentUser) return true;
+            if (currentUser.attendance_option === 'friday_arrival') {
+                return d.day !== 'Thursday';
+            }
+            if (currentUser.attendance_option === 'ceremony_only') {
+                return d.day === 'Saturday';
+            }
+            return true;
+        });
         
         // Ensure active day is valid
         if (!days.some(d => d.day === itineraryActiveDay)) {
@@ -1027,7 +1072,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             modal.classList.add('open');
             const currentUser = JSON.parse(localStorage.getItem('user'));
             // Reset state on open
-            itineraryActiveDay = (currentUser && currentUser.attendance_option === 'friday_arrival') ? 'Friday' : 'Thursday';
+            itineraryActiveDay = 'Thursday';
+            if (currentUser) {
+                if (currentUser.attendance_option === 'friday_arrival') {
+                    itineraryActiveDay = 'Friday';
+                } else if (currentUser.attendance_option === 'ceremony_only') {
+                    itineraryActiveDay = 'Saturday';
+                }
+            }
             itineraryViewMode = 'storybook';
             renderItineraryContent(currentUser);
         });
@@ -1326,11 +1378,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Clean Description
         let cleanDesc = roomData.description ? roomData.description.replace(/\[cite:.*?\]/g, '').trim() : "No description available.";
 
-        // Compile Amenities dynamically based on description keywords
+        // Compile Amenities dynamically based on description keywords (coffee and linens/toiletries removed as requested)
         const amenities = [
             "📶 High-speed Wi-Fi",
-            "☕ Coffee & Tea Station",
-            "🧴 Luxury Linens & Toiletries",
             "🏰 Estate Gardens Access"
         ];
 
@@ -1420,6 +1470,24 @@ document.addEventListener('DOMContentLoaded', async () => {
             `;
         }
 
+        // Toiletries Note
+        const toiletriesNoteHtml = `
+            <p class="suite-note">
+                <span style="font-weight:600;">Please note:</span> Toiletries are not provided, so please remember to bring your own!
+            </p>
+        `;
+
+        // Lodge Driveway Note
+        let drivewayNoteHtml = '';
+        if (roomName.toLowerCase().includes('lodge')) {
+            drivewayNoteHtml = `
+                <div class="lodge-note">
+                    <span style="font-size: 1.2rem; line-height: 1;">ℹ️</span>
+                    <span>Please note: Little Lodge and Gate House Lodge are located at the end of the driveway.</span>
+                </div>
+            `;
+        }
+
         // Render HTML inside container (keeping the close button we prepended)
         const closeBtnHtml = `<span class="close-modal" onclick="document.getElementById('gallery-modal').classList.remove('open')">&times;</span>`;
         contentContainer.innerHTML = `
@@ -1435,6 +1503,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <div class="amenity-grid">
                     ${amenities.map(a => '<div class="amenity-item">' + a + '</div>').join('')}
                 </div>
+                
+                ${toiletriesNoteHtml}
+                ${drivewayNoteHtml}
                 
                 ${statusHtml}
             </div>
@@ -1838,7 +1909,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         const el = document.createElement('div');
                         el.className = isUserRoom ? 'user-pin' : 'room-pin';
                         if (isUserRoom) {
-                            el.textContent = 'You are here';
+                            el.textContent = 'Your room';
                         }
                         
                         el.style.left = roomData.mapCoords.x + '%';
