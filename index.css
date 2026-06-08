@@ -2449,8 +2449,16 @@ details[open] .timeline-dot.gold {
 }
 
 .recovery-modal-overlay.hidden {
-  display: none;
-  opacity: 0;
+  display: none !important;
+  opacity: 0 !important;
+}
+
+.recovery-modal-loader.hidden {
+  display: none !important;
+}
+
+.recovery-step.hidden {
+  display: none !important;
 }
 
 .recovery-modal-card {
