@@ -26,6 +26,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     let itineraryViewMode = 'storybook'; // 'storybook' (zoomed in) or 'overview' (zoomed out)
     let itinerarySwiper = null;
     let rsvpAutoSaveTimeout = null;
+    let targetDate;
 
     // 2. Fetch Fresh Data from Supabase (with a 5-second timeout fallback)
     const supabase = window.Auth.client;
@@ -655,7 +656,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // B. Countdown Logic
-    let targetDate;
 
     function initCountdown(currentUser) {
         const timerVal = document.getElementById('timer-val');
