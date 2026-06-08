@@ -691,7 +691,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // D. Initialize Swiper (3D Coverflow)
     // D. Initialize Swiper (3D Coverflow)
     // D. Initialize Swiper (3D Coverflow)
-    const swiper = new Swiper('.swiper', {
+    const swiper = new Swiper('#dashboard-swiper', {
         effect: 'coverflow',
         grabCursor: true,
         centeredSlides: true,
@@ -714,6 +714,56 @@ document.addEventListener('DOMContentLoaded', async () => {
         },
     });
     window.mySwiperInstance = swiper;
+
+    // Global helper to navigate dashboard from chatbot actions
+    window.navigateDashboard = function (target) {
+        // Close FAQ modal
+        const faqModal = document.getElementById('faq-modal');
+        if (faqModal) {
+            faqModal.classList.remove('open');
+        }
+
+        // Slight delay for smooth transition after modal closes
+        setTimeout(() => {
+            const swiperInstance = window.mySwiperInstance;
+            if (!swiperInstance) return;
+
+            // Find slide index by element ID
+            let elementId = `slide-${target}`;
+            if (target === 'gallery') elementId = 'slide-photos'; // map 'gallery' action to 'slide-photos' element
+
+            const slideEl = document.getElementById(elementId);
+            if (slideEl) {
+                const slideIndex = parseInt(slideEl.getAttribute('data-swiper-slide-index'));
+                if (!isNaN(slideIndex)) {
+                    swiperInstance.slideToLoop(slideIndex);
+                }
+            }
+
+            // Trigger corresponding modals or actions
+            if (target === 'room') {
+                if (user && user.room_assigned) {
+                    const normalizedRoom = user.room_assigned.replace(/'/g, '’');
+                    const roomData = window.ROOM_LIBRARY ? (window.ROOM_LIBRARY[user.room_assigned] || window.ROOM_LIBRARY[normalizedRoom]) : null;
+                    if (roomData && typeof openRoomModal === 'function') {
+                        openRoomModal(roomData, user.room_assigned, user.room_status, user.access_code);
+                    }
+                }
+            } else if (target === 'itinerary') {
+                const btn = document.getElementById('btn-view-schedule');
+                if (btn) btn.click();
+            } else if (target === 'estate') {
+                const btn = document.getElementById('btn-explore-estate');
+                if (btn) btn.click();
+            } else if (target === 'gallery') {
+                const btn = document.getElementById('btn-view-shared-gallery');
+                if (btn) btn.click();
+            } else if (target === 'rsvp') {
+                const btn = document.getElementById('btn-update-rsvp');
+                if (btn) btn.click();
+            }
+        }, 300);
+    };
 
 
     // E. Itinerary Modal Logic
@@ -833,8 +883,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             controlsHtml += `
                     </div>
                     <div class="swiper-pagination"></div>
-                    <div class="swiper-button-next" style="color: white !important;"></div>
-                    <div class="swiper-button-prev" style="color: white !important;"></div>
+                    <div class="swiper-button-next"></div>
+                    <div class="swiper-button-prev"></div>
                 </div>
             `;
         } else {
@@ -1076,7 +1126,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     function addBubble(text, isBot = false) {
         const bubble = document.createElement('div');
         bubble.className = `chat-bubble ${isBot ? 'bot' : 'user'}`;
-        bubble.textContent = text;
+        if (isBot) {
+            // Replace [Link Text](action://target) with HTML link triggering navigateDashboard
+            let html = text.replace(/\[([^\]]+)\]\(action:\/\/([a-zA-Z0-9_-]+)\)/g, (match, linkText, action) => {
+                return `<a href="#" onclick="window.navigateDashboard('${action}'); return false;" style="color: var(--primary); text-decoration: underline; font-weight: 600;">${linkText}</a>`;
+            });
+            bubble.innerHTML = html;
+        } else {
+            bubble.textContent = text;
+        }
         chatOutput.appendChild(bubble);
         chatOutput.scrollTop = chatOutput.scrollHeight;
     }
@@ -1096,6 +1154,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Construct URL handled by SDK
         // Usage: supabase.functions.invoke('function-name', { body: {} })
 
+        let roomData = null;
+        if (user && user.room_assigned && window.ROOM_LIBRARY) {
+            const normalizedRoom = user.room_assigned.replace(/'/g, '’');
+            roomData = window.ROOM_LIBRARY[user.room_assigned] || window.ROOM_LIBRARY[normalizedRoom];
+        }
+
         const reqBody = {
             query: query,
             guest: user ? {
@@ -1105,8 +1169,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 room_assigned: user.room_assigned,
                 room_status: user.room_status
             } : null,
-            roomDetails: (user && user.room_assigned && window.ROOM_LIBRARY && window.ROOM_LIBRARY[user.room_assigned]) ? 
-                `Room: ${user.room_assigned}\nDescription: ${window.ROOM_LIBRARY[user.room_assigned].description || ''}\nFloor: ${window.ROOM_LIBRARY[user.room_assigned].floor || ''}` : null,
+            roomDetails: roomData ? 
+                `Room: ${user.room_assigned}\nDescription: ${roomData.description || ''}\nFloor: ${roomData.floor || ''}` : null,
             itinerary: window.itinerarySchedule || null
         };
 

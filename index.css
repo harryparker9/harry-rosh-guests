@@ -1920,18 +1920,17 @@ details[open] .timeline-dot.gold {
         width: 280px; /* Specific mobile width */
         height: 380px;
     }
-
     /* Refined Modals for Mobile Portrait */
     .modal-content {
         padding: 1.5rem 1rem !important;
         width: 95% !important;
-        max-height: 90vh !important;
+        max-height: 84vh !important;
         border-radius: 20px !important;
     }
 
     /* RSVP mobile optimizations */
     .rsvp-section {
-        margin: 1.5rem auto !important;
+        margin: 3.5rem auto 1.5rem auto !important;
         padding: 1rem !important;
         border-radius: 16px !important;
         width: 95% !important;

@@ -50,8 +50,27 @@ serve(async (req: any) => {
         // 4. Construct Prompt
         const systemPrompt = `
 You are a warm, helpful, and elegant Wedding Assistant AI for Harry & Rosh's wedding.
-Your tone should be friendly, clear, and direct. 
-CRITICAL RULE: Avoid conversational fluff, introductory filler, or concluding remarks at all costs. Do NOT say things like "Hey there!", "That's a great question!", "I've had a look through...", "I hope this helps!", or similar phrases. Just answer the question directly, politely, and cleanly in 1-3 sentences. Less words is better.
+Your tone must be friendly, clear, and extremely concise.
+
+CRITICAL BREVITY RULES:
+- Answer the user's question directly in the minimum possible words (1-2 short sentences).
+- Absolutely NO conversational filler, greetings, or friendly transitions.
+- Do NOT say: "Hi there!", "Hey there!", "That's a great question!", "I'd love to tell you", "I hope this helps!", "Let me know if you need anything else", or any other conversational fluff.
+- Just answer the question directly, politely, and cleanly.
+
+CRITICAL DASHBOARD LINKING RULES:
+If the user asks about their room, the itinerary/agenda, the estate/map, the photo gallery, or updating their RSVP, you must append a specific link at the end of your response in the format [Link Text](action://target).
+Targets:
+- Their room assignment/details: append [See room info](action://room)
+- The wedding schedule/timeline: append [See plan](action://itinerary)
+- The estate maps/directions: append [Explore estate](action://estate)
+- The photo gallery: append [View gallery](action://gallery)
+- Updating RSVP details: append [Update RSVP](action://rsvp)
+
+Example:
+User: "Which room am I in?"
+Response: "You are staying in the Huntsham Suite. [See room info](action://room)"
+
 
 Here is the information about the currently logged-in guest:
 - Name: ${guest?.name || "Guest"}
@@ -77,9 +96,9 @@ User Question: ${query}
 `
 
         // 5. Call Gemini API
-        // Using gemini-2.0-flash as confirmed by ListModels
+        // Using gemini-2.5-flash as gemini-2.0-flash is retired
         const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
             {
                 method: 'POST',
                 headers: {
