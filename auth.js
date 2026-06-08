@@ -233,7 +233,12 @@
                     const nameInput = document.getElementById('recovery-name');
                     const phoneInput = document.getElementById('recovery-phone');
 
+                    console.log('Auth.js: Submitting Step 1 verification...');
+                    console.log('Auth.js: Name:', nameInput.value.trim());
+                    console.log('Auth.js: Phone:', phoneInput.value.trim());
+
                     try {
+                        console.log('Auth.js: Invoking Edge Function verify...');
                         const { data, error } = await window.Auth.client.functions.invoke('send-email-code', {
                             body: {
                                 action: 'verify',
@@ -242,20 +247,24 @@
                             }
                         });
 
+                        console.log('Auth.js: Edge Function response:', { data, error });
                         showLoader(false);
 
                         if (error || (data && data.error)) {
                             const errMessage = error?.message || data?.error || 'Verification failed.';
+                            console.error('Auth.js: Verification failed:', errMessage);
                             throw new Error(errMessage);
                         }
 
                         if (data && data.success) {
+                            console.log('Auth.js: Verification succeeded! Guest ID:', data.guestId);
                             verifiedGuestId = data.guestId;
                             // Transition to Step 2
                             recoveryStep1.classList.add('hidden');
                             recoveryStep2.classList.remove('hidden');
                         }
                     } catch (err) {
+                        console.error('Auth.js: Caught error in Step 1:', err);
                         showLoader(false);
                         showError(err.message);
                     }
@@ -270,12 +279,16 @@
                     showLoader(true);
 
                     const emailInput = document.getElementById('recovery-email');
+                    console.log('Auth.js: Submitting Step 2 email send...');
+                    console.log('Auth.js: Email:', emailInput.value.trim());
+                    console.log('Auth.js: Guest ID:', verifiedGuestId);
 
                     try {
                         if (!verifiedGuestId) {
                             throw new Error('Session mismatch. Please restart the recovery process.');
                         }
 
+                        console.log('Auth.js: Invoking Edge Function send...');
                         const { data, error } = await window.Auth.client.functions.invoke('send-email-code', {
                             body: {
                                 action: 'send',
@@ -284,19 +297,23 @@
                             }
                         });
 
+                        console.log('Auth.js: Edge Function response:', { data, error });
                         showLoader(false);
 
                         if (error || (data && data.error)) {
                             const errMessage = error?.message || data?.error || 'Failed to send recovery email.';
+                            console.error('Auth.js: Send email failed:', errMessage);
                             throw new Error(errMessage);
                         }
 
                         if (data && data.success) {
+                            console.log('Auth.js: Email send succeeded!');
                             // Transition to Success Step
                             recoveryStep2.classList.add('hidden');
                             recoveryStepSuccess.classList.remove('hidden');
                         }
                     } catch (err) {
+                        console.error('Auth.js: Caught error in Step 2:', err);
                         showLoader(false);
                         showError(err.message);
                     }
