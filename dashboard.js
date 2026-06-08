@@ -683,9 +683,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     // C. Itinerary Text Update
     const nextEventName = document.getElementById('next-event-name');
     if (user.attendance_option === 'friday_arrival') {
-        nextEventName.textContent = "Fri 3pm: Garden Party";
+        nextEventName.textContent = "Fri 1pm: Pimms & Games";
     } else {
-        nextEventName.textContent = "Thu 6pm: VIP Dinner";
+        nextEventName.textContent = "Thu 6pm: Pizza & Drinks";
     }
 
     // D. Initialize Swiper (3D Coverflow)
