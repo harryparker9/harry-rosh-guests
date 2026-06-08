@@ -21,7 +21,7 @@ window.itinerarySchedule = [
                 summary: "Karaoke",
                 location: "Snug Bar",
                 details: "Warm up your singing voice and join us in the Snug Bar for a fun karaoke session.",
-                image: "huntsham_exterior.jpg"
+                image: "Cartoon final images/Firefly_multi-edit_Firefly image 2026-06-08 13-03 459956 8Fr.png"
             }
         ]
     },
@@ -40,14 +40,14 @@ window.itinerarySchedule = [
                 summary: "Optional Tennis",
                 location: "Tennis Courts",
                 details: "A casual tennis match on the estate courts. All skill levels welcome.",
-                image: "huntsham_exterior.jpg"
+                image: "Cartoon final images/Firefly_multi-edit_Firefly image 2026-06-08 12-58 737401 hJM.png"
             },
             {
                 time: "10:00 AM - 11:00 AM",
                 summary: "Optional Pilates",
                 location: "Front Lawn",
                 details: "Relax and stretch with our morning outdoor pilates session.",
-                image: "huntsham_exterior.jpg"
+                image: "Cartoon final images/Firefly_multi-edit_Firefly image 2026-06-08 13-05 306042 OpX.png"
             },
             {
                 time: "12:00 PM - 1:00 PM",
@@ -96,7 +96,7 @@ window.itinerarySchedule = [
                 summary: "Bedtime",
                 location: "Your Suite",
                 details: "Wind down and get a good night's sleep ahead of the main event tomorrow.",
-                image: "huntsham_exterior.jpg"
+                image: "Cartoon final images/Firefly_multi-edit_Firefly image 2026-06-08 13-55 397974 h0n.png"
             }
         ]
     },
@@ -115,7 +115,7 @@ window.itinerarySchedule = [
                 summary: "Getting Ready",
                 location: "Your Suite",
                 details: "Get dressed up and prepare for the ceremony.",
-                image: "huntsham_exterior.jpg"
+                image: "Cartoon final images/Firefly_multi-edit_Firefly image 2026-06-08 13-06 331004 ond.png"
             },
             {
                 time: "1:00 PM",
@@ -129,7 +129,7 @@ window.itinerarySchedule = [
                 summary: "The Ceremony",
                 location: "The Orangery",
                 details: "The ceremony begins as Harry and Rosh tie the knot.",
-                image: "huntsham_exterior.jpg"
+                image: "Cartoon final images/Firefly_multi-edit_Firefly image 2026-06-08 13-29 37401 H9Q.png"
             },
             {
                 time: "2:00 PM - 4:00 PM",
@@ -157,7 +157,7 @@ window.itinerarySchedule = [
                 summary: "Live Band",
                 location: "The Ballroom",
                 details: "Our live wedding band hits the stage for their main performance.",
-                image: "huntsham_exterior.jpg"
+                image: "Cartoon final images/Firefly_multi-edit_Firefly image 2026-06-08 13-07 176187 fLL.png"
             },
             {
                 time: "10:00 PM - 12:00 AM",
@@ -183,7 +183,7 @@ window.itinerarySchedule = [
                 summary: "Checkout & Goodbyes",
                 location: "Mansion Gates",
                 details: "Final check-out and guest departures. Safe travels home!",
-                image: "huntsham_exterior.jpg"
+                image: "Cartoon final images/Firefly_multi-edit_Firefly image 2026-06-08 12-57 925510 gC4.png"
             }
         ]
     }
