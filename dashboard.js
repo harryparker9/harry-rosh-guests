@@ -945,7 +945,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 itinerarySwiper = new Swiper('.swiper-itinerary', {
                     pagination: { el: '.swiper-itinerary .swiper-pagination', clickable: true },
                     navigation: { nextEl: '.swiper-itinerary .swiper-button-next', prevEl: '.swiper-itinerary .swiper-button-prev' },
-                    loop: dayEvents.length > 1,
+                    loop: false,
                     observer: true,
                     observeParents: true,
                     on: {
@@ -980,7 +980,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     // Set active slide
                     setTimeout(() => {
                         if (itinerarySwiper) {
-                            itinerarySwiper.slideToLoop(idx);
+                            itinerarySwiper.slideTo(idx);
                         }
                     }, 50);
                 };
