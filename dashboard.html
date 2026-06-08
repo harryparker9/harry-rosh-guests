@@ -8,10 +8,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Montserrat:wght@300;400;500;600&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Lato:wght@300;400;700&family=Montserrat:wght@300;400;500;600&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
-    <link rel="stylesheet" href="index.css?v=1.0.1">
+    <link rel="stylesheet" href="index.css?v=1.0.3">
 </head>
 
 <body class="dashboard-body">
@@ -60,9 +60,15 @@
                 <h2 style="border: none; padding: 0; margin-bottom: 1rem; color: #d97706;">Action Required</h2>
                 <p style="margin-bottom: 1.5rem; font-size: 1.2rem;">Please complete your RSVP to unlock the weekend
                     details.</p>
-                <a href="rsvp.html" id="btn-complete-rsvp" class="btn-primary"
-                    style="text-decoration: none; display: inline-block;">Go to
-                    RSVP</a>
+                <button id="btn-complete-rsvp" class="btn-primary">Go to RSVP</button>
+            </section>
+
+            <!-- Decline Section (Shown if guest declined) -->
+            <section id="decline-section" class="dashboard-section hidden"
+                style="text-align: center; background: white; padding: 2rem; border-radius: 12px; border-left: 5px solid #6b7280; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+                <h2 style="border: none; padding: 0; margin-bottom: 1rem; color: #374151; font-family: 'Playfair Display', serif;">RSVP Received</h2>
+                <p style="margin-bottom: 1.5rem; font-size: 1.2rem;">We're sorry you can't make it to our wedding, but thank you for letting us know!</p>
+                <button id="btn-update-rsvp-decline" class="btn-primary" style="display: inline-block;">Update RSVP</button>
             </section>
 
             <!-- SWIPER CONTAINER -->
@@ -119,14 +125,25 @@
                     </div>
 
 
-                    <!-- Slide 5: RSVP -->
+                    <!-- Slide 5: Captured Moments -->
+                    <div class="swiper-slide" id="slide-photos">
+                        <div class="dashboard-card card-photos">
+                            <h2>Captured Moments</h2>
+                            <div class="card-content">
+                                <p>A gallery of memories shared by our guests.</p>
+                            </div>
+                            <button id="btn-view-shared-gallery" class="btn-card-action">View Gallery</button>
+                        </div>
+                    </div>
+
+                    <!-- Slide 6: RSVP -->
                     <div class="swiper-slide" id="slide-rsvp">
                         <div class="dashboard-card card-rsvp">
                             <h2>Your RSVP</h2>
                             <div class="card-content">
                                 <p>Need to changes plans?</p>
                             </div>
-                            <a href="rsvp.html" id="btn-update-rsvp" class="btn-card-action">Update RSVP</a>
+                            <button id="btn-update-rsvp" class="btn-card-action">Update RSVP</button>
                         </div>
                     </div>
 
@@ -314,6 +331,151 @@
         </div>
     </div>
 
+    <!-- RSVP Modal -->
+    <div id="rsvp-modal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 600px;">
+            <span class="close-modal close-rsvp">&times;</span>
+            <h2 class="section-title" style="margin-bottom: 1rem;">Your RSVP</h2>
+            
+            <div id="rsvp-status-indicator" style="display: flex; align-items: center; justify-content: flex-end; gap: 6px; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem; margin-top: -0.5rem;">
+                <span class="status-dot" style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10b981; transition: background 0.3s;"></span>
+                <span class="status-text">All changes saved</span>
+            </div>
+
+            <form id="rsvp-modal-form" class="rsvp-form" style="background: transparent; padding: 0; box-shadow: none;">
+                <input type="hidden" id="rsvp-accessCode" name="accessCode">
+                
+                <!-- Part A: Guest Details -->
+                <fieldset class="form-section">
+                    <legend>Step 1: Guest Details</legend>
+                    <div class="form-group">
+                        <label for="rsvp-fullName">Full Name</label>
+                        <input type="text" id="rsvp-fullName" name="fullName" required placeholder="Your Name">
+                    </div>
+                    <div class="form-group">
+                        <label for="rsvp-phone">Phone Number</label>
+                        <input type="tel" id="rsvp-phone" name="phone" required placeholder="+44 7...">
+                    </div>
+                </fieldset>
+
+                <!-- Part A-2: Your Plus One (Conditional) -->
+                <fieldset id="rsvp-plus-one-section" class="form-section hidden">
+                    <legend>Your Plus One</legend>
+                    <div class="form-group">
+                        <label for="rsvp-plusOneName">Partner's Full Name</label>
+                        <input type="text" id="rsvp-plusOneName" name="plusOneName" placeholder="Partner's Name">
+                    </div>
+                    <div class="form-group">
+                        <label for="rsvp-plusOneDietary">Partner's Dietary Requirements</label>
+                        <input type="text" id="rsvp-plusOneDietary" name="plusOneDietary" placeholder="Any allergies?">
+                    </div>
+                </fieldset>
+
+                <!-- Part B: The Weekend Plan -->
+                <fieldset class="form-section">
+                    <legend>Step 2: The Weekend Plan</legend>
+                    <div class="form-group">
+                        <label>Attendance</label>
+                        <div class="radio-group">
+                            <label class="radio-option">
+                                <input type="radio" name="attendance" value="full_weekend" required>
+                                <span class="custom-radio-circle"></span>
+                                <span class="radio-label">Yes! Ready for the full weekend (Thu - Sun)</span>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="attendance" value="friday_arrival" required>
+                                <span class="custom-radio-circle"></span>
+                                <span class="radio-label">Joining the party Friday afternoon (Fri - Sun)</span>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="attendance" value="decline" required>
+                                <span class="custom-radio-circle"></span>
+                                <span class="radio-label">Sadly, cannot make it</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group" id="rsvp-accommodation-group">
+                        <label id="rsvp-accommodation-label">Accommodation Preference <a href="https://www.youtube.com/watch?v=whc_XCoT8mc&t=15s" target="_blank" class="venue-link">(Watch Venue Tour)</a></label>
+                        <div class="radio-group">
+                            <label class="radio-option">
+                                <input type="radio" name="accommodation" value="onsite">
+                                <span class="custom-radio-circle"></span>
+                                <span class="radio-label">We would love to stay on-site at Huntsham Court</span>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="accommodation" value="offsite">
+                                <span class="custom-radio-circle"></span>
+                                <span class="radio-label">We will find our own accommodation nearby</span>
+                            </label>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <!-- Part C: Food & Drink -->
+                <fieldset id="rsvp-step3-section" class="form-section">
+                    <legend>Step 3: Food & Drink</legend>
+                    <div class="form-group">
+                        <label for="rsvp-dietary">Dietary Requirements</label>
+                        <input type="text" id="rsvp-dietary" name="dietary" placeholder="Any allergies or preferences?">
+                    </div>
+                </fieldset>
+
+                <!-- Part D: The Fun Stuff -->
+                <fieldset id="rsvp-step4-section" class="form-section">
+                    <legend>Step 4: The Fun Stuff</legend>
+                    <div class="form-group">
+                        <label for="rsvp-funnyStory">Share a funny story about Harry or Rosh</label>
+                        <textarea id="rsvp-funnyStory" name="funnyStory" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="rsvp-advice">Best advice for a happy marriage</label>
+                        <textarea id="rsvp-advice" name="advice" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="rsvp-speechBet">Predict the length of the Best Man's speech</label>
+                        <input type="text" id="rsvp-speechBet" name="speechBet" placeholder="e.g. 12 mins 30 secs">
+                    </div>
+                    <div class="form-group">
+                        <label for="rsvp-photoUpload">Upload a favorite photo of us</label>
+                        <input type="file" id="rsvp-photoUpload" name="photoUpload" accept="image/*" multiple>
+                        <div id="rsvp-photo-status" style="font-size:0.8rem; color:var(--text-muted); margin-top:0.25rem;"></div>
+                        <div id="rsvp-uploaded-photos-container" class="uploaded-photos-strip"></div>
+                    </div>
+                </fieldset>
+                
+                <button type="button" class="btn-primary close-rsvp-btn" style="width: 100%; margin-top: 1.5rem;">Finish & Back to Dashboard</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Captured Moments Gallery Modal -->
+    <div id="shared-gallery-modal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 800px; width: 90%; max-height: 90vh; overflow-y: auto; padding: 2.5rem; border-radius: 24px; background: rgba(253, 251, 247, 0.98); position: relative;">
+            <span class="close-modal close-shared-gallery" onclick="document.getElementById('shared-gallery-modal').classList.remove('open')">&times;</span>
+            <h2 class="section-title" style="font-family: 'Playfair Display', serif; font-size: 2.2rem; color: var(--primary); margin-bottom: 0.5rem; text-align: center;">Captured Moments</h2>
+            <p style="text-align: center; margin-bottom: 2rem; color: var(--text-muted); font-family: 'Montserrat', sans-serif; font-size: 0.95rem;">
+                A collection of beautiful memories shared by our wedding guests.
+            </p>
+            
+            <!-- Link to RSVP for photo upload -->
+            <div class="gallery-upload-banner" style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; background: rgba(193, 162, 122, 0.08); border: 1.5px dashed rgba(193, 162, 122, 0.35); padding: 1.25rem 1.5rem; border-radius: 16px; margin-bottom: 2rem; font-family: 'Montserrat', sans-serif;">
+                <div style="text-align: left;">
+                    <span style="font-size: 0.95rem; color: var(--text-main); font-weight: 600; display: block; margin-bottom: 0.2rem;">Want to add your own photos?</span>
+                    <span style="font-size: 0.8rem; color: var(--text-muted);">You can upload photos directly through your RSVP form.</span>
+                </div>
+                <button id="btn-rsvp-gallery-upload" class="btn-primary" style="padding: 0.6rem 1.2rem; font-size: 0.85rem; margin: 0; box-shadow: none;">Add Photos</button>
+            </div>
+
+            <!-- Grid Container for photos -->
+            <div id="shared-photos-grid" class="shared-photos-grid">
+                <!-- Loaded dynamically -->
+                <p class="loading-photos" style="text-align: center; color: var(--text-muted); padding: 2rem; grid-column: 1 / -1;">Loading gallery...</p>
+            </div>
+            <div style="height: 10px;"></div>
+        </div>
+    </div>
+
     <script src="config.js"></script>
     <script src="supabase.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
@@ -321,7 +483,7 @@
     <script src="events.js?v=1.0.1"></script>
     <script src="faq_data.js"></script>
     <script src="room_data.js"></script>
-    <script src="dashboard.js?v=1.0.1"></script>
+    <script src="dashboard.js?v=1.0.4"></script>
 </body>
 
 </html>

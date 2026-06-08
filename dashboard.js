@@ -78,50 +78,465 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // 4. RSVP Logic & Slide Management
     const rsvpNeededSection = document.getElementById('rsvp-needed-section');
+    const declineSection = document.getElementById('decline-section');
     const swiperContainer = document.getElementById('dashboard-swiper');
 
-    if (!user.attendance_option) {
-        // --- SCENARIO A: No RSVP ---
-        // Show Swiper (Blurred) + Blocker
-        swiperContainer.classList.remove('hidden');
-        swiperContainer.classList.add('blurred-locked');
+    function updateDashboardState(currentUser) {
+        if (!currentUser) return;
 
-        rsvpNeededSection.classList.remove('hidden');
-        rsvpNeededSection.classList.add('overlay-center');
+        const badgeStatus = document.getElementById('badge-status');
+        const rsvpNeededSection = document.getElementById('rsvp-needed-section');
+        const declineSection = document.getElementById('decline-section');
+        const swiperContainer = document.getElementById('dashboard-swiper');
 
-        badgeStatus.textContent = 'Action Required';
-        badgeStatus.style.backgroundColor = '#fed7aa';
-        badgeStatus.style.color = '#7c2d12';
-        // Note: We CONTINUE to initialize swiper below so the background renders!
-    } else {
-        // --- SCENARIO B: RSVP Complete ---
-        rsvpNeededSection.classList.add('hidden');
-        rsvpNeededSection.classList.remove('overlay-center');
-
-        swiperContainer.classList.remove('hidden');
-        swiperContainer.classList.remove('blurred-locked');
-
-        // Update Status Badge
-        if (user.attendance_option === 'decline') {
-            badgeStatus.textContent = 'Declined';
-            badgeStatus.style.backgroundColor = '#e5e7eb';
-            badgeStatus.style.color = '#374151';
+        if (!currentUser.attendance_option) {
+            // SCENARIO A: No RSVP
+            if (swiperContainer) {
+                swiperContainer.classList.remove('hidden');
+                swiperContainer.classList.add('blurred-locked');
+            }
+            if (rsvpNeededSection) {
+                rsvpNeededSection.classList.remove('hidden');
+                rsvpNeededSection.classList.add('overlay-center');
+            }
+            if (declineSection) {
+                declineSection.classList.add('hidden');
+            }
+            if (badgeStatus) {
+                badgeStatus.textContent = 'Action Required';
+                badgeStatus.style.backgroundColor = '#fed7aa';
+                badgeStatus.style.color = '#7c2d12';
+            }
+        } else if (currentUser.attendance_option === 'decline') {
+            // SCENARIO B: Declined RSVP
+            if (rsvpNeededSection) {
+                rsvpNeededSection.classList.add('hidden');
+                rsvpNeededSection.classList.remove('overlay-center');
+            }
+            if (swiperContainer) {
+                swiperContainer.classList.add('hidden');
+            }
+            if (declineSection) {
+                declineSection.classList.remove('hidden');
+            }
+            if (badgeStatus) {
+                badgeStatus.textContent = 'Declined';
+                badgeStatus.style.backgroundColor = '#e5e7eb';
+                badgeStatus.style.color = '#374151';
+            }
         } else {
-            badgeStatus.textContent = 'Confirmed';
-            badgeStatus.style.backgroundColor = '#dcfce7';
-            badgeStatus.style.color = '#166534';
+            // SCENARIO C: RSVP Confirmed (Attending)
+            if (rsvpNeededSection) {
+                rsvpNeededSection.classList.add('hidden');
+                rsvpNeededSection.classList.remove('overlay-center');
+            }
+            if (declineSection) {
+                declineSection.classList.add('hidden');
+            }
+            if (swiperContainer) {
+                swiperContainer.classList.remove('hidden');
+                swiperContainer.classList.remove('blurred-locked');
+            }
+            if (badgeStatus) {
+                badgeStatus.textContent = 'Confirmed';
+                badgeStatus.style.backgroundColor = '#dcfce7';
+                badgeStatus.style.color = '#166534';
+            }
+        }
+
+        // Update guest name display
+        const nameElement = document.getElementById('guest-name');
+        if (nameElement && currentUser.full_name) {
+            nameElement.textContent = currentUser.full_name.split(' ')[0];
+        }
+
+        // Update Swiper if instantiated
+        if (window.mySwiperInstance) {
+            window.mySwiperInstance.update();
         }
     }
 
-    // Update RSVP Link with Code
+    // Call state update initially
+    updateDashboardState(user);
+
+    // RSVP Modal Elements
+    const rsvpModal = document.getElementById('rsvp-modal');
     const btnUpdateRsvp = document.getElementById('btn-update-rsvp');
     const btnCompleteRsvp = document.getElementById('btn-complete-rsvp');
+    const btnUpdateRsvpDecline = document.getElementById('btn-update-rsvp-decline');
+    const closeRsvpBtn = document.querySelector('#rsvp-modal .close-modal');
+    const closeRsvpBtnAction = document.querySelector('#rsvp-modal .close-rsvp-btn');
+    const rsvpModalForm = document.getElementById('rsvp-modal-form');
+
+    function openRsvpModal() {
+        if (!rsvpModal) return;
+        rsvpModal.classList.add('open');
+        populateRsvpModal(user);
+    }
+
+    function closeRsvpModal() {
+        if (!rsvpModal) return;
+        rsvpModal.classList.remove('open');
+    }
 
     if (btnUpdateRsvp) {
-        btnUpdateRsvp.href = `rsvp.html?code=${user.access_code}`;
+        btnUpdateRsvp.addEventListener('click', openRsvpModal);
     }
     if (btnCompleteRsvp) {
-        btnCompleteRsvp.href = `rsvp.html?code=${user.access_code}`;
+        btnCompleteRsvp.addEventListener('click', openRsvpModal);
+    }
+    if (btnUpdateRsvpDecline) {
+        btnUpdateRsvpDecline.addEventListener('click', openRsvpModal);
+    }
+    if (closeRsvpBtn) {
+        closeRsvpBtn.addEventListener('click', closeRsvpModal);
+    }
+    if (closeRsvpBtnAction) {
+        closeRsvpBtnAction.addEventListener('click', closeRsvpModal);
+    }
+
+    // Modal Photo Helpers
+    function getPhotoUrls(photoUrlField) {
+        if (!photoUrlField) return [];
+        if (photoUrlField.startsWith('[') && photoUrlField.endsWith(']')) {
+            try {
+                return JSON.parse(photoUrlField);
+            } catch (e) {
+                console.error("Failed to parse photo URLs JSON:", e);
+                return [photoUrlField];
+            }
+        }
+        return [photoUrlField];
+    }
+
+    function renderPhotoGallery(urls, containerId, onDeleteCallback) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+
+        container.innerHTML = '';
+        if (urls.length === 0) {
+            container.style.display = 'none';
+            return;
+        }
+
+        container.style.display = 'flex';
+        urls.forEach((url, index) => {
+            const item = document.createElement('div');
+            item.className = 'uploaded-photo-item';
+
+            const img = document.createElement('img');
+            img.src = url;
+            img.alt = `Uploaded photo ${index + 1}`;
+
+            const delBtn = document.createElement('div');
+            delBtn.className = 'uploaded-photo-delete';
+            delBtn.innerHTML = '&times;';
+            delBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                onDeleteCallback(index);
+            });
+
+            item.appendChild(img);
+            item.appendChild(delBtn);
+            container.appendChild(item);
+        });
+    }
+
+    async function deleteModalPhoto(index) {
+        const indicator = document.getElementById('rsvp-status-indicator');
+        const statusText = indicator ? indicator.querySelector('.status-text') : null;
+        const statusDot = indicator ? indicator.querySelector('.status-dot') : null;
+        if (statusText) statusText.textContent = 'Saving...';
+        if (statusDot) statusDot.style.background = '#eab308';
+
+        try {
+            const { data: latestGuest, error: fetchErr } = await supabase
+                .from('guests')
+                .select('photo_url')
+                .eq('access_code', user.access_code)
+                .single();
+
+            if (fetchErr) throw fetchErr;
+
+            let currentUrls = getPhotoUrls(latestGuest.photo_url);
+            currentUrls.splice(index, 1);
+
+            const serialized = currentUrls.length > 0 ? JSON.stringify(currentUrls) : null;
+
+            const { error: dbError } = await supabase
+                .from('guests')
+                .update({ photo_url: serialized })
+                .eq('access_code', user.access_code);
+
+            if (dbError) throw dbError;
+
+            // Sync local user states
+            user.photo_url = serialized;
+            localStorage.setItem('user', JSON.stringify(user));
+            window.Auth.user = user;
+
+            renderPhotoGallery(currentUrls, 'rsvp-uploaded-photos-container', (idx) => deleteModalPhoto(idx));
+
+            if (statusText) statusText.textContent = 'All changes saved';
+            if (statusDot) statusDot.style.background = '#10b981';
+        } catch (err) {
+            console.error('Delete modal photo error:', err);
+            if (statusText) statusText.textContent = 'Failed to delete photo';
+            if (statusDot) statusDot.style.background = '#ef4444';
+        }
+    }
+
+    // Modal Dynamic Branching
+    function handleModalAttendanceChange(value) {
+        const accommodationGroup = document.getElementById('rsvp-accommodation-group');
+        const accommodationLabel = document.getElementById('rsvp-accommodation-label');
+        const plusOneSection = document.getElementById('rsvp-plus-one-section');
+        const step3 = document.getElementById('rsvp-step3-section');
+        const step4 = document.getElementById('rsvp-step4-section');
+        
+        if (value === 'decline') {
+            if (accommodationGroup) accommodationGroup.classList.add('hidden');
+            if (plusOneSection) plusOneSection.classList.add('hidden');
+            if (step3) step3.classList.add('hidden');
+            if (step4) step4.classList.add('hidden');
+        } else {
+            const isOnsiteAllowed = user?.is_onsite_allowed;
+            if (accommodationGroup) {
+                if (isOnsiteAllowed) {
+                    accommodationGroup.classList.remove('hidden');
+                } else {
+                    accommodationGroup.classList.add('hidden');
+                }
+            }
+            if (plusOneSection) {
+                if (user?.has_plus_one) {
+                    plusOneSection.classList.remove('hidden');
+                } else {
+                    plusOneSection.classList.add('hidden');
+                }
+            }
+            if (step3) step3.classList.remove('hidden');
+            if (step4) step4.classList.remove('hidden');
+
+            if (accommodationLabel) {
+                const tourLink = `<a href="https://www.youtube.com/watch?v=whc_XCoT8mc&t=15s" target="_blank" class="venue-link">(Watch Venue Tour)</a>`;
+                if (value === 'friday_arrival') {
+                    accommodationLabel.innerHTML = `Attendance on-site is prioritised for guests attending the whole time, however would you want to be considered for space on-site if there is space? ${tourLink}`;
+                } else {
+                    accommodationLabel.innerHTML = `Accommodation Preference ${tourLink}`;
+                }
+            }
+        }
+    }
+
+    function populateRsvpModal(data) {
+        if (!data || !rsvpModalForm) return;
+
+        document.getElementById('rsvp-accessCode').value = data.access_code || '';
+        document.getElementById('rsvp-fullName').value = data.full_name || '';
+        document.getElementById('rsvp-phone').value = data.phone || '';
+        document.getElementById('rsvp-dietary').value = data.dietary_requirements || '';
+        document.getElementById('rsvp-funnyStory').value = data.funny_story || '';
+        document.getElementById('rsvp-advice').value = data.marriage_advice || '';
+        document.getElementById('rsvp-speechBet').value = data.speech_prediction || '';
+
+        // Radio Buttons: Attendance
+        if (data.attendance_option) {
+            const radio = rsvpModalForm.querySelector(`input[name="attendance"][value="${data.attendance_option}"]`);
+            if (radio) radio.checked = true;
+        } else {
+            rsvpModalForm.querySelectorAll('input[name="attendance"]').forEach(r => r.checked = false);
+        }
+
+        // Radio Buttons: Accommodation
+        if (data.accommodation_preference) {
+            const radio = rsvpModalForm.querySelector(`input[name="accommodation"][value="${data.accommodation_preference}"]`);
+            if (radio) radio.checked = true;
+        } else {
+            rsvpModalForm.querySelectorAll('input[name="accommodation"]').forEach(r => r.checked = false);
+        }
+
+        // Plus One Conditional
+        const plusOneSection = document.getElementById('rsvp-plus-one-section');
+        if (plusOneSection) {
+            if (data.has_plus_one) {
+                plusOneSection.classList.remove('hidden');
+                document.getElementById('rsvp-plusOneName').value = data.plus_one_full_name || '';
+                document.getElementById('rsvp-plusOneDietary').value = data.plus_one_dietary || '';
+            } else {
+                plusOneSection.classList.add('hidden');
+            }
+        }
+
+        // Trigger dynamic form branching based on saved attendance
+        handleModalAttendanceChange(data.attendance_option);
+
+        // Render Photo Gallery
+        const urls = getPhotoUrls(data.photo_url);
+        renderPhotoGallery(urls, 'rsvp-uploaded-photos-container', (idx) => deleteModalPhoto(idx));
+
+        // Reset status indicator to Saved initially
+        const indicator = document.getElementById('rsvp-status-indicator');
+        if (indicator) {
+            indicator.querySelector('.status-text').textContent = 'All changes saved';
+            indicator.querySelector('.status-dot').style.background = '#10b981';
+        }
+    }
+
+    let rsvpAutoSaveTimeout = null;
+
+    async function triggerRsvpAutoSave() {
+        const indicator = document.getElementById('rsvp-status-indicator');
+        if (!indicator) return;
+        const statusText = indicator.querySelector('.status-text');
+        const statusDot = indicator.querySelector('.status-dot');
+        statusText.textContent = 'Saving...';
+        statusDot.style.background = '#eab308'; // Amber
+
+        const formData = new FormData(rsvpModalForm);
+        const accessCode = user.access_code;
+        if (!accessCode) return;
+
+        const payload = {
+            full_name: formData.get('fullName'),
+            phone: formData.get('phone'),
+            attendance_option: formData.get('attendance'),
+            accommodation_preference: formData.get('accommodation') || null,
+            dietary_requirements: formData.get('dietary'),
+            funny_story: formData.get('funnyStory'),
+            marriage_advice: formData.get('advice'),
+            speech_prediction: formData.get('speechBet'),
+            plus_one_full_name: formData.get('plusOneName') || null,
+            plus_one_dietary: formData.get('plusOneDietary') || null
+        };
+
+        try {
+            const { data: updatedData, error: updateError } = await supabase
+                .from('guests')
+                .update(payload)
+                .eq('access_code', accessCode)
+                .select();
+
+            if (updateError) throw updateError;
+
+            // Sync user to localStorage
+            if (updatedData && updatedData[0]) {
+                user = { ...user, ...updatedData[0] };
+                localStorage.setItem('user', JSON.stringify(user));
+                window.Auth.user = user;
+            }
+
+            // Update Dashboard UI
+            updateDashboardState(user);
+
+            statusText.textContent = 'All changes saved';
+            statusDot.style.background = '#10b981'; // Green
+        } catch (err) {
+            console.error('Auto-save error:', err);
+            statusText.textContent = 'Save failed';
+            statusDot.style.background = '#ef4444'; // Red
+        }
+    }
+
+    function queueRsvpAutoSave() {
+        if (rsvpAutoSaveTimeout) clearTimeout(rsvpAutoSaveTimeout);
+        rsvpAutoSaveTimeout = setTimeout(triggerRsvpAutoSave, 1000);
+    }
+
+    if (rsvpModalForm) {
+        rsvpModalForm.addEventListener('input', (e) => {
+            if ((e.target.tagName === 'INPUT' && (e.target.type === 'text' || e.target.type === 'tel')) || e.target.tagName === 'TEXTAREA') {
+                queueRsvpAutoSave();
+            }
+        });
+
+        rsvpModalForm.addEventListener('change', (e) => {
+            if (e.target.tagName === 'INPUT' && e.target.type === 'radio') {
+                if (e.target.name === 'attendance') {
+                    handleModalAttendanceChange(e.target.value);
+                }
+                triggerRsvpAutoSave();
+            }
+            if ((e.target.tagName === 'INPUT' && (e.target.type === 'text' || e.target.type === 'tel')) || e.target.tagName === 'TEXTAREA') {
+                if (rsvpAutoSaveTimeout) clearTimeout(rsvpAutoSaveTimeout);
+                triggerRsvpAutoSave();
+            }
+        });
+
+        // Photo Upload Auto-save inside modal (Multiple Files)
+        const rsvpModalPhotoInput = document.getElementById('rsvp-photoUpload');
+        if (rsvpModalPhotoInput) {
+            rsvpModalPhotoInput.addEventListener('change', async () => {
+                const files = Array.from(rsvpModalPhotoInput.files);
+                if (files.length === 0) return;
+
+                const indicator = document.getElementById('rsvp-status-indicator');
+                const statusText = indicator ? indicator.querySelector('.status-text') : null;
+                const statusDot = indicator ? indicator.querySelector('.status-dot') : null;
+                if (statusText) statusText.textContent = 'Uploading photo(s)...';
+                if (statusDot) statusDot.style.background = '#eab308';
+
+                try {
+                    const { data: latestGuest, error: fetchErr } = await supabase
+                        .from('guests')
+                        .select('photo_url')
+                        .eq('access_code', user.access_code)
+                        .single();
+
+                    if (fetchErr) throw fetchErr;
+
+                    let currentUrls = getPhotoUrls(latestGuest.photo_url);
+
+                    const uploadPromises = files.map(async (file) => {
+                        const fileExt = file.name.split('.').pop();
+                        const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+                        const filePath = `${fileName}`;
+
+                        const { data: uploadData, error: uploadError } = await supabase.storage
+                            .from('guest-photos')
+                            .upload(filePath, file);
+
+                        if (uploadError) throw uploadError;
+
+                        const { data: publicUrlData } = supabase.storage
+                            .from('guest-photos')
+                            .getPublicUrl(filePath);
+
+                        return publicUrlData.publicUrl;
+                    });
+
+                    const newUrls = await Promise.all(uploadPromises);
+                    const updatedUrls = [...currentUrls, ...newUrls];
+                    const serialized = JSON.stringify(updatedUrls);
+
+                    // Update database
+                    const { error: dbError } = await supabase
+                        .from('guests')
+                        .update({ photo_url: serialized })
+                        .eq('access_code', user.access_code);
+
+                    if (dbError) throw dbError;
+
+                    // Sync locally
+                    user.photo_url = serialized;
+                    localStorage.setItem('user', JSON.stringify(user));
+                    window.Auth.user = user;
+
+                    // Render gallery
+                    renderPhotoGallery(updatedUrls, 'rsvp-uploaded-photos-container', (idx) => deleteModalPhoto(idx));
+
+                    // Clear file input
+                    rsvpModalPhotoInput.value = '';
+
+                    if (statusText) statusText.textContent = 'Uploaded successfully!';
+                    if (statusDot) statusDot.style.background = '#10b981';
+                } catch (err) {
+                    console.error('Modal photo upload error:', err);
+                    if (statusText) statusText.textContent = 'Upload failed';
+                    if (statusDot) statusDot.style.background = '#ef4444';
+                }
+            });
+        }
     }
 
     // --- SWIPER LOGIC START ---
@@ -298,6 +713,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             prevEl: '.swiper-button-prev',
         },
     });
+    window.mySwiperInstance = swiper;
 
 
     // E. Itinerary Modal Logic
@@ -562,6 +978,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         if (e.target === faqModal) {
             faqModal.classList.remove('open');
+        }
+        if (e.target === rsvpModal) {
+            rsvpModal.classList.remove('open');
         }
     });
 
@@ -1441,6 +1860,148 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (btnExploreEstate) {
         btnExploreEstate.addEventListener('click', () => {
             window.openEstateModal();
+        });
+    }
+
+    // --- Captured Moments Gallery Logic ---
+    const sharedGalleryModal = document.getElementById('shared-gallery-modal');
+    const btnViewSharedGallery = document.getElementById('btn-view-shared-gallery');
+    const closeSharedGalleryBtn = document.querySelector('.close-shared-gallery');
+    const btnRsvpGalleryUpload = document.getElementById('btn-rsvp-gallery-upload');
+    let fullscreenSwiper = null;
+
+    async function loadSharedGallery() {
+        const grid = document.getElementById('shared-photos-grid');
+        if (!grid) return;
+
+        grid.innerHTML = '<p class="loading-photos" style="text-align: center; color: var(--text-muted); padding: 2rem; grid-column: 1 / -1;">Loading gallery...</p>';
+
+        try {
+            const { data, error } = await supabase
+                .from('guests')
+                .select('photo_url')
+                .not('photo_url', 'is', null);
+
+            if (error) throw error;
+
+            let allUrls = [];
+            data.forEach(row => {
+                if (row.photo_url) {
+                    allUrls = [...allUrls, ...getPhotoUrls(row.photo_url)];
+                }
+            });
+
+            grid.innerHTML = '';
+
+            if (allUrls.length === 0) {
+                grid.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 2rem; grid-column: 1 / -1;">No photos shared yet. Be the first to share one!</p>';
+                return;
+            }
+
+            allUrls.forEach((url, index) => {
+                const card = document.createElement('div');
+                card.className = 'shared-photo-card';
+
+                const img = document.createElement('img');
+                img.src = url;
+                img.alt = `Shared photo ${index + 1}`;
+                img.loading = 'lazy';
+
+                card.appendChild(img);
+
+                card.onclick = () => {
+                    openFullScreenGallery(allUrls, index);
+                };
+
+                grid.appendChild(card);
+            });
+
+        } catch (err) {
+            console.error('Failed to load shared gallery:', err);
+            grid.innerHTML = '<p style="text-align: center; color: #ef4444; padding: 2rem; grid-column: 1 / -1;">Failed to load photos. Please try again later.</p>';
+        }
+    }
+
+    function openFullScreenGallery(urls, startIndex) {
+        if (!galleryModal) return;
+
+        // Hide any room/estate detail content if present
+        const roomContent = document.getElementById('room-detail-content');
+        if (roomContent) roomContent.style.display = 'none';
+
+        // Show the swiper gallery
+        const swiperGallery = galleryModal.querySelector('.swiper-gallery');
+        if (swiperGallery) swiperGallery.style.display = 'block';
+
+        // Populate wrapper
+        const wrapper = document.getElementById('gallery-wrapper');
+        if (wrapper) {
+            wrapper.innerHTML = urls.map(url => `
+                <div class="swiper-slide" style="display: flex; align-items: center; justify-content: center; height: 100%;">
+                    <img src="${url}" style="max-width: 90%; max-height: 90vh; object-fit: contain; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.5);">
+                </div>
+            `).join('');
+        }
+
+        // Show modal
+        galleryModal.classList.add('open');
+
+        // Initialize/Update Swiper
+        setTimeout(() => {
+            if (fullscreenSwiper) {
+                fullscreenSwiper.destroy(true, true);
+            }
+            fullscreenSwiper = new Swiper('.swiper-gallery', {
+                pagination: { el: '.swiper-gallery .swiper-pagination', clickable: true },
+                navigation: { nextEl: '.swiper-gallery .swiper-button-next', prevEl: '.swiper-gallery .swiper-button-prev' },
+                initialSlide: startIndex,
+                loop: urls.length > 1,
+                observer: true,
+                observeParents: true
+            });
+        }, 0);
+    }
+
+    if (btnViewSharedGallery) {
+        btnViewSharedGallery.addEventListener('click', () => {
+            if (sharedGalleryModal) {
+                sharedGalleryModal.classList.add('open');
+                loadSharedGallery();
+            }
+        });
+    }
+
+    if (closeSharedGalleryBtn) {
+        closeSharedGalleryBtn.addEventListener('click', () => {
+            if (sharedGalleryModal) sharedGalleryModal.classList.remove('open');
+        });
+    }
+
+    if (sharedGalleryModal) {
+        sharedGalleryModal.addEventListener('click', (e) => {
+            if (e.target === sharedGalleryModal) sharedGalleryModal.classList.remove('open');
+        });
+    }
+
+    if (btnRsvpGalleryUpload) {
+        btnRsvpGalleryUpload.addEventListener('click', () => {
+            if (sharedGalleryModal) sharedGalleryModal.classList.remove('open');
+            openRsvpModal();
+            setTimeout(() => {
+                const photoUploadSection = document.getElementById('rsvp-photoUpload');
+                if (photoUploadSection) {
+                    photoUploadSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    // Highlight flash effect
+                    const parentGroup = photoUploadSection.closest('.form-group');
+                    if (parentGroup) {
+                        parentGroup.style.boxShadow = '0 0 0 5px rgba(193, 162, 122, 0.45)';
+                        parentGroup.style.transition = 'box-shadow 0.4s ease';
+                        setTimeout(() => {
+                            parentGroup.style.boxShadow = '';
+                        }, 2000);
+                    }
+                }
+            }, 400);
         });
     }
 
