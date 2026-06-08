@@ -484,7 +484,7 @@ p.subtitle {
 
 /* 5. RSVP */
 .card-rsvp {
-  background-image: url('RSVPimage.jpg');
+  background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('Cartoon final images/Firefly_RSVP.png');
 }
 
 .dashboard-card h2 {
@@ -1584,7 +1584,7 @@ details[open] .timeline-dot.gold {
 
 /* Estate Card */
 .card-estate {
-  background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('huntsham_exterior.jpg');
+  background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('Cartoon final images/Firefly - mansion.png');
   background-size: cover;
   background-position: center;
   color: white;
