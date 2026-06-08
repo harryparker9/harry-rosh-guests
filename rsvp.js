@@ -72,12 +72,21 @@ document.addEventListener('DOMContentLoaded', () => {
         btnUnlock.disabled = true;
 
         try {
+            // Re-initialize client with correct access code header first so the select query is permitted
+            window.Auth.client = window.supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseKey, {
+                global: {
+                    headers: {
+                        'x-access-code': code
+                    }
+                }
+            });
+            supabase = window.Auth.client;
+
             // Query Supabase
             const { data, error } = await supabase
                 .from('guests')
                 .select('*')
                 .eq('access_code', code)
-                .headers({ 'x-access-code': code })
                 .single();
 
             if (error || !data) {
@@ -91,16 +100,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Valid Code
             window.guestData = data;
-
-            // Re-initialize client with correct access code header for auto-saves and uploads
-            window.Auth.client = window.supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseKey, {
-                global: {
-                    headers: {
-                        'x-access-code': code
-                    }
-                }
-            });
-            supabase = window.Auth.client;
 
             // 1. Reveal Form
             rsvpGate.classList.add('hidden');

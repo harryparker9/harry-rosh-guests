@@ -45,21 +45,7 @@
         login: async function (accessCode) {
             if (!accessCode) throw new Error("Access code required");
 
-            const { data, error } = await supabase
-                .from('guests')
-                .select('*')
-                .eq('access_code', accessCode)
-                .headers({ 'x-access-code': accessCode })
-                .single();
-
-            if (error || !data) {
-                throw new Error("Invalid access code");
-            }
-
-            this.user = data;
-            localStorage.setItem('user', JSON.stringify(data));
-
-            // Re-create the client with global header set for subsequent actions
+            // Re-create the client with the typed access code in the global headers first
             supabase = window.supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseKey, {
                 global: {
                     headers: {
@@ -69,6 +55,18 @@
             });
             this.client = supabase;
 
+            const { data, error } = await supabase
+                .from('guests')
+                .select('*')
+                .eq('access_code', accessCode)
+                .single();
+
+            if (error || !data) {
+                throw new Error("Invalid access code");
+            }
+
+            this.user = data;
+            localStorage.setItem('user', JSON.stringify(data));
             return data;
         },
 
