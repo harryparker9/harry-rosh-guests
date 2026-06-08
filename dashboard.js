@@ -655,12 +655,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // B. Countdown Logic
-    const timerVal = document.getElementById('timer-val');
-    const timerLabel = document.getElementById('timer-label');
-
     let targetDate;
 
     function initCountdown(currentUser) {
+        const timerVal = document.getElementById('timer-val');
+        const timerLabel = document.getElementById('timer-label');
         if (!timerVal || !timerLabel) return;
         if (currentUser.attendance_option === 'friday_arrival') {
             // Friday August 6th 2027 5:00 PM
@@ -675,6 +674,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function updateTimer() {
+        const timerVal = document.getElementById('timer-val');
+        const timerLabel = document.getElementById('timer-label');
         if (!timerVal || !timerLabel || !targetDate) return;
 
         const now = new Date();
@@ -695,7 +696,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         timerVal.textContent = `${f(days)}:${f(hours)}:${f(minutes)}:${f(seconds)}`;
     }
 
-    if (timerVal && timerLabel) {
+    // Initialize countdown if DOM elements are present
+    if (document.getElementById('timer-val') && document.getElementById('timer-label')) {
         initCountdown(user);
         setInterval(updateTimer, 1000);
     }
