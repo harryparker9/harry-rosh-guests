@@ -36,15 +36,15 @@
     </main>
 
     <!-- Recovery Modal -->
-    <div id="recovery-modal" class="modal-overlay hidden">
-        <div class="modal-card">
-            <button id="recovery-modal-close" class="modal-close-btn">&times;</button>
+    <div id="recovery-modal" class="recovery-modal-overlay hidden">
+        <div class="recovery-modal-card">
+            <button id="recovery-modal-close" class="recovery-modal-close-btn">&times;</button>
             
             <div id="recovery-step-1" class="recovery-step">
-                <h3 class="modal-title">Recover Access Code</h3>
-                <p class="modal-subtitle">Enter your name and phone number as they appear on your invitation to recover your code.</p>
+                <h3 class="recovery-modal-title">Recover Access Code</h3>
+                <p class="recovery-modal-subtitle">Enter your name and phone number as they appear on your invitation to recover your code.</p>
                 
-                <form id="recovery-form-step-1" class="modal-form">
+                <form id="recovery-form-step-1" class="recovery-modal-form">
                     <div class="form-group">
                         <label for="recovery-name">Full Name</label>
                         <input type="text" id="recovery-name" required placeholder="e.g. Harry Parker" autocomplete="name">
@@ -58,10 +58,10 @@
             </div>
 
             <div id="recovery-step-2" class="recovery-step hidden">
-                <h3 class="modal-title">Enter Email Address</h3>
-                <p class="modal-subtitle">Details matched! Enter your email address to receive your access code.</p>
+                <h3 class="recovery-modal-title">Enter Email Address</h3>
+                <p class="recovery-modal-subtitle">Details matched! Enter your email address to receive your access code.</p>
                 
-                <form id="recovery-form-step-2" class="modal-form">
+                <form id="recovery-form-step-2" class="recovery-modal-form">
                     <div class="form-group">
                         <label for="recovery-email">Email Address</label>
                         <input type="email" id="recovery-email" required placeholder="e.g. guest@email.com" autocomplete="email">
@@ -72,13 +72,13 @@
 
             <div id="recovery-step-success" class="recovery-step hidden">
                 <div class="success-icon">&#10003;</div>
-                <h3 class="modal-title">Email Sent!</h3>
-                <p class="modal-subtitle">Your access code has been sent to the email address provided. Please check your inbox (and spam folder).</p>
+                <h3 class="recovery-modal-title">Email Sent!</h3>
+                <p class="recovery-modal-subtitle">Your access code has been sent to the email address provided. Please check your inbox (and spam folder).</p>
                 <button id="btn-recovery-success-close" class="btn-modal-submit">Back to Login</button>
             </div>
 
-            <div id="recovery-error" class="modal-error hidden"></div>
-            <div id="recovery-loader" class="modal-loader hidden">
+            <div id="recovery-error" class="recovery-modal-error hidden"></div>
+            <div id="recovery-loader" class="recovery-modal-loader hidden">
                 <div class="spinner"></div>
                 <p>Processing...</p>
             </div>

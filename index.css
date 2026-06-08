@@ -2431,7 +2431,7 @@ details[open] .timeline-dot.gold {
   transform: translateY(-0.5px);
 }
 
-.modal-overlay {
+.recovery-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -2448,12 +2448,12 @@ details[open] .timeline-dot.gold {
   transition: opacity 0.3s ease;
 }
 
-.modal-overlay.hidden {
+.recovery-modal-overlay.hidden {
   display: none;
   opacity: 0;
 }
 
-.modal-card {
+.recovery-modal-card {
   background: #FAF9F5;
   border: 1px solid rgba(193, 162, 122, 0.25);
   border-radius: 24px;
@@ -2463,10 +2463,10 @@ details[open] .timeline-dot.gold {
   width: 90%;
   position: relative;
   text-align: center;
-  animation: modalSlideIn 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: recoveryModalSlideIn 0.45s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-@keyframes modalSlideIn {
+@keyframes recoveryModalSlideIn {
   from {
     transform: translateY(30px);
     opacity: 0;
@@ -2477,7 +2477,7 @@ details[open] .timeline-dot.gold {
   }
 }
 
-.modal-close-btn {
+.recovery-modal-close-btn {
   position: absolute;
   top: 1.25rem;
   right: 1.25rem;
@@ -2496,12 +2496,12 @@ details[open] .timeline-dot.gold {
   transition: all 0.2s ease;
 }
 
-.modal-close-btn:hover {
+.recovery-modal-close-btn:hover {
   background: rgba(0, 0, 0, 0.05);
   color: var(--text-main);
 }
 
-.modal-title {
+.recovery-modal-title {
   font-family: 'Playfair Display', serif;
   font-size: 2rem;
   color: var(--text-main);
@@ -2509,7 +2509,7 @@ details[open] .timeline-dot.gold {
   font-weight: 500;
 }
 
-.modal-subtitle {
+.recovery-modal-subtitle {
   font-family: 'Montserrat', sans-serif;
   font-size: 0.9rem;
   color: var(--text-muted);
@@ -2517,7 +2517,7 @@ details[open] .timeline-dot.gold {
   margin-bottom: 2rem;
 }
 
-.modal-form {
+.recovery-modal-form {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
@@ -2597,7 +2597,7 @@ details[open] .timeline-dot.gold {
   margin: 0 auto 1.5rem auto;
 }
 
-.modal-error {
+.recovery-modal-error {
   background: rgba(220, 38, 38, 0.08);
   border: 1px solid rgba(220, 38, 38, 0.2);
   color: rgb(220, 38, 38);
@@ -2609,7 +2609,7 @@ details[open] .timeline-dot.gold {
   text-align: left;
 }
 
-.modal-loader {
+.recovery-modal-loader {
   position: absolute;
   top: 0;
   left: 0;
@@ -2624,7 +2624,7 @@ details[open] .timeline-dot.gold {
   gap: 1rem;
 }
 
-.modal-loader p {
+.recovery-modal-loader p {
   font-family: 'Montserrat', sans-serif;
   font-weight: 500;
   color: var(--text-muted);
