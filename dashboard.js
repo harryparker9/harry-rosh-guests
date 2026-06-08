@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     let itineraryActiveDay = (localUser && localUser.attendance_option === 'friday_arrival') ? 'Friday' : 'Thursday';
     let itineraryViewMode = 'storybook'; // 'storybook' (zoomed in) or 'overview' (zoomed out)
     let itinerarySwiper = null;
+    let rsvpAutoSaveTimeout = null;
 
     // 2. Fetch Fresh Data from Supabase (with a 5-second timeout fallback)
     const supabase = window.Auth.client;
@@ -154,6 +155,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (window.mySwiperInstance) {
             window.mySwiperInstance.update();
         }
+
+        // Refresh dynamic countdown target and itinerary content
+        if (typeof initCountdown === 'function') {
+            initCountdown(currentUser);
+        }
+        if (typeof initNextEvent === 'function') {
+            initNextEvent(currentUser);
+        }
+        if (typeof renderItineraryContent === 'function') {
+            renderItineraryContent(currentUser);
+        }
     }
 
     // Call state update initially
@@ -174,9 +186,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         populateRsvpModal(user);
     }
 
-    function closeRsvpModal() {
+    async function closeRsvpModal() {
         if (!rsvpModal) return;
+        
+        // Trigger save immediately if anything is pending
+        if (rsvpAutoSaveTimeout) {
+            clearTimeout(rsvpAutoSaveTimeout);
+            await triggerRsvpAutoSave();
+        }
+        
         rsvpModal.classList.remove('open');
+        updateDashboardState(user);
     }
 
     if (btnUpdateRsvp) {
@@ -383,7 +403,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    let rsvpAutoSaveTimeout = null;
 
     async function triggerRsvpAutoSave() {
         const indicator = document.getElementById('rsvp-status-indicator');
@@ -641,9 +660,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     let targetDate;
 
-    // Only init if elements exist
-    if (timerVal && timerLabel) {
-        if (user.attendance_option === 'friday_arrival') {
+    function initCountdown(currentUser) {
+        if (!timerVal || !timerLabel) return;
+        if (currentUser.attendance_option === 'friday_arrival') {
             // Friday August 6th 2027 5:00 PM
             targetDate = new Date('2027-08-06T17:00:00');
             timerLabel.textContent = "Until The Garden Party";
@@ -652,10 +671,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             targetDate = new Date('2027-08-05T12:00:00');
             timerLabel.textContent = "Until The Weekend Starts";
         }
+        updateTimer();
     }
 
     function updateTimer() {
-        if (!timerVal || !timerLabel) return;
+        if (!timerVal || !timerLabel || !targetDate) return;
 
         const now = new Date();
         const diff = targetDate - now;
@@ -676,17 +696,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     if (timerVal && timerLabel) {
+        initCountdown(user);
         setInterval(updateTimer, 1000);
-        updateTimer(); // Initial call
     }
 
     // C. Itinerary Text Update
-    const nextEventName = document.getElementById('next-event-name');
-    if (user.attendance_option === 'friday_arrival') {
-        nextEventName.textContent = "Fri 1pm: Pimms & Games";
-    } else {
-        nextEventName.textContent = "Thu 6pm: Pizza & Drinks";
+    function initNextEvent(currentUser) {
+        const nextEventName = document.getElementById('next-event-name');
+        if (nextEventName) {
+            if (currentUser.attendance_option === 'friday_arrival') {
+                nextEventName.textContent = "Fri 1pm: Pimms & Games";
+            } else {
+                nextEventName.textContent = "Thu 6pm: Pizza & Drinks";
+            }
+        }
     }
+    initNextEvent(user);
 
     // D. Initialize Swiper (3D Coverflow)
     // D. Initialize Swiper (3D Coverflow)
@@ -1030,7 +1055,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             faqModal.classList.remove('open');
         }
         if (e.target === rsvpModal) {
-            rsvpModal.classList.remove('open');
+            closeRsvpModal();
         }
     });
 
@@ -1179,6 +1204,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         })
             .then(({ data, error }) => {
                 if (error) {
+                    loadingBubble.remove();
                     // Supabase SDK returns an error object if the function fails or returns non-2xx
                     console.error("Function Error:", error);
 
