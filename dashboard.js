@@ -1863,7 +1863,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    // --- Captured Moments Gallery Logic ---
+    // --- Photo Gallery Logic ---
     const sharedGalleryModal = document.getElementById('shared-gallery-modal');
     const btnViewSharedGallery = document.getElementById('btn-view-shared-gallery');
     const closeSharedGalleryBtn = document.querySelector('.close-shared-gallery');
@@ -1988,9 +1988,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (sharedGalleryModal) sharedGalleryModal.classList.remove('open');
             openRsvpModal();
             setTimeout(() => {
+                const rsvpModal = document.getElementById('rsvp-modal');
+                if (rsvpModal) {
+                    const modalContent = rsvpModal.querySelector('.modal-content');
+                    if (modalContent) {
+                        modalContent.scrollTo({
+                            top: modalContent.scrollHeight,
+                            behavior: 'smooth'
+                        });
+                    }
+                }
                 const photoUploadSection = document.getElementById('rsvp-photoUpload');
                 if (photoUploadSection) {
-                    photoUploadSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     // Highlight flash effect
                     const parentGroup = photoUploadSection.closest('.form-group');
                     if (parentGroup) {

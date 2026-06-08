@@ -2319,7 +2319,7 @@ details[open] .timeline-dot.gold {
   transform: translateY(0);
 }
 
-/* --- Shared Moments Gallery Styles --- */
+/* --- Photo Gallery Styles --- */
 .shared-photos-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
