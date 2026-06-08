@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error("Auth helper not loaded");
         return;
     }
-    const supabase = window.Auth.client;
+    let supabase = window.Auth.client;
 
     const rsvpForm = document.getElementById('rsvp-form');
     const rsvpGate = document.getElementById('rsvp-gate');
@@ -77,6 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 .from('guests')
                 .select('*')
                 .eq('access_code', code)
+                .headers({ 'x-access-code': code })
                 .single();
 
             if (error || !data) {
@@ -90,6 +91,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Valid Code
             window.guestData = data;
+
+            // Re-initialize client with correct access code header for auto-saves and uploads
+            window.Auth.client = window.supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseKey, {
+                global: {
+                    headers: {
+                        'x-access-code': code
+                    }
+                }
+            });
+            supabase = window.Auth.client;
 
             // 1. Reveal Form
             rsvpGate.classList.add('hidden');

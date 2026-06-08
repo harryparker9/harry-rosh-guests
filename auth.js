@@ -11,8 +11,23 @@
         return;
     }
 
-    // Initialize Supabase Client
-    const supabase = window.supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseKey);
+    // Initialize Supabase Client with global header if logged in
+    let accessCode = '';
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+        try {
+            const parsed = JSON.parse(storedUser);
+            accessCode = parsed.access_code || '';
+        } catch (e) {}
+    }
+
+    let supabase = window.supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseKey, {
+        global: {
+            headers: {
+                'x-access-code': accessCode
+            }
+        }
+    });
 
     // Global Auth Object
     window.Auth = {
@@ -34,6 +49,7 @@
                 .from('guests')
                 .select('*')
                 .eq('access_code', accessCode)
+                .headers({ 'x-access-code': accessCode })
                 .single();
 
             if (error || !data) {
@@ -42,6 +58,17 @@
 
             this.user = data;
             localStorage.setItem('user', JSON.stringify(data));
+
+            // Re-create the client with global header set for subsequent actions
+            supabase = window.supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseKey, {
+                global: {
+                    headers: {
+                        'x-access-code': accessCode
+                    }
+                }
+            });
+            this.client = supabase;
+
             return data;
         },
 
