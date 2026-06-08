@@ -23,6 +23,7 @@
                 <input type="text" id="accessCode" name="accessCode" placeholder="Enter Access Code" required autocomplete="off">
                 <button type="submit" class="btn-enter">Enter</button>
             </form>
+            <a href="#" id="btn-forgot-code" class="forgot-code-link">Forgot code?</a>
             <div id="login-error" class="error-message hidden">Invalid Access Code</div>
         </div>
     </header>
@@ -33,6 +34,56 @@
             <p class="wedding-details">August 2027 • Huntsham Court, Devon</p>
         </div>
     </main>
+
+    <!-- Recovery Modal -->
+    <div id="recovery-modal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <button id="recovery-modal-close" class="modal-close-btn">&times;</button>
+            
+            <div id="recovery-step-1" class="recovery-step">
+                <h3 class="modal-title">Recover Access Code</h3>
+                <p class="modal-subtitle">Enter your name and phone number as they appear on your invitation to recover your code.</p>
+                
+                <form id="recovery-form-step-1" class="modal-form">
+                    <div class="form-group">
+                        <label for="recovery-name">Full Name</label>
+                        <input type="text" id="recovery-name" required placeholder="e.g. Harry Parker" autocomplete="name">
+                    </div>
+                    <div class="form-group">
+                        <label for="recovery-phone">Phone Number</label>
+                        <input type="tel" id="recovery-phone" required placeholder="e.g. 07123 456789" autocomplete="tel">
+                    </div>
+                    <button type="submit" class="btn-modal-submit">Verify Details</button>
+                </form>
+            </div>
+
+            <div id="recovery-step-2" class="recovery-step hidden">
+                <h3 class="modal-title">Enter Email Address</h3>
+                <p class="modal-subtitle">Details matched! Enter your email address to receive your access code.</p>
+                
+                <form id="recovery-form-step-2" class="modal-form">
+                    <div class="form-group">
+                        <label for="recovery-email">Email Address</label>
+                        <input type="email" id="recovery-email" required placeholder="e.g. guest@email.com" autocomplete="email">
+                    </div>
+                    <button type="submit" class="btn-modal-submit">Send Access Code</button>
+                </form>
+            </div>
+
+            <div id="recovery-step-success" class="recovery-step hidden">
+                <div class="success-icon">&#10003;</div>
+                <h3 class="modal-title">Email Sent!</h3>
+                <p class="modal-subtitle">Your access code has been sent to the email address provided. Please check your inbox (and spam folder).</p>
+                <button id="btn-recovery-success-close" class="btn-modal-submit">Back to Login</button>
+            </div>
+
+            <div id="recovery-error" class="modal-error hidden"></div>
+            <div id="recovery-loader" class="modal-loader hidden">
+                <div class="spinner"></div>
+                <p>Processing...</p>
+            </div>
+        </div>
+    </div>
 
     <script src="auth.js"></script>
 </body>
