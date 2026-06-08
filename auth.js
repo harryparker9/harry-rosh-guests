@@ -21,6 +21,19 @@
         } catch (e) {}
     }
 
+    function cleanHeaders(client) {
+        if (!client) return;
+        if (client.auth && client.auth.headers) {
+            delete client.auth.headers['x-access-code'];
+        }
+        if (client.storage && client.storage.headers) {
+            delete client.storage.headers['x-access-code'];
+        }
+        if (client.functions && client.functions.headers) {
+            delete client.functions.headers['x-access-code'];
+        }
+    }
+
     let supabase = window.supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseKey, {
         global: {
             headers: {
@@ -28,6 +41,7 @@
             }
         }
     });
+    cleanHeaders(supabase);
 
     // Global Auth Object
     window.Auth = {
@@ -53,6 +67,7 @@
                     }
                 }
             });
+            cleanHeaders(supabase);
             this.client = supabase;
 
             const { data, error } = await supabase

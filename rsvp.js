@@ -6,6 +6,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     let supabase = window.Auth.client;
 
+    function cleanHeaders(client) {
+        if (!client) return;
+        if (client.auth && client.auth.headers) {
+            delete client.auth.headers['x-access-code'];
+        }
+        if (client.storage && client.storage.headers) {
+            delete client.storage.headers['x-access-code'];
+        }
+        if (client.functions && client.functions.headers) {
+            delete client.functions.headers['x-access-code'];
+        }
+    }
+
     const rsvpForm = document.getElementById('rsvp-form');
     const rsvpGate = document.getElementById('rsvp-gate');
     const gateCodeInput = document.getElementById('gate-code');
@@ -80,6 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
             });
+            cleanHeaders(window.Auth.client);
             supabase = window.Auth.client;
 
             // Query Supabase
