@@ -474,7 +474,7 @@ p.subtitle {
 
 /* 3. VIP Room */
 .card-room {
-  background-image: url('AccomodationImage.jpg');
+  background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('Cartoon final images/Firefly_your_Room.png');
 }
 
 /* 4. Photos */
@@ -484,7 +484,7 @@ p.subtitle {
 
 /* 5. RSVP */
 .card-rsvp {
-  background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('Cartoon final images/Firefly_RSVP.png');
+  background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('Cartoon final images/Firefly_RSVP2.png');
 }
 
 .dashboard-card h2 {
@@ -1588,8 +1588,6 @@ details[open] .timeline-dot.gold {
   background-size: cover;
   background-position: center;
   color: white;
-  border-left: 5px solid var(--primary);
-  /* Elegant Gold/Taupe border */
 }
 
 .card-estate h2 {
