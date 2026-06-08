@@ -1929,6 +1929,59 @@ details[open] .timeline-dot.gold {
         border-radius: 20px !important;
     }
 
+    /* RSVP mobile optimizations */
+    .rsvp-section {
+        margin: 1.5rem auto !important;
+        padding: 1rem !important;
+        border-radius: 16px !important;
+        width: 95% !important;
+        border: 1px solid rgba(193, 162, 122, 0.2) !important;
+        box-sizing: border-box !important;
+    }
+    
+    .rsvp-form {
+        padding: 1.25rem 1rem !important;
+        border-radius: 12px !important;
+        box-shadow: none !important;
+        box-sizing: border-box !important;
+    }
+
+    .form-section {
+        margin-bottom: 1.75rem !important;
+    }
+
+    .form-section legend {
+        font-size: 1.25rem !important;
+        margin-bottom: 1rem !important;
+        padding-bottom: 0.4rem !important;
+    }
+
+    .form-group {
+        margin-bottom: 1rem !important;
+    }
+
+    .form-group label {
+        font-size: 0.9rem !important;
+        margin-bottom: 0.4rem !important;
+    }
+
+    .radio-option {
+        padding: 0.8rem 1rem !important;
+        min-height: auto !important;
+        gap: 0.8rem !important;
+        border-radius: 12px !important;
+    }
+
+    .radio-label {
+        font-size: 0.85rem !important;
+    }
+    
+    .btn-primary {
+        padding: 0.9rem 2rem !important;
+        font-size: 1rem !important;
+    }
+
+
     /* Keep Floor Tabs responsive & prevent horizontal overflow */
     .floor-tabs {
         gap: 0.25rem !important;

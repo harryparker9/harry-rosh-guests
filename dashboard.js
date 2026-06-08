@@ -1096,8 +1096,22 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Construct URL handled by SDK
         // Usage: supabase.functions.invoke('function-name', { body: {} })
 
+        const reqBody = {
+            query: query,
+            guest: user ? {
+                name: user.full_name,
+                attendance: user.attendance_option,
+                dietary: user.dietary_requirements,
+                room_assigned: user.room_assigned,
+                room_status: user.room_status
+            } : null,
+            roomDetails: (user && user.room_assigned && window.ROOM_LIBRARY && window.ROOM_LIBRARY[user.room_assigned]) ? 
+                `Room: ${user.room_assigned}\nDescription: ${window.ROOM_LIBRARY[user.room_assigned].description || ''}\nFloor: ${window.ROOM_LIBRARY[user.room_assigned].floor || ''}` : null,
+            itinerary: window.itinerarySchedule || null
+        };
+
         supabase.functions.invoke('gemini-faq', {
-            body: { query: query }
+            body: reqBody
         })
             .then(({ data, error }) => {
                 if (error) {
