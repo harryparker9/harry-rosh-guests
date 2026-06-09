@@ -464,12 +464,12 @@ p.subtitle {
 
 /* 1. Countdown */
 .card-countdown {
-  background-image: url('harryandrosh1.jpg');
+  background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('Cartoon final images/Firefly_countdown.jpg');
 }
 
 /* 2. Itinerary */
 .card-itinerary {
-  background-image: url('ItineraryImage.jpg');
+  background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('Cartoon final images/Firefly_plan.png');
 }
 
 /* 3. VIP Room */
@@ -479,7 +479,7 @@ p.subtitle {
 
 /* 4. Photos */
 .card-photos {
-  background-image: url('MomentsImage.jpg');
+  background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('Cartoon final images/Firefly_photobook.png');
 }
 
 /* 5. RSVP */
