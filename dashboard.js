@@ -1636,7 +1636,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                           </div>
                      </div>
 
-                     <div class="map-scroll-container" id="map-scroll" style="position: relative;">
+                     <div class="map-scroll-container" id="map-scroll" style="position: relative; overflow: hidden;">
                           <!-- Floating Controls Pinned to Top-Right -->
                           <button id="btn-map-fullscreen" class="btn-card-action" style="position: absolute; top: 12px; right: 12px; z-index: 100; margin: 0; padding: 0; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(253, 251, 247, 0.95); border: 1px solid rgba(193, 162, 122, 0.45); color: var(--primary); box-shadow: 0 4px 10px rgba(0,0,0,0.12); cursor: pointer; font-size: 1.1rem; transition: all 0.2s;">
                               ⛶
@@ -1645,10 +1645,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                               ✕
                           </button>
 
-                          <div class="map-zoom-area" style="position: relative; display: inline-block; width: 100%;">
-                               <img id="floor-map-img" class="floor-map-img" src="https://jkxxswxpykdyrpjriizx.supabase.co/storage/v1/object/public/floor-plan/Groundfloor.png" alt="Floor Plan">
+                          <div class="map-zoom-area" style="position: relative; display: inline-block; width: 100%; transform-origin: 0 0;">
+                               <img id="floor-map-img" class="floor-map-img" src="https://jkxxswxpykdyrpjriizx.supabase.co/storage/v1/object/public/floor-plan/Groundfloor.png" alt="Floor Plan" style="width: 100%; transform-origin: 0 0;">
                                <div id="map-markers" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></div>
                           </div>
+                     </div>
+
+                     <!-- Floating Zoom Controls (Visible in fullscreen mode) -->
+                     <div class="map-zoom-controls" style="display: none; position: absolute; bottom: 24px; right: 24px; z-index: 12000; flex-direction: column; gap: 8px;">
+                          <button id="btn-map-zoom-in" class="btn-card-action" style="margin: 0; padding: 0; width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(253, 251, 247, 0.95); border: 1px solid rgba(193, 162, 122, 0.45); color: var(--primary); box-shadow: 0 4px 12px rgba(0,0,0,0.15); cursor: pointer; font-size: 1.4rem; font-weight: bold; transition: all 0.2s;">+</button>
+                          <button id="btn-map-zoom-out" class="btn-card-action" style="margin: 0; padding: 0; width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(253, 251, 247, 0.95); border: 1px solid rgba(193, 162, 122, 0.45); color: var(--primary); box-shadow: 0 4px 12px rgba(0,0,0,0.15); cursor: pointer; font-size: 1.4rem; font-weight: bold; transition: all 0.2s;">−</button>
                      </div>
                      
                      <!-- Popover (Hidden by default) -->
@@ -2006,6 +2012,25 @@ document.addEventListener('DOMContentLoaded', async () => {
         const btnCloseFullscreen = document.getElementById('btn-close-map-fullscreen');
         const mapWrapper = document.getElementById('map-wrapper-container');
 
+        // Zoom Logic
+        let currentZoom = 100; // in percent
+        const mapZoomArea = mapWrapper.querySelector('.map-zoom-area');
+
+        const applyZoom = (zoomVal) => {
+            currentZoom = Math.min(Math.max(zoomVal, 100), 300);
+            if (mapZoomArea) {
+                mapZoomArea.style.setProperty('width', `${currentZoom}%`, 'important');
+            }
+        };
+
+        const zoomIn = () => {
+            applyZoom(currentZoom + 40);
+        };
+
+        const zoomOut = () => {
+            applyZoom(currentZoom - 40);
+        };
+
         const enterFullscreen = () => {
             if (mapWrapper.classList.contains('fullscreen-active')) return;
             
@@ -2018,11 +2043,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.body.appendChild(mapWrapper);
             mapWrapper.classList.add('fullscreen-active');
             popover.classList.remove('visible');
+            applyZoom(100); // Fit-to-screen initially
         };
 
         const exitFullscreen = () => {
             if (!mapWrapper.classList.contains('fullscreen-active')) return;
             
+            // Reset zoom
+            applyZoom(100);
+
             // Move map wrapper back from body
             const placeholder = document.getElementById('map-wrapper-placeholder');
             if (placeholder) {
@@ -2046,6 +2075,57 @@ document.addEventListener('DOMContentLoaded', async () => {
                 e.stopPropagation();
                 exitFullscreen();
             };
+        }
+
+        // Zoom Buttons Listeners
+        const btnZoomIn = document.getElementById('btn-map-zoom-in');
+        const btnZoomOut = document.getElementById('btn-map-zoom-out');
+
+        if (btnZoomIn) {
+            btnZoomIn.onclick = (e) => {
+                e.stopPropagation();
+                zoomIn();
+            };
+        }
+
+        if (btnZoomOut) {
+            btnZoomOut.onclick = (e) => {
+                e.stopPropagation();
+                zoomOut();
+            };
+        }
+
+        // Pinch-to-zoom logic
+        let initialPinchDistance = 0;
+        let initialPinchZoom = 100;
+
+        if (mapScroll) {
+            mapScroll.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 2 && mapWrapper.classList.contains('fullscreen-active')) {
+                    const dx = e.touches[0].clientX - e.touches[1].clientX;
+                    const dy = e.touches[0].clientY - e.touches[1].clientY;
+                    initialPinchDistance = Math.hypot(dx, dy);
+                    initialPinchZoom = currentZoom;
+                }
+            }, { passive: true });
+
+            mapScroll.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 2 && mapWrapper.classList.contains('fullscreen-active') && initialPinchDistance > 0) {
+                    const dx = e.touches[0].clientX - e.touches[1].clientX;
+                    const dy = e.touches[0].clientY - e.touches[1].clientY;
+                    const distance = Math.hypot(dx, dy);
+                    const factor = distance / initialPinchDistance;
+                    
+                    const newZoom = initialPinchZoom * factor;
+                    applyZoom(newZoom);
+                }
+            }, { passive: true });
+
+            mapScroll.addEventListener('touchend', (e) => {
+                if (e.touches.length < 2) {
+                    initialPinchDistance = 0;
+                }
+            }, { passive: true });
         }
 
         // Click map to close popover

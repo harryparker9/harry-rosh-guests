@@ -1677,8 +1677,8 @@ details[open] .timeline-dot.gold {
   overflow: auto !important;
   position: relative !important;
   display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
+  align-items: flex-start !important;
+  justify-content: flex-start !important;
   border-radius: 12px;
   background: rgba(0, 0, 0, 0.05);
   border: 1px solid rgba(193, 162, 122, 0.15);
@@ -1686,12 +1686,17 @@ details[open] .timeline-dot.gold {
 
 /* When in fullscreen, the map Zoom Area expands to let users scroll and view detail clearly */
 .map-wrapper.fullscreen-active .map-zoom-area {
-  width: 1200px !important;
+  width: 100%;
   max-width: none !important;
   flex-shrink: 0;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
   overflow: hidden;
+  margin: auto !important;
+}
+
+.map-wrapper.fullscreen-active .map-zoom-controls {
+  display: flex !important;
 }
 
 .map-wrapper.fullscreen-active #btn-map-fullscreen {
