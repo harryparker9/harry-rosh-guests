@@ -1541,6 +1541,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.openEstateModal = function () {
         if (!galleryModal) return;
 
+        // Clean up any existing orphaned map wrapper or placeholder from previous sessions
+        const existingPlaceholder = document.getElementById('map-wrapper-placeholder');
+        if (existingPlaceholder) existingPlaceholder.remove();
+        const orphanedMaps = document.querySelectorAll('body > #map-wrapper-container');
+        orphanedMaps.forEach(m => m.remove());
+
         // Clear/Setup Container (Reusing same logic as Room Modal)
         let contentContainer = document.getElementById('room-detail-content');
         if (!contentContainer) {
@@ -2000,35 +2006,62 @@ document.addEventListener('DOMContentLoaded', async () => {
         const btnCloseFullscreen = document.getElementById('btn-close-map-fullscreen');
         const mapWrapper = document.getElementById('map-wrapper-container');
 
+        const enterFullscreen = () => {
+            if (mapWrapper.classList.contains('fullscreen-active')) return;
+            
+            // Create and insert placeholder
+            const placeholder = document.createElement('div');
+            placeholder.id = 'map-wrapper-placeholder';
+            mapWrapper.parentNode.insertBefore(placeholder, mapWrapper);
+            
+            // Move map wrapper to body to escape container containing-block (backdrop-filter)
+            document.body.appendChild(mapWrapper);
+            mapWrapper.classList.add('fullscreen-active');
+            popover.classList.remove('visible');
+        };
+
+        const exitFullscreen = () => {
+            if (!mapWrapper.classList.contains('fullscreen-active')) return;
+            
+            // Move map wrapper back from body
+            const placeholder = document.getElementById('map-wrapper-placeholder');
+            if (placeholder) {
+                placeholder.parentNode.insertBefore(mapWrapper, placeholder);
+                placeholder.remove();
+            }
+            
+            mapWrapper.classList.remove('fullscreen-active');
+            popover.classList.remove('visible');
+        };
+
         if (btnFullscreen && mapWrapper) {
-            btnFullscreen.onclick = () => {
-                mapWrapper.classList.add('fullscreen-active');
-                popover.classList.remove('visible');
+            btnFullscreen.onclick = (e) => {
+                e.stopPropagation();
+                enterFullscreen();
             };
         }
 
         if (btnCloseFullscreen && mapWrapper) {
-            btnCloseFullscreen.onclick = () => {
-                mapWrapper.classList.remove('fullscreen-active');
-                popover.classList.remove('visible');
+            btnCloseFullscreen.onclick = (e) => {
+                e.stopPropagation();
+                exitFullscreen();
             };
         }
 
         // Click map to close popover
-        document.getElementById('map-scroll').onclick = (e) => {
-            const isHotspot = e.target.classList.contains('map-hotspot') || e.target.classList.contains('room-pin') || e.target.classList.contains('user-pin');
-            if (!isHotspot) {
-                popover.classList.remove('visible');
-                
-                // On mobile, clicking the map background toggles fullscreen
-                if (window.innerWidth <= 768) {
-                    const isFullscreen = mapWrapper.classList.contains('fullscreen-active');
-                    if (!isFullscreen) {
-                        mapWrapper.classList.add('fullscreen-active');
+        if (mapScroll) {
+            mapScroll.onclick = (e) => {
+                const isHotspot = e.target.classList.contains('map-hotspot') || e.target.classList.contains('room-pin') || e.target.classList.contains('user-pin');
+                if (!isHotspot) {
+                    popover.classList.remove('visible');
+                    
+                    // On mobile, clicking the map background toggles fullscreen
+                    if (window.innerWidth <= 768) {
+                        enterFullscreen();
                     }
                 }
-            }
-        };
+            };
+        }
 
         // Initial Render
         renderMarkers();
