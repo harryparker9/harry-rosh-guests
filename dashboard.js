@@ -629,11 +629,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const roomImgFrame = document.getElementById('room-image-frame');
                 if (roomImgFrame) roomImgFrame.style.display = 'none';
 
-                // Set Slide Background
-                const roomSlide = document.querySelector('.card-room');
-                if (roomSlide && roomData.photos && roomData.photos.length > 0) {
-                    roomSlide.style.backgroundImage = `url('${roomData.photos[0]}')`;
-                }
+                // Set Slide Background (commented out to preserve the cartoon background in the carousel)
+                // const roomSlide = document.querySelector('.card-room');
+                // if (roomSlide && roomData.photos && roomData.photos.length > 0) {
+                //     roomSlide.style.backgroundImage = `url('${roomData.photos[0]}')`;
+                // }
             } else if (roomDescDisplay) {
                 roomDescDisplay.textContent = "Your room at Huntsham Court";
                 const roomImgFrame = document.getElementById('room-image-frame');
