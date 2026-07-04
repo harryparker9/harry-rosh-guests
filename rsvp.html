@@ -103,7 +103,7 @@
                 <div class="form-group" id="accommodation-group">
                     <label id="accommodation-label">Accommodation Preference
                         <span style="display:block; font-size:0.85rem; font-weight:normal; margin-top:0.25rem; color:#666; line-height: 1.4;">
-                            We have a number of rooms available for guests to stay at the venue. Prices for 3 nights will be up to £360 for singles and £525 for couples. Please indicate if you would like to stay onsite and we will do our best to allocate you a room!
+                            We have a number of rooms available for guests to stay on-site at the venue. Prices for 3 nights will be up to £360 for singles and £525 for couples. <strong>Please note:</strong> Due to limited capacity, rooms will be prioritised for guests staying for the full weekend (Thu - Sun). Please indicate if you would like to stay on-site and we will do our best to allocate you a room!
                         </span>
                         <a href="https://www.youtube.com/watch?v=whc_XCoT8mc&t=15s" target="_blank" class="venue-link" style="margin-top:0.25rem; display:inline-block;">(Watch Venue Tour)</a>
                     </label>
@@ -129,70 +129,72 @@
                     <label for="dietary">Dietary Requirements</label>
                     <input type="text" id="dietary" name="dietary" placeholder="Any allergies or preferences?">
                 </div>
-                <div class="form-group" style="margin-top: 1.5rem;">
-                    <label>Drink Preferences</label>
-                    <p class="field-description" style="font-size:0.85rem; color:#666; margin-bottom: 0.75rem; line-height:1.4;">As Huntsham Court is a self-catered venue, we will be providing all food and drink across the weekend. Please indicate your drink preferences (you can select more than one!) to give us an idea of how much to order.</p>
-                    <div class="checkbox-grid">
-                        <label class="checkbox-option">
-                            <input type="checkbox" name="drink_pref" value="Red wine">
-                            <span class="custom-checkbox"></span>
-                            <span class="checkbox-label">Red wine</span>
-                        </label>
-                        <label class="checkbox-option">
-                            <input type="checkbox" name="drink_pref" value="White wine">
-                            <span class="custom-checkbox"></span>
-                            <span class="checkbox-label">White wine</span>
-                        </label>
-                        <label class="checkbox-option">
-                            <input type="checkbox" name="drink_pref" value="Rose">
-                            <span class="custom-checkbox"></span>
-                            <span class="checkbox-label">Rose</span>
-                        </label>
-                        <label class="checkbox-option">
-                            <input type="checkbox" name="drink_pref" value="Prosecco">
-                            <span class="custom-checkbox"></span>
-                            <span class="checkbox-label">Prosecco</span>
-                        </label>
-                        <label class="checkbox-option">
-                            <input type="checkbox" name="drink_pref" value="Lager">
-                            <span class="custom-checkbox"></span>
-                            <span class="checkbox-label">Lager</span>
-                        </label>
-                        <label class="checkbox-option">
-                            <input type="checkbox" name="drink_pref" value="IPA">
-                            <span class="custom-checkbox"></span>
-                            <span class="checkbox-label">IPA</span>
-                        </label>
-                        <label class="checkbox-option">
-                            <input type="checkbox" name="drink_pref" value="Vodka">
-                            <span class="custom-checkbox"></span>
-                            <span class="checkbox-label">Vodka</span>
-                        </label>
-                        <label class="checkbox-option">
-                            <input type="checkbox" name="drink_pref" value="Gin">
-                            <span class="custom-checkbox"></span>
-                            <span class="checkbox-label">Gin</span>
-                        </label>
-                        <label class="checkbox-option">
-                            <input type="checkbox" name="drink_pref" value="Pimms">
-                            <span class="custom-checkbox"></span>
-                            <span class="checkbox-label">Pimms</span>
-                        </label>
-                        <label class="checkbox-option">
-                            <input type="checkbox" name="drink_pref" value="Aperol Spritz">
-                            <span class="custom-checkbox"></span>
-                            <span class="checkbox-label">Aperol Spritz</span>
-                        </label>
-                        <label class="checkbox-option">
-                            <input type="checkbox" name="drink_pref" value="Hugo Spritz">
-                            <span class="custom-checkbox"></span>
-                            <span class="checkbox-label">Hugo Spritz</span>
-                        </label>
+                <div id="drinks-section">
+                    <div class="form-group" style="margin-top: 1.5rem;">
+                        <label>Drink Preferences</label>
+                        <p class="field-description" style="font-size:0.85rem; color:#666; margin-bottom: 0.75rem; line-height:1.4;">As Huntsham Court is a self-catered venue, we will be providing all food and drink across the weekend. Please indicate your drink preferences (you can select more than one!) to give us an idea of how much to order.</p>
+                        <div class="checkbox-grid">
+                            <label class="checkbox-option">
+                                <input type="checkbox" name="drink_pref" value="Red wine">
+                                <span class="custom-checkbox"></span>
+                                <span class="checkbox-label">Red wine</span>
+                            </label>
+                            <label class="checkbox-option">
+                                <input type="checkbox" name="drink_pref" value="White wine">
+                                <span class="custom-checkbox"></span>
+                                <span class="checkbox-label">White wine</span>
+                            </label>
+                            <label class="checkbox-option">
+                                <input type="checkbox" name="drink_pref" value="Rose">
+                                <span class="custom-checkbox"></span>
+                                <span class="checkbox-label">Rose</span>
+                            </label>
+                            <label class="checkbox-option">
+                                <input type="checkbox" name="drink_pref" value="Prosecco">
+                                <span class="custom-checkbox"></span>
+                                <span class="checkbox-label">Prosecco</span>
+                            </label>
+                            <label class="checkbox-option">
+                                <input type="checkbox" name="drink_pref" value="Lager">
+                                <span class="custom-checkbox"></span>
+                                <span class="checkbox-label">Lager</span>
+                            </label>
+                            <label class="checkbox-option">
+                                <input type="checkbox" name="drink_pref" value="IPA">
+                                <span class="custom-checkbox"></span>
+                                <span class="checkbox-label">IPA</span>
+                            </label>
+                            <label class="checkbox-option">
+                                <input type="checkbox" name="drink_pref" value="Vodka">
+                                <span class="custom-checkbox"></span>
+                                <span class="checkbox-label">Vodka</span>
+                            </label>
+                            <label class="checkbox-option">
+                                <input type="checkbox" name="drink_pref" value="Gin">
+                                <span class="custom-checkbox"></span>
+                                <span class="checkbox-label">Gin</span>
+                            </label>
+                            <label class="checkbox-option">
+                                <input type="checkbox" name="drink_pref" value="Pimms">
+                                <span class="custom-checkbox"></span>
+                                <span class="checkbox-label">Pimms</span>
+                            </label>
+                            <label class="checkbox-option">
+                                <input type="checkbox" name="drink_pref" value="Aperol Spritz">
+                                <span class="custom-checkbox"></span>
+                                <span class="checkbox-label">Aperol Spritz</span>
+                            </label>
+                            <label class="checkbox-option">
+                                <input type="checkbox" name="drink_pref" value="Hugo Spritz">
+                                <span class="custom-checkbox"></span>
+                                <span class="checkbox-label">Hugo Spritz</span>
+                            </label>
+                        </div>
                     </div>
-                </div>
-                <div class="form-group" style="margin-top: 1.25rem;">
-                    <label for="special_drink_requests">Special Drink Requests / Comments</label>
-                    <input type="text" id="special_drink_requests" name="special_drink_requests" placeholder="e.g. Alcohol-free options, specific brands...">
+                    <div class="form-group" style="margin-top: 1.25rem;">
+                        <label for="special_drink_requests">Special Drink Requests / Comments</label>
+                        <input type="text" id="special_drink_requests" name="special_drink_requests">
+                    </div>
                 </div>
             </fieldset>
 

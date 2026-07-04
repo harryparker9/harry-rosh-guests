@@ -19,6 +19,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function shouldHideDrinks(name) {
+        if (!name) return false;
+        const targetNames = [
+            "mick timoney",
+            "min timoney",
+            "yuan watkis",
+            "annabella watkis"
+        ];
+        return targetNames.includes(name.trim().toLowerCase());
+    }
+
     const rsvpForm = document.getElementById('rsvp-form');
     const rsvpGate = document.getElementById('rsvp-gate');
     const gateCodeInput = document.getElementById('gate-code');
@@ -68,9 +79,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (accommodationLabel) {
                 const tourLink = `<a href="https://www.youtube.com/watch?v=whc_XCoT8mc&t=15s" target="_blank" class="venue-link">(Watch Venue Tour)</a>`;
                 if (value === 'friday_arrival') {
-                    accommodationLabel.innerHTML = `Attendance on-site is prioritised for guests attending the whole time, however would you want to be considered for space on-site if there is space? ${tourLink}`;
+                    accommodationLabel.innerHTML = `<strong>Note:</strong> On-site rooms are extremely limited and prioritised for guests staying the full weekend. If you can make the full weekend, we highly recommend updating your attendance option above! However, would you still like to be considered for on-site accommodation if a room becomes available? ${tourLink}`;
                 } else {
-                    accommodationLabel.innerHTML = `Accommodation Preference ${tourLink}`;
+                    accommodationLabel.innerHTML = `Accommodation Preference (Rooms are limited and prioritised for full weekend guests) ${tourLink}`;
                 }
             }
         }
@@ -135,6 +146,14 @@ document.addEventListener('DOMContentLoaded', () => {
             // Load Drink Preferences
             document.querySelectorAll('input[name="drink_pref"]').forEach(cb => cb.checked = false);
             document.getElementById('special_drink_requests').value = '';
+            
+            const drinksSection = document.getElementById('drinks-section');
+            if (shouldHideDrinks(data.full_name)) {
+                if (drinksSection) drinksSection.classList.add('hidden');
+            } else {
+                if (drinksSection) drinksSection.classList.remove('hidden');
+            }
+
             if (data.drink_preferences) {
                 try {
                     const parsed = JSON.parse(data.drink_preferences);
@@ -300,8 +319,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const codeToUpdate = document.getElementById('gate-code').value || formData.get('accessCode');
         if (!codeToUpdate) return;
 
-        const selectedDrinks = Array.from(document.querySelectorAll('input[name="drink_pref"]:checked')).map(el => el.value);
-        const specialRequests = document.getElementById('special_drink_requests').value;
+        const drinksHidden = shouldHideDrinks(formData.get('fullName'));
+        const selectedDrinks = drinksHidden ? [] : Array.from(document.querySelectorAll('input[name="drink_pref"]:checked')).map(el => el.value);
+        const specialRequests = drinksHidden ? "" : document.getElementById('special_drink_requests').value;
 
         const payload = {
             full_name: formData.get('fullName'),

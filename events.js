@@ -44,7 +44,7 @@ window.itinerarySchedule = [
             },
             {
                 time: "10:00 AM - 11:00 AM",
-                summary: "Pilates (optional)",
+                summary: "Pilates (optional) - Bring your own mat",
                 location: "Croquet Lawn",
                 details: "Optional Pilates class run by Liv, bring your own mat",
                 image: "Cartoon final images/Firefly_multi-edit_Firefly image 2026-06-08 13-05 306042 OpX.png"

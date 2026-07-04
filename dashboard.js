@@ -18,6 +18,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
+    function shouldHideDrinks(name) {
+        if (!name) return false;
+        const targetNames = [
+            "mick timoney",
+            "min timoney",
+            "yuan watkis",
+            "annabella watkis"
+        ];
+        return targetNames.includes(name.trim().toLowerCase());
+    }
+
     // --- HELPER: Render Itinerary ---
     // Moved to bottom of file
 
@@ -349,9 +360,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (accommodationLabel) {
                 const tourLink = `<a href="https://www.youtube.com/watch?v=whc_XCoT8mc&t=15s" target="_blank" class="venue-link">(Watch Venue Tour)</a>`;
                 if (value === 'friday_arrival') {
-                    accommodationLabel.innerHTML = `Attendance on-site is prioritised for guests attending the whole time, however would you want to be considered for space on-site if there is space? ${tourLink}`;
+                    accommodationLabel.innerHTML = `<strong>Note:</strong> On-site rooms are extremely limited and prioritised for guests staying the full weekend. If you can make the full weekend, we highly recommend updating your attendance option above! However, would you still like to be considered for on-site accommodation if a room becomes available? ${tourLink}`;
                 } else {
-                    accommodationLabel.innerHTML = `Accommodation Preference ${tourLink}`;
+                    accommodationLabel.innerHTML = `Accommodation Preference (Rooms are limited and prioritised for full weekend guests) ${tourLink}`;
                 }
             }
         }
@@ -368,6 +379,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('rsvp-advice').value = data.marriage_advice || '';
         document.getElementById('rsvp-speechBet').value = data.speech_prediction || '';
         document.getElementById('rsvp-song_request').value = data.song_request || '';
+
+        // Check if drinks should be hidden
+        const drinksSec = document.getElementById('rsvp-drinks-section');
+        if (drinksSec) {
+            if (shouldHideDrinks(data.full_name)) {
+                drinksSec.classList.add('hidden');
+            } else {
+                drinksSec.classList.remove('hidden');
+            }
+        }
 
         // Checkboxes: Drinks
         rsvpModalForm.querySelectorAll('input[name="drink_pref"]').forEach(cb => cb.checked = false);
@@ -445,8 +466,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         const accessCode = user.access_code;
         if (!accessCode) return;
 
-        const selectedDrinks = Array.from(rsvpModalForm.querySelectorAll('input[name="drink_pref"]:checked')).map(el => el.value);
-        const specialRequests = document.getElementById('rsvp-special_drink_requests').value;
+        const drinksHidden = shouldHideDrinks(user.full_name);
+        const selectedDrinks = drinksHidden ? [] : Array.from(rsvpModalForm.querySelectorAll('input[name="drink_pref"]:checked')).map(el => el.value);
+        const specialRequests = drinksHidden ? "" : document.getElementById('rsvp-special_drink_requests').value;
 
         const payload = {
             full_name: formData.get('fullName'),
@@ -904,17 +926,21 @@ document.addEventListener('DOMContentLoaded', async () => {
                     ${d.day.substring(0, 3)}
                 </button>
             `;
-        });
-
-        controlsHtml += `
+        });        controlsHtml += `
                     </div>
                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 0 0.25rem;">
                          <span id="itinerary-date-label" style="font-family: 'Playfair Display', serif; font-size: 1.15rem; color: var(--text-main); font-weight: 700;">
                              ${dayLabels[itineraryActiveDay]}
                          </span>
-                         <button id="btn-itinerary-toggle" class="btn-card-action" style="margin: 0; padding: 0.4rem 0.8rem; font-size: 0.8rem; border-color: var(--primary); color: var(--primary); background: transparent; border-radius: 50px; cursor: pointer; font-weight: 600;">
-                             ${itineraryViewMode === 'storybook' ? '🔍 Zoom Out (List)' : '📖 Zoom In (Story)'}
-                         </button>
+                         <div style="display: flex; gap: 0.4rem; align-items: center;">
+                             ${itineraryViewMode === 'storybook' ? `
+                                 <button id="itinerary-prev-arrow" class="itinerary-nav-btn" style="width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--primary); background: white; color: var(--primary); font-size: 0.8rem; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: bold; box-shadow: 0 2px 6px rgba(0,0,0,0.05); transition: all 0.2s;">&larr;</button>
+                                 <button id="itinerary-next-arrow" class="itinerary-nav-btn" style="width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--primary); background: white; color: var(--primary); font-size: 0.8rem; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: bold; box-shadow: 0 2px 6px rgba(0,0,0,0.05); transition: all 0.2s;">&rarr;</button>
+                             ` : ''}
+                             <button id="btn-itinerary-toggle" class="btn-card-action" style="margin: 0; padding: 0.4rem 0.8rem; font-size: 0.8rem; border-color: var(--primary); color: var(--primary); background: transparent; border-radius: 50px; cursor: pointer; font-weight: 600;">
+                                 ${itineraryViewMode === 'storybook' ? '🔍 Zoom Out (List)' : '📖 Zoom In (Story)'}
+                             </button>
+                         </div>
                     </div>
                 </div>
 
@@ -925,7 +951,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (itineraryViewMode === 'storybook') {
             // Storybook Swiper HTML
             controlsHtml += `
-                <div class="swiper swiper-itinerary" style="width: 100%; height: 380px; border-radius: 20px; position: relative;">
+                <div class="swiper swiper-itinerary" style="width: 100%; height: 380px; border-radius: 20px; position: relative; box-sizing: border-box;">
                     <div class="swiper-wrapper">
             `;
             
@@ -933,8 +959,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 controlsHtml += `
                     <div class="swiper-slide" data-time="${event.time}">
                         <div class="itinerary-storybook-card" style="position: relative; border-radius: 20px; overflow: hidden; height: 100%; box-shadow: 0 10px 30px rgba(0,0,0,0.12); display: flex; flex-direction: column; justify-content: flex-end; background: #eee;">
-                            <img src="${event.image || 'huntsham_exterior.jpg'}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1;">
+                            <img src="${event.image || 'huntsham_exterior.jpg'}" onclick="window.openItineraryLightbox('${event.image || 'huntsham_exterior.jpg'}', '${event.summary.replace(/'/g, "\\'")}')" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; cursor: pointer;">
                             <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.15) 60%, rgba(0,0,0,0.3) 100%); z-index: 2;"></div>
+                            
+                            <!-- Fullscreen zoom button -->
+                            <div class="itinerary-fullscreen-btn" onclick="window.openItineraryLightbox('${event.image || 'huntsham_exterior.jpg'}', '${event.summary.replace(/'/g, "\\'")}')" style="position: absolute; top: 1.25rem; right: 1.25rem; z-index: 3; width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.25); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.3); display: flex; justify-content: center; align-items: center; cursor: pointer; color: white; font-size: 1.1rem; text-shadow: 0 1px 2px rgba(0,0,0,0.3); transition: background 0.2s;">
+                                🔍
+                            </div>
                             
                             <!-- Header Time/Location Overlay -->
                             <div style="position: absolute; top: 1.25rem; left: 1.25rem; z-index: 3; display: flex; flex-direction: column; gap: 0.25rem; text-align: left;">
@@ -955,8 +986,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             controlsHtml += `
                     </div>
                     <div class="swiper-pagination"></div>
-                    <div class="swiper-button-next"></div>
-                    <div class="swiper-button-prev"></div>
                 </div>
             `;
         } else {
@@ -968,7 +997,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             dayEvents.forEach((event, idx) => {
                 controlsHtml += `
                     <div class="itinerary-overview-card" data-index="${idx}" style="display: flex; gap: 1rem; background: white; border: 1px solid rgba(193, 162, 122, 0.2); padding: 0.75rem; border-radius: 16px; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.02); align-items: center;">
-                        <img src="${event.image || 'huntsham_exterior.jpg'}" style="width: 65px; height: 65px; object-fit: cover; border-radius: 12px; border: 1px solid rgba(193, 162, 122, 0.15); flex-shrink: 0;">
+                        <img src="${event.image || 'huntsham_exterior.jpg'}" onclick="event.stopPropagation(); window.openItineraryLightbox('${event.image || 'huntsham_exterior.jpg'}', '${event.summary.replace(/'/g, "\\'")}')" style="width: 65px; height: 65px; object-fit: cover; border-radius: 12px; border: 1px solid rgba(193, 162, 122, 0.15); flex-shrink: 0; cursor: pointer;">
                         <div style="flex: 1; min-width: 0;">
                             <span style="color: var(--primary); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 0.15rem;">${event.time} • ${event.location}</span>
                             <h4 style="font-family: 'Playfair Display', serif; font-size: 1.1rem; color: var(--text-main); margin-bottom: 0.15rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600;">${event.summary}</h4>
@@ -1016,7 +1045,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
                 itinerarySwiper = new Swiper('.swiper-itinerary', {
                     pagination: { el: '.swiper-itinerary .swiper-pagination', clickable: true },
-                    navigation: { nextEl: '.swiper-itinerary .swiper-button-next', prevEl: '.swiper-itinerary .swiper-button-prev' },
+                    navigation: { nextEl: '#itinerary-next-arrow', prevEl: '#itinerary-prev-arrow' },
                     loop: false,
                     observer: true,
                     observeParents: true,
@@ -2313,6 +2342,163 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (galleryModal) {
         galleryModal.addEventListener('click', (e) => {
             if (e.target === galleryModal) galleryModal.classList.remove('open');
+        });
+    }
+
+    // --- Timetable Lightbox Logic ---
+    const lightbox = document.getElementById('timetable-lightbox');
+    const lightboxImg = document.getElementById('lightbox-img');
+    const lightboxTitle = document.getElementById('lightbox-title');
+    const closeLightbox = document.getElementById('close-lightbox');
+    
+    const btnZoomIn = document.getElementById('btn-zoom-in');
+    const btnZoomOut = document.getElementById('btn-zoom-out');
+    const btnZoomReset = document.getElementById('btn-zoom-reset');
+    
+    let scale = 1;
+    let translateX = 0;
+    let translateY = 0;
+    let isDragging = false;
+    let startX = 0;
+    let startY = 0;
+    
+    // For mobile pinch zoom
+    let startDistance = 0;
+    let startScale = 1;
+    let isPinching = false;
+
+    window.openItineraryLightbox = function(imageSrc, title) {
+        if (!lightbox || !lightboxImg || !lightboxTitle) return;
+        lightboxImg.src = imageSrc;
+        lightboxTitle.textContent = title;
+        scale = 1;
+        translateX = 0;
+        translateY = 0;
+        updateTransform();
+        lightbox.classList.add('open');
+    };
+
+    function closeLightboxFunc() {
+        if (!lightbox) return;
+        lightbox.classList.remove('open');
+    }
+
+    if (closeLightbox) {
+        closeLightbox.addEventListener('click', closeLightboxFunc);
+    }
+    if (lightbox) {
+        lightbox.addEventListener('click', (e) => {
+            if (e.target === lightbox || e.target === document.getElementById('lightbox-img-wrapper') || e.target.id === 'timetable-lightbox') {
+                closeLightboxFunc();
+            }
+        });
+    }
+
+    function updateTransform() {
+        if (lightboxImg) {
+            lightboxImg.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+            if (scale > 1) {
+                lightboxImg.style.cursor = 'grab';
+            } else {
+                lightboxImg.style.cursor = 'default';
+            }
+        }
+    }
+
+    if (btnZoomIn) {
+        btnZoomIn.addEventListener('click', () => {
+            scale = Math.min(scale + 0.5, 4);
+            updateTransform();
+        });
+    }
+
+    if (btnZoomOut) {
+        btnZoomOut.addEventListener('click', () => {
+            scale = Math.max(scale - 0.5, 1);
+            if (scale === 1) {
+                translateX = 0;
+                translateY = 0;
+            }
+            updateTransform();
+        });
+    }
+
+    if (btnZoomReset) {
+        btnZoomReset.addEventListener('click', () => {
+            scale = 1;
+            translateX = 0;
+            translateY = 0;
+            updateTransform();
+        });
+    }
+
+    // Dragging / Panning logic
+    const imgWrapper = document.getElementById('lightbox-img-wrapper');
+    if (imgWrapper && lightboxImg) {
+        lightboxImg.addEventListener('mousedown', (e) => {
+            if (scale <= 1) return;
+            e.preventDefault();
+            isDragging = true;
+            startX = e.clientX - translateX;
+            startY = e.clientY - translateY;
+            lightboxImg.style.cursor = 'grabbing';
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            translateX = e.clientX - startX;
+            translateY = e.clientY - startY;
+            updateTransform();
+        });
+
+        window.addEventListener('mouseup', () => {
+            if (isDragging) {
+                isDragging = false;
+                if (lightboxImg) lightboxImg.style.cursor = 'grab';
+            }
+        });
+
+        // Touch events for mobile dragging & pinch-to-zoom
+        lightboxImg.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1 && scale > 1) {
+                isDragging = true;
+                startX = e.touches[0].clientX - translateX;
+                startY = e.touches[0].clientY - translateY;
+            } else if (e.touches.length === 2) {
+                isDragging = false;
+                isPinching = true;
+                startDistance = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+                startScale = scale;
+            }
+        });
+
+        lightboxImg.addEventListener('touchmove', (e) => {
+            if (isDragging && e.touches.length === 1) {
+                translateX = e.touches[0].clientX - startX;
+                translateY = e.touches[0].clientY - startY;
+                updateTransform();
+            } else if (isPinching && e.touches.length === 2) {
+                e.preventDefault();
+                const dist = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+                const factor = dist / startDistance;
+                scale = Math.min(Math.max(startScale * factor, 1), 4);
+                if (scale === 1) {
+                    translateX = 0;
+                    translateY = 0;
+                }
+                updateTransform();
+            }
+        });
+
+        lightboxImg.addEventListener('touchend', (e) => {
+            isDragging = false;
+            isPinching = false;
         });
     }
 
