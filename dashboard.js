@@ -201,6 +201,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function openRsvpModal() {
         if (!rsvpModal) return;
+        
+        // Reset form visibility and confirmation screen
+        if (rsvpModalForm) rsvpModalForm.classList.remove('hidden');
+        const confirmScreen = document.getElementById('rsvp-modal-confirmation');
+        if (confirmScreen) confirmScreen.classList.add('hidden');
+        
         rsvpModal.classList.add('open');
         populateRsvpModal(user);
     }
@@ -232,6 +238,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     if (closeRsvpBtnAction) {
         closeRsvpBtnAction.addEventListener('click', closeRsvpModal);
+    }
+    
+    const btnCloseConfirm = document.getElementById('btn-close-confirm');
+    if (btnCloseConfirm) {
+        btnCloseConfirm.addEventListener('click', () => {
+            closeRsvpModal();
+        });
     }
 
     // Modal Photo Helpers
@@ -329,13 +342,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     function handleModalAttendanceChange(value) {
         const accommodationGroup = document.getElementById('rsvp-accommodation-group');
         const accommodationLabel = document.getElementById('rsvp-accommodation-label');
-        const plusOneSection = document.getElementById('rsvp-plus-one-section');
         const step3 = document.getElementById('rsvp-step3-section');
         const step4 = document.getElementById('rsvp-step4-section');
         
         if (value === 'decline') {
             if (accommodationGroup) accommodationGroup.classList.add('hidden');
-            if (plusOneSection) plusOneSection.classList.add('hidden');
             if (step3) step3.classList.add('hidden');
             if (step4) step4.classList.add('hidden');
         } else {
@@ -347,22 +358,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                     accommodationGroup.classList.add('hidden');
                 }
             }
-            if (plusOneSection) {
-                if (user?.has_plus_one) {
-                    plusOneSection.classList.remove('hidden');
-                } else {
-                    plusOneSection.classList.add('hidden');
-                }
-            }
             if (step3) step3.classList.remove('hidden');
             if (step4) step4.classList.remove('hidden');
 
             if (accommodationLabel) {
-                const tourLink = `<a href="https://www.youtube.com/watch?v=whc_XCoT8mc&t=15s" target="_blank" class="venue-link">(Watch Venue Tour)</a>`;
                 if (value === 'friday_arrival') {
-                    accommodationLabel.innerHTML = `<strong>Note:</strong> On-site rooms are extremely limited and prioritised for guests staying the full weekend. If you can make the full weekend, we highly recommend updating your attendance option above! However, would you still like to be considered for on-site accommodation if a room becomes available? ${tourLink}`;
+                    accommodationLabel.innerHTML = `<strong>Note:</strong> On-site rooms are extremely limited and prioritised for guests staying the full weekend. If you can make the full weekend, we highly recommend updating your attendance option above! However, would you still like to be considered for on-site accommodation if a room becomes available?`;
                 } else {
-                    accommodationLabel.innerHTML = `Accommodation Preference (Rooms are limited and prioritised for full weekend guests) ${tourLink}`;
+                    accommodationLabel.innerHTML = `We'd love you to stay at Huntsham Court with us, however you can opt to find your own accomodation if preferred. Rooms will be prioritised to full weekend guests.`;
                 }
             }
         }
@@ -410,12 +413,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         }
 
-        // Radio Buttons: Attendance
-        if (data.attendance_option) {
-            const radio = rsvpModalForm.querySelector(`input[name="attendance"][value="${data.attendance_option}"]`);
-            if (radio) radio.checked = true;
-        } else {
-            rsvpModalForm.querySelectorAll('input[name="attendance"]').forEach(r => r.checked = false);
+        // Set saved value to hidden input
+        const hiddenInput = document.getElementById('rsvp-attendance-hidden-input');
+        if (hiddenInput) {
+            hiddenInput.value = data.attendance_option || 'full_weekend';
         }
 
         // Radio Buttons: Accommodation
@@ -426,17 +427,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             rsvpModalForm.querySelectorAll('input[name="accommodation"]').forEach(r => r.checked = false);
         }
 
-        // Plus One Conditional
-        const plusOneSection = document.getElementById('rsvp-plus-one-section');
-        if (plusOneSection) {
-            if (data.has_plus_one) {
-                plusOneSection.classList.remove('hidden');
-                document.getElementById('rsvp-plusOneName').value = data.plus_one_full_name || '';
-                document.getElementById('rsvp-plusOneDietary').value = data.plus_one_dietary || '';
-            } else {
-                plusOneSection.classList.add('hidden');
-            }
-        }
+
 
         // Trigger dynamic form branching based on saved attendance
         handleModalAttendanceChange(data.attendance_option);
@@ -451,6 +442,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             indicator.querySelector('.status-text').textContent = 'All changes saved';
             indicator.querySelector('.status-dot').style.background = '#10b981';
         }
+
+        // Initialize modal wizard state and components
+        syncModalVisualSelections();
+        renderModalRoomTeaser(data.room_assigned);
+        initRsvpDatesLogic(document.getElementById('rsvp-modal'));
+        setupModalFlashCards();
+        setupModalWizard();
+        showModalStepPane(1);
     }
 
 
@@ -480,9 +479,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             funny_story: formData.get('funnyStory'),
             marriage_advice: formData.get('advice'),
             speech_prediction: formData.get('speechBet'),
-            song_request: formData.get('song_request'),
-            plus_one_full_name: formData.get('plusOneName') || null,
-            plus_one_dietary: formData.get('plusOneDietary') || null
+            song_request: formData.get('song_request')
         };
 
         try {
@@ -547,6 +544,20 @@ document.addEventListener('DOMContentLoaded', async () => {
             rsvpModalPhotoInput.addEventListener('change', async () => {
                 const files = Array.from(rsvpModalPhotoInput.files);
                 if (files.length === 0) return;
+
+                // Check 5 photos limit
+                const currentUrls = getPhotoUrls(user.photo_url);
+                if (currentUrls.length + files.length > 5) {
+                    alert(`You can upload a maximum of 5 photos. You currently have ${currentUrls.length} photo(s) uploaded and selected ${files.length} more.`);
+                    rsvpModalPhotoInput.value = '';
+                    
+                    const indicator = document.getElementById('rsvp-status-indicator');
+                    const statusText = indicator ? indicator.querySelector('.status-text') : null;
+                    const statusDot = indicator ? indicator.querySelector('.status-dot') : null;
+                    if (statusText) statusText.textContent = 'Upload cancelled (max 5 photos)';
+                    if (statusDot) statusDot.style.background = '#ef4444';
+                    return;
+                }
 
                 const indicator = document.getElementById('rsvp-status-indicator');
                 const statusText = indicator ? indicator.querySelector('.status-text') : null;
@@ -934,8 +945,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                          </span>
                          <div style="display: flex; gap: 0.4rem; align-items: center;">
                              ${itineraryViewMode === 'storybook' ? `
-                                 <button id="itinerary-prev-arrow" class="itinerary-nav-btn" style="width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--primary); background: white; color: var(--primary); font-size: 0.8rem; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: bold; box-shadow: 0 2px 6px rgba(0,0,0,0.05); transition: all 0.2s;">&larr;</button>
-                                 <button id="itinerary-next-arrow" class="itinerary-nav-btn" style="width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--primary); background: white; color: var(--primary); font-size: 0.8rem; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: bold; box-shadow: 0 2px 6px rgba(0,0,0,0.05); transition: all 0.2s;">&rarr;</button>
+                                 <button id="itinerary-prev-arrow" class="itinerary-nav-btn" style="box-shadow: 0 2px 6px rgba(0,0,0,0.05);" title="Previous">
+                                     <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="display: block; margin: auto;"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                                 </button>
+                                 <button id="itinerary-next-arrow" class="itinerary-nav-btn" style="box-shadow: 0 2px 6px rgba(0,0,0,0.05);" title="Next">
+                                     <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="display: block; margin: auto;"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                                 </button>
                              ` : ''}
                              <button id="btn-itinerary-toggle" class="btn-card-action" style="margin: 0; padding: 0.4rem 0.8rem; font-size: 0.8rem; border-color: var(--primary); color: var(--primary); background: transparent; border-radius: 50px; cursor: pointer; font-weight: 600;">
                                  ${itineraryViewMode === 'storybook' ? '🔍 Zoom Out (List)' : '📖 Zoom In (Story)'}
@@ -2189,6 +2204,47 @@ document.addEventListener('DOMContentLoaded', async () => {
     const btnRsvpGalleryUpload = document.getElementById('btn-rsvp-gallery-upload');
     let fullscreenSwiper = null;
 
+    function canDeletePhotos() {
+        const user = window.Auth.user;
+        if (!user || !user.full_name) return false;
+        const name = user.full_name.trim().toLowerCase();
+        return name === 'harry parker' || name === 'rosh timoney';
+    }
+
+    async function deleteSharedPhoto(guestId, photoUrlToDelete) {
+        if (!confirm("Are you sure you want to delete this photo from the shared gallery?")) return;
+
+        try {
+            // Fetch guest's current photos first
+            const { data: guestData, error: fetchError } = await supabase
+                .from('guests')
+                .select('photo_url')
+                .eq('id', guestId)
+                .single();
+
+            if (fetchError) throw fetchError;
+
+            let currentUrls = getPhotoUrls(guestData.photo_url);
+            const updatedUrls = currentUrls.filter(url => url !== photoUrlToDelete);
+
+            const serialized = updatedUrls.length > 0 ? JSON.stringify(updatedUrls) : null;
+
+            const { error: updateError } = await supabase
+                .from('guests')
+                .update({ photo_url: serialized })
+                .eq('id', guestId);
+
+            if (updateError) throw updateError;
+
+            alert("Photo successfully deleted.");
+            loadSharedGallery();
+
+        } catch (err) {
+            console.error('Failed to delete photo:', err);
+            alert('Failed to delete photo: ' + err.message);
+        }
+    }
+
     async function loadSharedGallery() {
         const grid = document.getElementById('shared-photos-grid');
         if (!grid) return;
@@ -2196,41 +2252,85 @@ document.addEventListener('DOMContentLoaded', async () => {
         grid.innerHTML = '<p class="loading-photos" style="text-align: center; color: var(--text-muted); padding: 2rem; grid-column: 1 / -1;">Loading gallery...</p>';
 
         try {
+            // Query secure shared_gallery view
             const { data, error } = await supabase
-                .from('guests')
-                .select('photo_url')
-                .not('photo_url', 'is', null);
+                .from('shared_gallery')
+                .select('id, full_name, photo_url');
 
             if (error) throw error;
 
-            let allUrls = [];
+            let photoItems = [];
             data.forEach(row => {
                 if (row.photo_url) {
-                    allUrls = [...allUrls, ...getPhotoUrls(row.photo_url)];
+                    const urls = getPhotoUrls(row.photo_url);
+                    urls.forEach(url => {
+                        photoItems.push({
+                            url: url,
+                            guestId: row.id,
+                            guestName: row.full_name
+                        });
+                    });
                 }
             });
 
             grid.innerHTML = '';
 
-            if (allUrls.length === 0) {
+            if (photoItems.length === 0) {
                 grid.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 2rem; grid-column: 1 / -1;">No photos shared yet. Be the first to share one!</p>';
                 return;
             }
 
-            allUrls.forEach((url, index) => {
+            const isAdmin = canDeletePhotos();
+
+            photoItems.forEach((item, index) => {
                 const card = document.createElement('div');
                 card.className = 'shared-photo-card';
+                card.style.position = 'relative';
 
                 const img = document.createElement('img');
-                img.src = url;
+                img.src = item.url;
                 img.alt = `Shared photo ${index + 1}`;
                 img.loading = 'lazy';
+                img.style.cursor = 'pointer';
 
                 card.appendChild(img);
 
-                card.onclick = () => {
-                    openFullScreenGallery(allUrls, index);
+                img.onclick = () => {
+                    openFullScreenGallery(photoItems.map(p => p.url), index);
                 };
+
+                if (isAdmin) {
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'shared-photo-delete-btn';
+                    deleteBtn.innerHTML = '🗑';
+                    deleteBtn.title = `Delete photo uploaded by ${item.guestName}`;
+                    deleteBtn.style.cssText = `
+                        position: absolute;
+                        top: 8px;
+                        right: 8px;
+                        background: rgba(239, 68, 68, 0.9);
+                        color: white;
+                        border: none;
+                        border-radius: 50%;
+                        width: 30px;
+                        height: 30px;
+                        cursor: pointer;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 0.95rem;
+                        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+                        z-index: 50;
+                        transition: transform 0.2s, background 0.2s;
+                    `;
+                    deleteBtn.onmouseenter = () => deleteBtn.style.background = '#dc2626';
+                    deleteBtn.onmouseleave = () => deleteBtn.style.background = 'rgba(239, 68, 68, 0.9)';
+                    deleteBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        deleteSharedPhoto(item.guestId, item.url);
+                    };
+                    card.appendChild(deleteBtn);
+                }
 
                 grid.appendChild(card);
             });
@@ -2501,5 +2601,606 @@ document.addEventListener('DOMContentLoaded', async () => {
             isPinching = false;
         });
     }
+
+    // --- MODAL WIZARD HELPER FUNCTIONS ---
+    let modalCurrentStep = 1;
+
+    function getModalVisiblePanes() {
+        const visiblePanes = [1, 2];
+        const choice = rsvpModalForm.querySelector('input[name="attendance_choice"]:checked');
+        const hiddenInput = document.getElementById('rsvp-attendance-hidden-input');
+        const isOnsite = user?.is_onsite_allowed;
+
+        if (choice && choice.value === 'attend') {
+            if (isOnsite) {
+                visiblePanes.push(3);
+            }
+            visiblePanes.push(4);
+            visiblePanes.push(5);
+        } else if (!choice && hiddenInput && hiddenInput.value && hiddenInput.value !== 'decline') {
+            if (isOnsite) {
+                visiblePanes.push(3);
+            }
+            visiblePanes.push(4);
+            visiblePanes.push(5);
+        } else if (!choice && (!hiddenInput || !hiddenInput.value)) {
+            if (isOnsite) {
+                visiblePanes.push(3);
+            }
+            visiblePanes.push(4);
+            visiblePanes.push(5);
+        }
+        return visiblePanes;
+    }
+
+    function showModalStepPane(stepIndex) {
+        const visiblePanes = getModalVisiblePanes();
+        
+        // Hide all panes
+        rsvpModalForm.querySelectorAll('.rsvp-step-pane').forEach(pane => {
+            pane.classList.remove('active');
+        });
+
+        // Show target pane
+        const targetPane = document.getElementById(`rsvp-pane-${stepIndex}`);
+        if (targetPane) {
+            targetPane.classList.add('active');
+        }
+
+        modalCurrentStep = stepIndex;
+
+        // Update nav buttons
+        const btnBack = document.getElementById('btn-rsvp-wizard-back');
+        const btnNext = document.getElementById('btn-rsvp-wizard-next');
+
+        const currentIdx = visiblePanes.indexOf(stepIndex);
+
+        if (currentIdx === 0) {
+            btnBack.style.opacity = '0.5';
+            btnBack.style.cursor = 'not-allowed';
+            btnBack.disabled = true;
+        } else {
+            btnBack.style.opacity = '1';
+            btnBack.style.cursor = 'pointer';
+            btnBack.disabled = false;
+        }
+
+        if (currentIdx === visiblePanes.length - 1) {
+            btnNext.textContent = 'Finish & Dashboard';
+        } else {
+            btnNext.textContent = 'Next';
+        }
+
+        updateModalProgressBar();
+    }
+
+    function validateModalCurrentStep() {
+        if (modalCurrentStep === 1) {
+            const fullName = document.getElementById('rsvp-fullName');
+            const phone = document.getElementById('rsvp-phone');
+            if (fullName && !fullName.value.trim()) {
+                alert("Please enter your full name.");
+                fullName.focus();
+                return false;
+            }
+            if (phone && !phone.value.trim()) {
+                alert("Please enter your phone number.");
+                phone.focus();
+                return false;
+            }
+        }
+        if (modalCurrentStep === 2) {
+            const choice = rsvpModalForm.querySelector('input[name="attendance_choice"]:checked');
+            if (!choice) {
+                alert("Please select whether you will be attending.");
+                return false;
+            }
+        }
+        if (modalCurrentStep === 3) {
+            const accommodationSelected = rsvpModalForm.querySelector('input[name="accommodation"]:checked');
+            if (!accommodationSelected) {
+                alert("Please select your accommodation preference.");
+                return false;
+            }
+        }
+        return true;
+    }
+
+    function updateModalProgressBar() {
+        const modalContainer = document.getElementById('rsvp-modal');
+        if (!modalContainer) return;
+
+        const dots = Array.from(modalContainer.querySelectorAll('.rsvp-progress-step'));
+        const visiblePanes = getModalVisiblePanes();
+        const totalSteps = visiblePanes.length;
+
+        let stepNumber = 1;
+        dots.forEach(dot => {
+            const paneId = parseInt(dot.getAttribute('data-step'));
+            const isPaneVisible = visiblePanes.includes(paneId);
+
+            if (isPaneVisible) {
+                dot.style.display = 'flex';
+                const dotCircle = dot.querySelector('.rsvp-progress-dot');
+                if (dotCircle) dotCircle.textContent = stepNumber;
+
+                const currentPaneIndex = visiblePanes.indexOf(modalCurrentStep);
+                const thisPaneIndex = visiblePanes.indexOf(paneId);
+
+                dot.classList.remove('active', 'completed');
+                if (thisPaneIndex === currentPaneIndex) {
+                    dot.classList.add('active');
+                } else if (thisPaneIndex < currentPaneIndex) {
+                    dot.classList.add('completed');
+                }
+
+                stepNumber++;
+            } else {
+                dot.style.display = 'none';
+            }
+        });
+
+        // Update progress line width
+        const currentPaneIndex = visiblePanes.indexOf(modalCurrentStep);
+        const progressLine = document.getElementById('rsvp-wizard-progress-line');
+        if (progressLine) {
+            const percentage = totalSteps > 1 ? (currentPaneIndex / (totalSteps - 1)) * 100 : 0;
+            progressLine.style.width = `${percentage}%`;
+        }
+    }
+
+    function syncModalVisualSelections() {
+        // Attendance Choice yes/no cards (Modal)
+        const hiddenInput = document.getElementById('rsvp-attendance-hidden-input');
+        if (hiddenInput) {
+            const val = hiddenInput.value;
+            const yesCard = document.getElementById('rsvp-card-attendance-yes');
+            const noCard = document.getElementById('rsvp-card-attendance-decline');
+            const yesRadio = rsvpModalForm.querySelector('input[name="attendance_choice"][value="attend"]');
+            const noRadio = rsvpModalForm.querySelector('input[name="attendance_choice"][value="decline"]');
+            const dateSection = document.getElementById('rsvp-date-selection-section');
+            
+            if (yesCard && noCard && yesRadio && noRadio) {
+                if (val && val !== 'decline') {
+                    yesRadio.checked = true;
+                    noRadio.checked = false;
+                    yesCard.classList.add('selected');
+                    noCard.classList.remove('selected');
+                    if (dateSection) dateSection.classList.remove('hidden');
+                } else if (val === 'decline') {
+                    yesRadio.checked = false;
+                    noRadio.checked = true;
+                    yesCard.classList.remove('selected');
+                    noCard.classList.add('selected');
+                    if (dateSection) dateSection.classList.add('hidden');
+                } else {
+                    // Empty/Unselected initial state!
+                    yesRadio.checked = false;
+                    noRadio.checked = false;
+                    yesCard.classList.remove('selected');
+                    noCard.classList.remove('selected');
+                    if (dateSection) dateSection.classList.add('hidden');
+                }
+            }
+        }
+
+        // Accommodation
+        rsvpModalForm.querySelectorAll('input[name="accommodation"]').forEach(r => {
+            const card = r.closest('.rsvp-flash-card');
+            if (card) {
+                if (r.checked) {
+                    card.classList.add('selected');
+                } else {
+                    card.classList.remove('selected');
+                }
+            }
+        });
+
+        // Drink prefs
+        rsvpModalForm.querySelectorAll('input[name="drink_pref"]').forEach(cb => {
+            const chip = cb.closest('.drink-chip');
+            if (chip) {
+                if (cb.checked) {
+                    chip.classList.add('selected');
+                } else {
+                    chip.classList.remove('selected');
+                }
+            }
+        });
+    }
+
+    function setupModalFlashCards() {
+        // Accommodation change listener to update cards
+        rsvpModalForm.querySelectorAll('input[name="accommodation"]').forEach(radio => {
+            radio.addEventListener('change', () => {
+                rsvpModalForm.querySelectorAll('input[name="accommodation"]').forEach(r => {
+                    const card = r.closest('.rsvp-flash-card');
+                    if (card) {
+                        if (r.checked) card.classList.add('selected');
+                        else card.classList.remove('selected');
+                    }
+                });
+                triggerRsvpAutoSave();
+            });
+        });
+
+        // Drink checkbox pills
+        const drinkChips = rsvpModalForm.querySelectorAll('.drink-chip input[name="drink_pref"]');
+        drinkChips.forEach(cb => {
+            const chip = cb.closest('.drink-chip');
+            if (cb.checked) {
+                chip.classList.add('selected');
+            }
+
+            chip.addEventListener('click', (e) => {
+                if (e.target.tagName === 'INPUT') return;
+                
+                cb.checked = !cb.checked;
+                if (cb.checked) {
+                    chip.classList.add('selected');
+                } else {
+                    chip.classList.remove('selected');
+                }
+                triggerRsvpAutoSave();
+            });
+        });
+
+        // Make progress dots clickable
+        const modalContainer = document.getElementById('rsvp-modal');
+        if (modalContainer) {
+            const dots = Array.from(modalContainer.querySelectorAll('.rsvp-progress-step'));
+            dots.forEach(dot => {
+                dot.style.cursor = 'pointer';
+                dot.addEventListener('click', () => {
+                    const targetStep = parseInt(dot.getAttribute('data-step'));
+                    const visiblePanes = getModalVisiblePanes();
+                    if (visiblePanes.includes(targetStep)) {
+                        // Allow clicking back freely. If clicking forward, validate current step.
+                        if (targetStep < modalCurrentStep || validateModalCurrentStep()) {
+                            showModalStepPane(targetStep);
+                        }
+                    }
+                });
+            });
+        }
+    }
+
+    function renderModalRoomTeaser(roomName) {
+        const placeholder = document.getElementById('rsvp-room-teaser-placeholder');
+        if (!placeholder) return;
+
+        placeholder.innerHTML = '';
+        placeholder.style.display = 'none';
+        return;
+    }
+
+    function setupModalWizard() {
+        const btnBack = document.getElementById('btn-rsvp-wizard-back');
+        const btnNext = document.getElementById('btn-rsvp-wizard-next');
+
+        if (btnBack) {
+            btnBack.onclick = () => {
+                const visiblePanes = getModalVisiblePanes();
+                const currentIdx = visiblePanes.indexOf(modalCurrentStep);
+                if (currentIdx > 0) {
+                    showModalStepPane(visiblePanes[currentIdx - 1]);
+                }
+            };
+        }
+
+        if (btnNext) {
+            btnNext.onclick = async () => {
+                if (!validateModalCurrentStep()) return;
+
+                const visiblePanes = getModalVisiblePanes();
+                const currentIdx = visiblePanes.indexOf(modalCurrentStep);
+
+                if (currentIdx < visiblePanes.length - 1) {
+                    triggerRsvpAutoSave();
+                    showModalStepPane(visiblePanes[currentIdx + 1]);
+                } else {
+                    // Final submission - show confirmation screen instead of closing modal directly
+                    btnNext.textContent = 'Saving...';
+                    btnNext.disabled = true;
+
+                    if (rsvpAutoSaveTimeout) clearTimeout(rsvpAutoSaveTimeout);
+                    try {
+                        await triggerRsvpAutoSave();
+                        
+                        // Show success confirmation screen
+                        const isDecline = rsvpModalForm.querySelector('input[name="attendance_choice"]:checked')?.value === 'decline';
+                        const confirmTitle = document.getElementById('rsvp-modal-confirm-title');
+                        const confirmMessage = document.getElementById('rsvp-modal-confirm-message');
+                        const confirmScreen = document.getElementById('rsvp-modal-confirmation');
+                        
+                        if (confirmScreen && confirmTitle && confirmMessage && rsvpModalForm) {
+                            if (isDecline) {
+                                confirmTitle.innerHTML = "We'll miss you! 😢";
+                                confirmMessage.innerHTML = `
+                                    We're so sorry you can't make it to our wedding celebration. Thank you for letting us know!<br><br>
+                                    If your plans change, please message us directly to let us know. You can make changes up to the end of 2026.
+                                `;
+                            } else {
+                                confirmTitle.innerHTML = "RSVP Saved! 🎉";
+                                confirmMessage.innerHTML = "Thank you for updating your RSVP details. We look forward to celebrating with you!";
+                            }
+                            rsvpModalForm.classList.add('hidden');
+                            confirmScreen.classList.remove('hidden');
+                        } else {
+                            closeRsvpModal();
+                        }
+                    } catch (e) {
+                        alert("Failed to save. Please try again.");
+                    } finally {
+                        btnNext.textContent = 'Next';
+                        btnNext.disabled = false;
+                    }
+                }
+            };
+        }
+    }
+
+    // --- DATES & ATTENDANCE MAPPING LOGIC (MODAL) ---
+    function initRsvpDatesLogic(container) {
+        const yesRadio = container.querySelector('input[name="attendance_choice"][value="attend"]');
+        const noRadio = container.querySelector('input[name="attendance_choice"][value="decline"]');
+        const dateSection = container.querySelector('#date-selection-section') || container.querySelector('#rsvp-date-selection-section');
+        const arrivalSelect = container.querySelector('#arrival-date') || container.querySelector('#rsvp-arrival-date');
+        const departureSelect = container.querySelector('#departure-date') || container.querySelector('#rsvp-departure-date');
+        const hiddenInput = container.querySelector('#attendance-hidden-input') || container.querySelector('#rsvp-attendance-hidden-input');
+
+        if (!yesRadio || !noRadio || !dateSection || !arrivalSelect || !departureSelect || !hiddenInput) return;
+
+        function updateHiddenValue() {
+            if (noRadio.checked) {
+                hiddenInput.value = 'decline';
+                if (typeof handleModalAttendanceChange === 'function') {
+                    handleModalAttendanceChange('decline');
+                }
+                return;
+            }
+            if (!yesRadio.checked) {
+                hiddenInput.value = '';
+                return;
+            }
+            const arr = arrivalSelect.value;
+            const dep = departureSelect.value;
+            
+            let option = 'full_weekend';
+            if (arr === '2027-08-05' && dep === '2027-08-08') {
+                option = 'full_weekend';
+            } else if (arr === '2027-08-06' && dep === '2027-08-08') {
+                option = 'friday_arrival';
+            } else {
+                option = 'ceremony_only';
+            }
+            
+            hiddenInput.value = option;
+            
+            if (typeof handleModalAttendanceChange === 'function') {
+                handleModalAttendanceChange(option);
+            }
+        }
+
+        function syncDepartureOptions() {
+            const arrVal = arrivalSelect.value;
+            const depVal = departureSelect.value;
+            
+            departureSelect.innerHTML = '';
+            if (arrVal === '2027-08-05') {
+                departureSelect.innerHTML = `
+                    <option value="2027-08-06">Friday 6th August 2027</option>
+                    <option value="2027-08-07">Saturday 7th August 2027 (Actual Wedding Day)</option>
+                    <option value="2027-08-08">Sunday 8th August 2027</option>
+                `;
+            } else if (arrVal === '2027-08-06') {
+                departureSelect.innerHTML = `
+                    <option value="2027-08-07">Saturday 7th August 2027 (Actual Wedding Day)</option>
+                    <option value="2027-08-08">Sunday 8th August 2027</option>
+                `;
+            } else if (arrVal === '2027-08-07') {
+                departureSelect.innerHTML = `
+                    <option value="2027-08-08">Sunday 8th August 2027</option>
+                `;
+            }
+            
+            const optionsList = Array.from(departureSelect.options).map(o => o.value);
+            if (optionsList.includes(depVal)) {
+                departureSelect.value = depVal;
+            } else {
+                departureSelect.value = '2027-08-08';
+            }
+        }
+
+        const yesCard = yesRadio.closest('.rsvp-flash-card');
+        const noCard = noRadio.closest('.rsvp-flash-card');
+
+        function toggleDateSection() {
+            if (yesRadio.checked) {
+                dateSection.classList.remove('hidden');
+                if (yesCard) yesCard.classList.add('selected');
+                if (noCard) noCard.classList.remove('selected');
+            } else if (noRadio.checked) {
+                dateSection.classList.add('hidden');
+                if (yesCard) yesCard.classList.remove('selected');
+                if (noCard) noCard.classList.add('selected');
+            } else {
+                dateSection.classList.add('hidden');
+                if (yesCard) yesCard.classList.remove('selected');
+                if (noCard) noCard.classList.remove('selected');
+            }
+            updateHiddenValue();
+            updateModalProgressBar();
+            
+            // Refresh Next button text immediately so it shows "Confirm & Submit" or "Next"
+            if (typeof showModalStepPane === 'function') {
+                showModalStepPane(modalCurrentStep);
+            }
+        }
+
+        yesRadio.addEventListener('change', () => {
+            toggleDateSection();
+            triggerRsvpAutoSave();
+        });
+
+        noRadio.addEventListener('change', () => {
+            toggleDateSection();
+            triggerRsvpAutoSave();
+        });
+
+        arrivalSelect.addEventListener('change', () => {
+            syncDepartureOptions();
+            updateHiddenValue();
+            triggerRsvpAutoSave();
+        });
+
+        departureSelect.addEventListener('change', () => {
+            updateHiddenValue();
+            triggerRsvpAutoSave();
+        });
+
+        // Initialize state from saved hidden value
+        const savedOption = hiddenInput.value;
+        if (savedOption === 'decline') {
+            noRadio.checked = true;
+            yesRadio.checked = false;
+            dateSection.classList.add('hidden');
+            if (yesCard) yesCard.classList.remove('selected');
+            if (noCard) noCard.classList.add('selected');
+        } else if (savedOption) {
+            yesRadio.checked = true;
+            noRadio.checked = false;
+            dateSection.classList.remove('hidden');
+            if (yesCard) yesCard.classList.add('selected');
+            if (noCard) noCard.classList.remove('selected');
+            
+            if (savedOption === 'friday_arrival') {
+                arrivalSelect.value = '2027-08-06';
+            } else if (savedOption === 'ceremony_only') {
+                arrivalSelect.value = '2027-08-07';
+            } else {
+                arrivalSelect.value = '2027-08-05';
+            }
+            syncDepartureOptions();
+            departureSelect.value = '2027-08-08';
+        } else {
+            yesRadio.checked = false;
+            noRadio.checked = false;
+            dateSection.classList.add('hidden');
+            if (yesCard) yesCard.classList.remove('selected');
+            if (noCard) noCard.classList.remove('selected');
+        }
+    }
+
+    // Overwrite original renderModalRoomTeaser to support Top-teaser layout & fallback messaging
+    window.renderModalRoomTeaser = function(roomName) {
+        const placeholder = document.getElementById('rsvp-room-teaser-placeholder');
+        if (!placeholder) return;
+
+        const accLabel = document.getElementById('rsvp-accommodation-label');
+
+        if (!roomName || !window.ROOM_LIBRARY || !window.ROOM_LIBRARY[roomName]) {
+            if (accLabel) {
+                accLabel.innerHTML = `Where will you stay? (rooms will be prioritised for full weekend guests).`;
+            }
+            placeholder.style.display = 'block';
+            placeholder.innerHTML = `
+                <div style="background: rgba(193, 162, 122, 0.05); border: 1.5px dashed rgba(193, 162, 122, 0.35); border-radius: 16px; padding: 1.25rem; margin-bottom: 1.5rem; text-align: left; font-family: 'Montserrat', sans-serif;">
+                    <span style="font-size: 1.15rem; margin-right: 0.5rem;">🏰</span>
+                    <strong style="font-weight: 700; color: var(--text-main); font-size: 0.95rem;">Stay On-Site</strong>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0.5rem 0 0 0; line-height: 1.45;">
+                        We want everyone to stay on-site! We are currently working on room allocations and will assign you a beautiful suite at Huntsham Court should you choose to stay on-site.
+                    </p>
+                </div>
+            `;
+            return;
+        }
+
+        if (accLabel) {
+            accLabel.innerHTML = `If you choose to join on site you'll be in the <strong>${roomName}</strong>. Will you stay on site or find your own accommodation?`;
+        }
+
+        placeholder.style.display = 'none';
+        placeholder.innerHTML = '';
+    };
+
+    // --- WHAT'S INCLUDED POPUP HANDLERS ---
+    window.openWhatsIncluded = async function(event) {
+        if (event) event.stopPropagation(); // Stop click bubbling to parent card
+        const modal = document.getElementById('whats-included-modal');
+        const textContainer = document.getElementById('whats-included-text');
+        
+        if (modal && textContainer) {
+            modal.classList.add('open');
+            const data = window.Auth ? window.Auth.user : null;
+            const roomName = data?.room_assigned;
+            let roomPriceStr = data?.room_price ? `£${data.room_price} per night (total room cost, not per person)` : "£TBC";
+
+            if (roomName && window.Auth && window.Auth.client && (!data || !data.room_price)) {
+                let roomData = null;
+                let fetchErr = null;
+
+                // Try 1: rooms table, name column
+                let res = await window.Auth.client.from('rooms').select('*').eq('name', roomName).single();
+                if (res.data) roomData = res.data;
+                else {
+                    fetchErr = res.error;
+                    // Try 2: rooms table, room_name column
+                    res = await window.Auth.client.from('rooms').select('*').eq('room_name', roomName).single();
+                    if (res.data) roomData = res.data;
+                    else fetchErr = res.error;
+                }
+
+                if (roomData) {
+                    console.log("Fetched room data:", roomData);
+                    const price = roomData.price ?? roomData.price_per_night ?? roomData.prices_per_night ?? roomData.cost ?? roomData.room_price ?? roomData.rate;
+                    if (price !== null && price !== undefined) {
+                        roomPriceStr = `£${price} per night (total room cost, not per person)`;
+                    }
+                } else {
+                    console.warn("Could not find room pricing in 'rooms' table:", fetchErr);
+                }
+            }
+            
+            let roomHtml = '';
+            if (roomName && window.ROOM_LIBRARY && window.ROOM_LIBRARY[roomName]) {
+                const room = window.ROOM_LIBRARY[roomName];
+                const imageUrl = room.photos && room.photos.length > 0 ? room.photos[0] : 'huntsham_exterior.jpg';
+                roomHtml = `
+                    <div style="margin-bottom: 1.5rem; text-align: center;">
+                        <img src="${imageUrl}" style="width: 100%; max-height: 200px; object-fit: cover; border-radius: 12px; margin-bottom: 0.75rem;">
+                        <h4 style="margin: 0; font-family: 'Playfair Display', serif; font-size: 1.3rem; color: var(--text-main);">Proposed Room: ${roomName}</h4>
+                        <p style="margin: 0.25rem 0 0 0; font-weight: 600; color: var(--primary);">Room Price: ${roomPriceStr}</p>
+                    </div>
+                `;
+            } else {
+                roomHtml = `
+                    <div style="margin-bottom: 1.5rem; text-align: center;">
+                        <h4 style="margin: 0; font-family: 'Playfair Display', serif; font-size: 1.3rem; color: var(--text-main);">Your Room</h4>
+                        <p style="margin: 0.25rem 0 0 0; font-size: 0.9rem; color: var(--text-muted);">We are currently allocating rooms and will assign yours shortly.</p>
+                    </div>
+                `;
+            }
+            
+            textContainer.innerHTML = `
+                ${roomHtml}
+                <div style="text-align: left;">
+                    <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.75rem;">
+                        <li style="display: flex; gap: 0.5rem;"><span style="color: #10b981;">✓</span> Luxury bedroom on the estate grounds</li>
+                        <li style="display: flex; gap: 0.5rem;"><span style="color: #10b981;">✓</span> All meals (Breakfasts, lunches, dinners and the wedding breakfast)</li>
+                        <li style="display: flex; gap: 0.5rem;"><span style="color: #10b981;">✓</span> Open bar &amp; all drinks throughout the stay</li>
+                        <li style="display: flex; gap: 0.5rem;"><span style="color: #10b981;">✓</span> Daily snacks and late-night bites</li>
+                        <li style="display: flex; gap: 0.5rem;"><span style="color: #10b981;">✓</span> Total access to all games, lawns, and entertainment</li>
+                    </ul>
+                </div>
+                <p style="margin-top: 1.5rem; font-size: 0.75rem; color: var(--text-muted); font-style: italic; text-align: center;">*room subject to change</p>
+            `;
+        }
+    };
+
+    window.closeWhatsIncluded = function() {
+        const modal = document.getElementById('whats-included-modal');
+        if (modal) modal.classList.remove('open');
+    };
 
 });

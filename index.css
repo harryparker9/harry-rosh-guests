@@ -1232,7 +1232,7 @@ details[open] .timeline-dot.gold {
 }
 
 .hidden {
-  display: none;
+  display: none !important;
 }
 
 .rsvp-confirmation {
@@ -2764,15 +2764,25 @@ details[open] .timeline-dot.gold {
 
 /* Custom Itinerary Navigation Buttons in Header */
 .itinerary-nav-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  border: 1px solid var(--primary);
-  background: white;
-  color: var(--primary);
-  cursor: pointer;
-  transition: all 0.2s ease;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 50% !important;
+  border: 1px solid var(--primary) !important;
+  background: white !important;
+  color: var(--primary) !important;
+  cursor: pointer !important;
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  min-height: 32px !important;
+  max-width: 32px !important;
+  max-height: 32px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  outline: none !important;
+  box-sizing: border-box !important;
+  transition: all 0.2s ease !important;
 }
 
 .itinerary-nav-btn:hover {
@@ -2805,4 +2815,371 @@ details[open] .timeline-dot.gold {
   transition: transform 0.1s ease-out;
 }
 
+/* RSVP Wizard Styles */
+.rsvp-step-pane {
+  display: none;
+  animation: slideInRsvp 0.4s ease forwards;
+}
 
+.rsvp-step-pane.active {
+  display: block;
+}
+
+@keyframes slideInRsvp {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Progress bar header */
+.rsvp-progress-bar {
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+  margin-bottom: 2rem;
+  padding: 0 0.5rem;
+}
+
+.rsvp-progress-bar::before {
+  content: "";
+  position: absolute;
+  top: 15px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: rgba(193, 162, 122, 0.2);
+  z-index: 1;
+}
+
+.rsvp-progress-line {
+  position: absolute;
+  top: 15px;
+  left: 0;
+  height: 2px;
+  background: var(--primary);
+  z-index: 2;
+  transition: width 0.3s ease;
+  width: 0%;
+}
+
+.rsvp-progress-step {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.rsvp-progress-dot {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: white;
+  border: 2px solid rgba(193, 162, 122, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+}
+
+.rsvp-progress-step.active .rsvp-progress-dot {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: white;
+  box-shadow: 0 4px 10px rgba(193, 162, 122, 0.3);
+}
+
+.rsvp-progress-step.completed .rsvp-progress-dot {
+  border-color: var(--primary);
+  background: #fdfbf7;
+  color: var(--primary);
+}
+
+.rsvp-progress-label {
+  font-size: 0.75rem;
+  font-family: 'Montserrat', sans-serif;
+  margin-top: 0.5rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  transition: color 0.3s ease;
+  text-align: center;
+  min-width: 60px;
+  line-height: 1.15;
+  word-break: keep-all;
+}
+
+.rsvp-progress-step.active .rsvp-progress-label {
+  color: var(--primary);
+}
+
+/* Wizard Option Selection Cards (Flash Cards) */
+.rsvp-flash-card-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.8rem;
+  margin-top: 0.75rem;
+}
+
+@media (min-width: 600px) {
+  .rsvp-flash-card-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.rsvp-flash-card {
+  background: white;
+  border: 1.5px solid rgba(193, 162, 122, 0.2);
+  border-radius: 16px;
+  padding: 1.2rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.01);
+  box-sizing: border-box;
+}
+
+.rsvp-flash-card:hover {
+  border-color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(193, 162, 122, 0.08);
+}
+
+.rsvp-flash-card.selected {
+  border-color: var(--primary);
+  background: rgba(253, 251, 247, 0.95);
+  box-shadow: 0 8px 24px rgba(193, 162, 122, 0.12);
+  transform: scale(1.02);
+}
+
+.rsvp-flash-card input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.rsvp-card-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 0.35rem;
+  display: block;
+  width: 100%;
+}
+
+.rsvp-card-desc {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+  font-family: 'Montserrat', sans-serif;
+  display: block;
+  width: 100%;
+}
+
+/* Drink selection chips */
+.drink-chips-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 0.75rem;
+}
+
+.drink-chip {
+  background: white;
+  border: 1px solid rgba(193, 162, 122, 0.3);
+  border-radius: 50px;
+  padding: 0.5rem 1.1rem;
+  font-size: 0.85rem;
+  font-family: 'Montserrat', sans-serif;
+  color: var(--text-main);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+  font-weight: 500;
+}
+
+.drink-chip:hover {
+  border-color: var(--primary);
+  background: rgba(193, 162, 122, 0.05);
+}
+
+.drink-chip.selected {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: white;
+  box-shadow: 0 4px 10px rgba(193, 162, 122, 0.25);
+  font-weight: 600;
+}
+
+.drink-chip input[type="checkbox"] {
+  display: none;
+}
+
+/* Room Teaser Card */
+.room-teaser-card {
+  background: linear-gradient(to bottom, #ffffff, #fdfbf7);
+  border: 1px solid rgba(193, 162, 122, 0.25);
+  border-radius: 20px;
+  overflow: hidden;
+  margin-top: 1.5rem;
+  box-shadow: 0 10px 25px rgba(193, 162, 122, 0.1);
+  animation: slideInRsvp 0.5s ease forwards;
+}
+
+.room-teaser-img-container {
+  height: 180px;
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+.room-teaser-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.room-teaser-card:hover .room-teaser-img {
+  transform: scale(1.05);
+}
+
+.room-teaser-content {
+  padding: 1.25rem;
+  text-align: left;
+}
+
+.room-teaser-badge {
+  display: inline-block;
+  background: rgba(193, 162, 122, 0.15);
+  color: var(--primary);
+  padding: 0.25rem 0.65rem;
+  border-radius: 50px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-family: 'Montserrat', sans-serif;
+  margin-bottom: 0.5rem;
+}
+
+.room-teaser-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 0.35rem;
+}
+
+.room-teaser-desc {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+  margin: 0;
+  font-family: 'Montserrat', sans-serif;
+}
+
+/* Navigation buttons */
+.rsvp-wizard-nav {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 2rem;
+  gap: 1rem;
+}
+
+/* Override uppercase inheritance on label elements inside forms */
+.rsvp-flash-card, .drink-chip {
+  text-transform: none !important;
+  letter-spacing: normal !important;
+}
+
+.rsvp-flash-card .rsvp-card-title,
+.rsvp-flash-card .rsvp-card-desc,
+.drink-chip,
+.checkbox-label,
+.room-teaser-badge,
+.room-teaser-title,
+.room-teaser-desc {
+  text-transform: none !important;
+  letter-spacing: normal !important;
+}
+
+/* Center card contents for premium look */
+.rsvp-flash-card {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  min-height: 70px !important;
+  padding: 0.8rem 1rem !important;
+}
+
+/* Style select box dropdowns beautifully inside rsvp wizard step panes */
+.rsvp-step-pane select {
+  width: 100%;
+  padding: 0.75rem 1.2rem;
+  border-radius: 12px;
+  border: 1.5px solid rgba(193, 162, 122, 0.3);
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.95rem;
+  color: var(--text-main);
+  background-color: white;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+
+.rsvp-step-pane select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 8px rgba(193, 162, 122, 0.25);
+}
+
+/* Premium spacing for Step 4 (Food & Drink) so items aren't bunched up */
+#pane-4 .form-group, #rsvp-pane-4 .form-group {
+  margin-bottom: 1.75rem !important;
+}
+
+#pane-4 .drink-chips-container, #rsvp-pane-4 .drink-chips-container {
+  margin-top: 1rem !important;
+  margin-bottom: 1.75rem !important;
+  gap: 0.75rem !important;
+}
+
+#pane-4 .drink-chip, #rsvp-pane-4 .drink-chip {
+  padding: 0.65rem 1.3rem !important;
+  font-size: 0.9rem !important;
+}
+
+/* Force all steps to flow vertically instead of turning into a 2-column grid on desktop */
+.rsvp-step-pane .form-section {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 1.5rem !important;
+}
+
+/* Ensure form groups inside the wizard step panes take the full width of the container */
+.rsvp-step-pane .form-group {
+  grid-column: span 2 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Make room teaser card take the full width of the step container */
+.rsvp-step-pane .room-teaser-card {
+  grid-column: span 2 !important;
+  width: 100% !important;
+  margin-top: 0 !important;
+  margin-bottom: 1.5rem !important;
+}

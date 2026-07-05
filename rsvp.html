@@ -40,200 +40,269 @@
 
         <!-- Main Form (Hidden by default) -->
         <form id="rsvp-form" class="rsvp-form hidden">
+            <!-- Progress Bar -->
+            <div class="rsvp-progress-bar">
+                <div class="rsvp-progress-line" id="wizard-progress-line" style="width: 0%;"></div>
+                <div class="rsvp-progress-step active" data-step="1">
+                    <div class="rsvp-progress-dot">1</div>
+                    <span class="rsvp-progress-label">About you</span>
+                </div>
+                <div class="rsvp-progress-step" data-step="2">
+                    <div class="rsvp-progress-dot">2</div>
+                    <span class="rsvp-progress-label">Attendance</span>
+                </div>
+                <div class="rsvp-progress-step" data-step="3" id="step-dot-accommodation">
+                    <div class="rsvp-progress-dot">3</div>
+                    <span class="rsvp-progress-label">Venue</span>
+                </div>
+                <div class="rsvp-progress-step" data-step="4" id="step-dot-drinks">
+                    <div class="rsvp-progress-dot">4</div>
+                    <span class="rsvp-progress-label">Food & Drink</span>
+                </div>
+                <div class="rsvp-progress-step" data-step="5">
+                    <div class="rsvp-progress-dot">5</div>
+                    <span class="rsvp-progress-label">Optional extras</span>
+                </div>
+            </div>
+
             <div id="rsvp-status-indicator" style="display: flex; align-items: center; justify-content: flex-end; gap: 6px; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem; margin-top: -1rem;">
                 <span class="status-dot" style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10b981; transition: background 0.3s;"></span>
                 <span class="status-text">All changes saved</span>
             </div>
+            
             <input type="hidden" id="accessCode" name="accessCode">
-            <!-- Part A: Guest Details -->
-            <fieldset class="form-section">
-                <legend>Step 1: Guest Details</legend>
-                <div class="form-group">
-                    <label for="fullName">Full Name</label>
-                    <input type="text" id="fullName" name="fullName" required placeholder="Your Name">
-                </div>
-                <div class="form-group">
-                    <label for="phone">Phone Number</label>
-                    <input type="tel" id="phone" name="phone" required placeholder="+44 7...">
-                </div>
-            </fieldset>
 
-            <!-- Part A-2: Your Plus One (Conditional) -->
-            <fieldset id="plus-one-section" class="form-section hidden">
-                <legend>Your Plus One</legend>
-                <div class="form-group">
-                    <label for="plusOneName">Partner's Full Name</label>
-                    <input type="text" id="plusOneName" name="plusOneName" placeholder="Partner's Name">
+            <!-- STEP 1: About you -->
+            <div class="rsvp-step-pane active" id="rsvp-pane-1">
+                <div style="font-family: 'Montserrat', sans-serif; font-size: 0.9rem; color: var(--text-main); background: rgba(193, 162, 122, 0.1); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; text-align: center; border: 1px solid rgba(193, 162, 122, 0.3);">
+                    Please complete RSVP by 7th February 2027. You can amend your RSVP form up until this date.
                 </div>
-                <div class="form-group">
-                    <label for="plusOneDietary">Partner's Dietary Requirements</label>
-                    <input type="text" id="plusOneDietary" name="plusOneDietary" placeholder="Any allergies?">
-                </div>
-            </fieldset>
-
-            <!-- Part B: The Weekend Plan -->
-            <fieldset class="form-section">
-                <legend>Step 2: The Weekend Plan</legend>
-                <div class="form-group">
-                    <label>Attendance</label>
-                    <div class="radio-group">
-                        <label class="radio-option">
-                            <input type="radio" name="attendance" value="full_weekend" required>
-                            <span class="custom-radio-circle"></span>
-                            <span class="radio-label">Yes! Ready for the full weekend (Thu - Sun)</span>
-                        </label>
-                        <label class="radio-option">
-                            <input type="radio" name="attendance" value="friday_arrival" required>
-                            <span class="custom-radio-circle"></span>
-                            <span class="radio-label">Joining the party Friday afternoon (Fri - Sun)</span>
-                        </label>
-                        <label class="radio-option">
-                            <input type="radio" name="attendance" value="ceremony_only" required>
-                            <span class="custom-radio-circle"></span>
-                            <span class="radio-label">I will attend the ceremony only (Saturday 7th August)</span>
-                        </label>
-                        <label class="radio-option">
-                            <input type="radio" name="attendance" value="decline" required>
-                            <span class="custom-radio-circle"></span>
-                            <span class="radio-label">Sadly, cannot make it</span>
-                        </label>
+                <fieldset class="form-section">
+                    <legend>About you</legend>
+                    <div class="form-group">
+                        <label for="fullName">Full Name</label>
+                        <input type="text" id="fullName" name="fullName" required placeholder="Your Name">
                     </div>
-                </div>
-
-                <div class="form-group" id="accommodation-group">
-                    <label id="accommodation-label">Accommodation Preference
-                        <span style="display:block; font-size:0.85rem; font-weight:normal; margin-top:0.25rem; color:#666; line-height: 1.4;">
-                            We have a number of rooms available for guests to stay on-site at the venue. Prices for 3 nights will be up to £360 for singles and £525 for couples. <strong>Please note:</strong> Due to limited capacity, rooms will be prioritised for guests staying for the full weekend (Thu - Sun). Please indicate if you would like to stay on-site and we will do our best to allocate you a room!
-                        </span>
-                        <a href="https://www.youtube.com/watch?v=whc_XCoT8mc&t=15s" target="_blank" class="venue-link" style="margin-top:0.25rem; display:inline-block;">(Watch Venue Tour)</a>
-                    </label>
-                    <div class="radio-group">
-                        <label class="radio-option">
-                            <input type="radio" name="accommodation" value="onsite">
-                            <span class="custom-radio-circle"></span>
-                            <span class="radio-label">We would love to stay on-site at Huntsham Court</span>
-                        </label>
-                        <label class="radio-option">
-                            <input type="radio" name="accommodation" value="offsite">
-                            <span class="custom-radio-circle"></span>
-                            <span class="radio-label">We will find our own accommodation nearby</span>
-                        </label>
+                    <div class="form-group">
+                        <label for="phone">Phone Number</label>
+                        <input type="tel" id="phone" name="phone" required placeholder="+44 7...">
                     </div>
-                </div>
-            </fieldset>
+                </fieldset>
 
-            <!-- Part C: Food & Drink -->
-            <fieldset id="step3-section" class="form-section">
-                <legend>Step 3: Food & Drink</legend>
-                <div class="form-group">
-                    <label for="dietary">Dietary Requirements</label>
-                    <input type="text" id="dietary" name="dietary" placeholder="Any allergies or preferences?">
-                </div>
-                <div id="drinks-section">
-                    <div class="form-group" style="margin-top: 1.5rem;">
-                        <label>Drink Preferences</label>
-                        <p class="field-description" style="font-size:0.85rem; color:#666; margin-bottom: 0.75rem; line-height:1.4;">As Huntsham Court is a self-catered venue, we will be providing all food and drink across the weekend. Please indicate your drink preferences (you can select more than one!) to give us an idea of how much to order.</p>
-                        <div class="checkbox-grid">
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="drink_pref" value="Red wine">
-                                <span class="custom-checkbox"></span>
-                                <span class="checkbox-label">Red wine</span>
+            </div>
+
+            <!-- STEP 2: Attendance -->
+            <div class="rsvp-step-pane" id="pane-2">
+                <fieldset class="form-section">
+                    <legend>Can you attend?</legend>
+                    
+                    <div style="font-family: 'Montserrat', sans-serif; font-size: 0.85rem; color: var(--text-muted); text-align: center; margin-bottom: 1.25rem; letter-spacing: 0.05em; text-transform: uppercase; line-height: 1.5;">
+                        📍 Huntsham Court, Devon <br>
+                        📅 Thursday 5th – Sunday 8th August 2027
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <div class="rsvp-flash-card-grid">
+                            <label class="rsvp-flash-card" id="card-attendance-yes">
+                                <input type="radio" name="attendance_choice" value="attend" required>
+                                <span class="rsvp-card-title">Yes, I'll be there</span>
                             </label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="drink_pref" value="White wine">
-                                <span class="custom-checkbox"></span>
-                                <span class="checkbox-label">White wine</span>
-                            </label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="drink_pref" value="Rose">
-                                <span class="custom-checkbox"></span>
-                                <span class="checkbox-label">Rose</span>
-                            </label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="drink_pref" value="Prosecco">
-                                <span class="custom-checkbox"></span>
-                                <span class="checkbox-label">Prosecco</span>
-                            </label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="drink_pref" value="Lager">
-                                <span class="custom-checkbox"></span>
-                                <span class="checkbox-label">Lager</span>
-                            </label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="drink_pref" value="IPA">
-                                <span class="custom-checkbox"></span>
-                                <span class="checkbox-label">IPA</span>
-                            </label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="drink_pref" value="Vodka">
-                                <span class="custom-checkbox"></span>
-                                <span class="checkbox-label">Vodka</span>
-                            </label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="drink_pref" value="Gin">
-                                <span class="custom-checkbox"></span>
-                                <span class="checkbox-label">Gin</span>
-                            </label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="drink_pref" value="Pimms">
-                                <span class="custom-checkbox"></span>
-                                <span class="checkbox-label">Pimms</span>
-                            </label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="drink_pref" value="Aperol Spritz">
-                                <span class="custom-checkbox"></span>
-                                <span class="checkbox-label">Aperol Spritz</span>
-                            </label>
-                            <label class="checkbox-option">
-                                <input type="checkbox" name="drink_pref" value="Hugo Spritz">
-                                <span class="custom-checkbox"></span>
-                                <span class="checkbox-label">Hugo Spritz</span>
+                            
+                            <label class="rsvp-flash-card" id="card-attendance-decline">
+                                <input type="radio" name="attendance_choice" value="decline" required>
+                                <span class="rsvp-card-title">Sadly, I cannot attend</span>
                             </label>
                         </div>
                     </div>
-                    <div class="form-group" style="margin-top: 1.25rem;">
-                        <label for="special_drink_requests">Special Drink Requests / Comments</label>
-                        <input type="text" id="special_drink_requests" name="special_drink_requests">
+
+                    <!-- Hidden input to store mapped standard attendance option -->
+                    <input type="hidden" name="attendance" id="attendance-hidden-input">
+
+                    <div class="form-group hidden" id="date-selection-section" style="margin-top: 1.5rem; border-top: 1px dashed rgba(193, 162, 122, 0.25); padding-top: 1.5rem;">
+                        <label style="margin-bottom: 0.75rem; display: block; font-weight: 600; text-transform: none; font-size: 0.95rem; line-height: 1.4; color: var(--text-main);">
+                            We hope you can attend the full weekend, however confirm the dates you'll plan to join and leave
+                        </label>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0.5rem;">
+                            <div class="form-group">
+                                <label for="arrival-date" style="font-size: 0.8rem; font-weight: 600;">Arrival Date</label>
+                                <select id="arrival-date" style="padding: 0.7rem 1.2rem; border-radius: 12px; border: 1px solid rgba(193,162,122,0.3); font-family: 'Montserrat', sans-serif; outline: none; background: white; font-size: 0.95rem; color: var(--text-main);">
+                                    <option value="2027-08-05">Thursday 5th August 2027</option>
+                                    <option value="2027-08-06">Friday 6th August 2027</option>
+                                    <option value="2027-08-07">Saturday 7th August 2027 (Actual Wedding Day)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="departure-date" style="font-size: 0.8rem; font-weight: 600;">Departure Date</label>
+                                <select id="departure-date" style="padding: 0.7rem 1.2rem; border-radius: 12px; border: 1px solid rgba(193,162,122,0.3); font-family: 'Montserrat', sans-serif; outline: none; background: white; font-size: 0.95rem; color: var(--text-main);">
+                                    <option value="2027-08-06">Friday 6th August 2027</option>
+                                    <option value="2027-08-07">Saturday 7th August 2027</option>
+                                    <option value="2027-08-08" selected>Sunday 8th August 2027</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </fieldset>
+                </fieldset>
+            </div>
 
-            <!-- Part D: The Fun Stuff -->
-            <fieldset id="step4-section" class="form-section">
-                <legend>Step 4: The Fun Stuff</legend>
-                <div class="form-group">
-                    <label for="funnyStory">Share a funny story about Harry or Rosh</label>
-                    <textarea id="funnyStory" name="funnyStory" rows="3"></textarea>
-                </div>
-                <div class="form-group">
-                    <label for="advice">Best advice for a happy marriage</label>
-                    <textarea id="advice" name="advice" rows="3"></textarea>
-                </div>
-                <div class="form-group">
-                    <label for="speechBet">Predict the length of the Best Man's speech</label>
-                    <input type="text" id="speechBet" name="speechBet" placeholder="e.g. 12 mins 30 secs">
-                </div>
-                <div class="form-group">
-                    <label for="song_request">Song that will get me on the dancefloor</label>
-                    <input type="text" id="song_request" name="song_request" placeholder="Track name & artist">
-                </div>
-                <div class="form-group">
-                    <label for="photoUpload">Upload a favorite photo of us</label>
-                    <input type="file" id="photoUpload" name="photoUpload" accept="image/*" multiple>
-                    <div id="uploaded-photos-container" class="uploaded-photos-strip"></div>
-                </div>
-            </fieldset>
+            <!-- STEP 3: Accommodation (Where will you stay?) -->
+            <div class="rsvp-step-pane" id="pane-3">
+                <fieldset class="form-section" id="accommodation-group">
+                    <legend>Where will you stay?</legend>
+                    
+                    <div style="margin-bottom: 1.25rem; text-align: left;">
+                        <a href="https://www.youtube.com/watch?v=whc_XCoT8mc&t=15s" target="_blank" class="venue-link" style="margin-left: 0; display: inline-flex; align-items: center; gap: 4px; font-weight: 600;">
+                            🎥 Watch Huntsham Court Venue Tour
+                        </a>
+                    </div>
+                    
+                    <!-- Room Teaser Placement at the Top -->
+                    <div id="room-teaser-placeholder" style="margin-bottom: 1rem;"></div>
 
-            <button type="submit" class="btn-primary" style="width: 100%; margin-top: 2rem;">Finish & Back to Dashboard</button>
+                    <div class="form-group">
+                        <label id="accommodation-label">Where will you stay? (rooms will be prioritised for full weekend guests).</label>
+                        
+                        <div class="rsvp-flash-card-grid" style="margin-top: 1rem;">
+                            <label class="rsvp-flash-card" id="card-accommodation-onsite">
+                                <input type="radio" name="accommodation" value="onsite">
+                                <span class="rsvp-card-title">Stay on site</span>
+                                <span class="rsvp-card-desc" style="font-size: 0.85rem; margin-top: 0.25rem;"><button type="button" class="whats-included-btn" onclick="openWhatsIncluded(event)" style="background: none; border: none; color: var(--primary); text-decoration: underline; font-size: 0.85rem; cursor: pointer; padding: 0; font-family: 'Montserrat', sans-serif;">What's included</button></span>
+                            </label>
+                            
+                            <label class="rsvp-flash-card" id="card-accommodation-offsite">
+                                <input type="radio" name="accommodation" value="offsite">
+                                <span class="rsvp-card-title">Stay off site</span>
+                                <span class="rsvp-card-desc" style="font-size: 0.85rem; margin-top: 0.25rem;">I'll sort my own accomodation</span>
+                            </label>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+
+            <!-- STEP 4: Food & Drink -->
+            <div class="rsvp-step-pane" id="pane-4">
+                <fieldset class="form-section">
+                    <legend>Food & Drink</legend>
+                    <div class="form-group">
+                        <label for="dietary">Dietary Requirements</label>
+                        <input type="text" id="dietary" name="dietary" placeholder="Any allergies or preferences?">
+                    </div>
+                    
+                    <div id="drinks-section">
+                        <div class="form-group" style="margin-top: 1.5rem;">
+                            <label>Drink Preferences</label>
+                            <p class="field-description" style="font-size:0.85rem; color:#666; margin-bottom: 0.75rem; line-height:1.4;">As Huntsham Court is a self-catered venue, we will be providing all food and drink across the weekend. Please indicate your drink preferences (you can select more than one!) to give us an idea of how much to order.</p>
+                            
+                            <div class="drink-chips-container">
+                                <label class="drink-chip" id="chip-drink-Red_wine">
+                                    <input type="checkbox" name="drink_pref" value="Red wine">
+                                    Red wine
+                                </label>
+                                <label class="drink-chip" id="chip-drink-White_wine">
+                                    <input type="checkbox" name="drink_pref" value="White wine">
+                                    White wine
+                                </label>
+                                <label class="drink-chip" id="chip-drink-Rose">
+                                    <input type="checkbox" name="drink_pref" value="Rose">
+                                    Rose
+                                </label>
+                                <label class="drink-chip" id="chip-drink-Prosecco">
+                                    <input type="checkbox" name="drink_pref" value="Prosecco">
+                                    Prosecco
+                                </label>
+                                <label class="drink-chip" id="chip-drink-Lager">
+                                    <input type="checkbox" name="drink_pref" value="Lager">
+                                    Lager
+                                </label>
+                                <label class="drink-chip" id="chip-drink-IPA">
+                                    <input type="checkbox" name="drink_pref" value="IPA">
+                                    IPA
+                                </label>
+                                <label class="drink-chip" id="chip-drink-Vodka">
+                                    <input type="checkbox" name="drink_pref" value="Vodka">
+                                    Vodka
+                                </label>
+                                <label class="drink-chip" id="chip-drink-Gin">
+                                    <input type="checkbox" name="drink_pref" value="Gin">
+                                    Gin
+                                </label>
+                                <label class="drink-chip" id="chip-drink-Pimms">
+                                    <input type="checkbox" name="drink_pref" value="Pimms">
+                                    Pimms
+                                </label>
+                                <label class="drink-chip" id="chip-drink-Aperol_Spritz">
+                                    <input type="checkbox" name="drink_pref" value="Aperol Spritz">
+                                    Aperol Spritz
+                                </label>
+                                <label class="drink-chip" id="chip-drink-Hugo_Spritz">
+                                    <input type="checkbox" name="drink_pref" value="Hugo Spritz">
+                                    Hugo Spritz
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-group" style="margin-top: 1.25rem;">
+                            <label for="special_drink_requests">Special Drink Requests / Comments</label>
+                            <input type="text" id="special_drink_requests" name="special_drink_requests">
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+
+            <!-- STEP 5: Optional extras -->
+            <div class="rsvp-step-pane" id="rsvp-pane-5">
+                <fieldset class="form-section">
+                    <legend>Optional extras</legend>
+                    <div class="form-group">
+                        <label for="song_request">Song Request</label>
+                        <input type="text" id="song_request" name="song_request" placeholder="What song gets you on the dancefloor?">
+                    </div>
+                    <div class="form-group">
+                        <label for="funnyStory">A funny story about Rosh or Harry?</label>
+                        <textarea id="funnyStory" name="funnyStory" rows="3" placeholder="Share a memory..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="advice">Marriage advice for the bride & groom?</label>
+                        <textarea id="advice" name="advice" rows="3" placeholder="Your wisdom..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="speechBet">Who will give the longest speech?</label>
+                        <input type="text" id="speechBet" name="speechBet" placeholder="Place your bet...">
+                    </div>
+                    <div class="form-group">
+                        <label for="photoUpload">Add photos to our website's gallery of your favourite memories with us (this is for all guests to see)</label>
+                        <input type="file" id="photoUpload" name="photoUpload" accept="image/*" multiple>
+                        <div id="uploaded-photos-container" class="uploaded-photos-strip"></div>
+                    </div>
+                </fieldset>
+            </div>
+
+            <!-- Wizard Navigation -->
+            <div class="rsvp-wizard-nav">
+                <button type="button" id="btn-wizard-back" class="btn-card-action" style="margin:0; background:rgba(193,162,122,0.1); border-color:var(--primary); color:var(--primary); opacity: 0.5; cursor: not-allowed;">Back</button>
+                <button type="button" id="btn-wizard-next" class="btn-primary" style="margin:0; width:auto; padding: 0.6rem 1.8rem;">Next</button>
+            </div>
         </form>
 
         <div id="rsvp-confirmation" class="rsvp-confirmation hidden">
             <h3>Thank You!</h3>
             <p id="confirmation-message"></p>
         </div>
-    </section>
+    </form>
 
-    <script src="rsvp.js?v=1.0.2"></script>
+    <!-- What's Included Popup Modal -->
+    <div id="whats-included-modal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 450px; width: 90%; padding: 2.5rem 2rem; border-radius: 24px; text-align: center; position: relative;">
+            <span class="close-modal" onclick="closeWhatsIncluded()">&times;</span>
+            <h3 style="font-family: 'Playfair Display', serif; font-size: 1.8rem; color: var(--primary); margin-bottom: 1.25rem;">What's Included</h3>
+            <div id="whats-included-text" style="font-family: 'Montserrat', sans-serif; font-size: 0.95rem; color: var(--text-main); line-height: 1.6; text-align: left; max-height: 300px; overflow-y: auto; margin-bottom: 1.5rem; padding-right: 0.5rem;">
+                <p>Placeholder for Huntsham Court on-site stay details (to be provided).</p>
+            </div>
+            <button type="button" class="btn-primary" onclick="closeWhatsIncluded()" style="margin: 0 auto; width: auto; min-width: 120px; padding: 0.6rem 2rem; border-radius: 50px;">Got it</button>
+        </div>
+    </div>
+</section>
+
+<script src="room_data.js"></script>
+<script src="rsvp.js?v=1.0.2"></script>
 </body>
-
 </html>

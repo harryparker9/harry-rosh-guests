@@ -44,17 +44,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // Cache user guest data locally
     window.guestData = null;
 
-    // --- Dynamic Form Branching Logic ---
     function handleAttendanceChange(value) {
         const accommodationGroup = document.getElementById('accommodation-group');
         const accommodationLabel = document.getElementById('accommodation-label');
-        const plusOneSection = document.getElementById('plus-one-section');
         const step3 = document.getElementById('step3-section');
         const step4 = document.getElementById('step4-section');
         
         if (value === 'decline') {
             if (accommodationGroup) accommodationGroup.classList.add('hidden');
-            if (plusOneSection) plusOneSection.classList.add('hidden');
             if (step3) step3.classList.add('hidden');
             if (step4) step4.classList.add('hidden');
         } else {
@@ -66,22 +63,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     accommodationGroup.classList.add('hidden');
                 }
             }
-            if (plusOneSection) {
-                if (window.guestData?.has_plus_one) {
-                    plusOneSection.classList.remove('hidden');
-                } else {
-                    plusOneSection.classList.add('hidden');
-                }
-            }
             if (step3) step3.classList.remove('hidden');
             if (step4) step4.classList.remove('hidden');
 
             if (accommodationLabel) {
-                const tourLink = `<a href="https://www.youtube.com/watch?v=whc_XCoT8mc&t=15s" target="_blank" class="venue-link">(Watch Venue Tour)</a>`;
                 if (value === 'friday_arrival') {
-                    accommodationLabel.innerHTML = `<strong>Note:</strong> On-site rooms are extremely limited and prioritised for guests staying the full weekend. If you can make the full weekend, we highly recommend updating your attendance option above! However, would you still like to be considered for on-site accommodation if a room becomes available? ${tourLink}`;
+                    accommodationLabel.innerHTML = `<strong>Note:</strong> On-site rooms are extremely limited and prioritised for guests staying the full weekend. If you can make the full weekend, we highly recommend updating your attendance option above! However, would you still like to be considered for on-site accommodation if a room becomes available?`;
                 } else {
-                    accommodationLabel.innerHTML = `Accommodation Preference (Rooms are limited and prioritised for full weekend guests) ${tourLink}`;
+                    accommodationLabel.innerHTML = `We'd love you to stay at Huntsham Court with us, however you can opt to find your own accomodation if preferred. Rooms will be prioritised to full weekend guests.`;
                 }
             }
         }
@@ -171,10 +160,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            // Radio Buttons: Attendance
-            if (data.attendance_option) {
-                const radio = document.querySelector(`input[name="attendance"][value="${data.attendance_option}"]`);
-                if (radio) radio.checked = true;
+            // Set saved value to hidden input
+            const hiddenInput = document.getElementById('attendance-hidden-input');
+            if (hiddenInput) {
+                hiddenInput.value = data.attendance_option || 'full_weekend';
             }
 
             // Radio Buttons: Accommodation
@@ -183,22 +172,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (radio) radio.checked = true;
             }
 
-            // 4. Plus One Setup
-            const plusOneSection = document.getElementById('plus-one-section');
-            if (data.has_plus_one) {
-                plusOneSection.classList.remove('hidden');
-                if (data.plus_one_full_name) document.getElementById('plusOneName').value = data.plus_one_full_name || '';
-                if (data.plus_one_dietary) document.getElementById('plusOneDietary').value = data.plus_one_dietary || '';
-            } else {
-                plusOneSection.classList.add('hidden');
-            }
+
 
             // 3. Conditional Visibility setup
             handleAttendanceChange(data.attendance_option);
 
             // 5. Render Photo Gallery
             const urls = getPhotoUrls(data.photo_url);
-            renderPhotoGallery(urls, 'uploaded-photos-container', (idx) => deletePhoto(idx, false));
+            renderPhotoGallery(urls, 'uploaded-photos-container', (idx) => deletePhoto(idx, true));
+
+            // 6. Sync selections and render room teaser
+            syncVisualSelections();
+            renderRoomTeaser(data.room_assigned);
+            initRsvpDatesLogic(document.getElementById('rsvp-form'));
+
+            // 7. Initialize Wizard Views
+            setupFlashCards();
+            setupWizard();
+            showStepPane(1);
 
         } catch (err) {
             console.error('Unlock Error:', err);
@@ -333,9 +324,7 @@ document.addEventListener('DOMContentLoaded', () => {
             funny_story: formData.get('funnyStory'),
             marriage_advice: formData.get('advice'),
             speech_prediction: formData.get('speechBet'),
-            song_request: formData.get('song_request'),
-            plus_one_full_name: formData.get('plusOneName') || null,
-            plus_one_dietary: formData.get('plusOneDietary') || null
+            song_request: formData.get('song_request')
         };
 
         try {
@@ -425,6 +414,20 @@ document.addEventListener('DOMContentLoaded', () => {
             const files = Array.from(photoInput.files);
             if (files.length === 0) return;
 
+            // Check 5 photos limit
+            const currentUrls = getPhotoUrls(window.guestData?.photo_url);
+            if (currentUrls.length + files.length > 5) {
+                alert(`You can upload a maximum of 5 photos. You currently have ${currentUrls.length} photo(s) uploaded and selected ${files.length} more.`);
+                photoInput.value = '';
+                
+                const indicator = document.getElementById('rsvp-status-indicator');
+                const statusText = indicator ? indicator.querySelector('.status-text') : null;
+                const statusDot = indicator ? indicator.querySelector('.status-dot') : null;
+                if (statusText) statusText.textContent = 'Upload cancelled (max 5 photos)';
+                if (statusDot) statusDot.style.background = '#ef4444';
+                return;
+            }
+
             const indicator = document.getElementById('rsvp-status-indicator');
             const statusText = indicator ? indicator.querySelector('.status-text') : null;
             const statusDot = indicator ? indicator.querySelector('.status-dot') : null;
@@ -497,36 +500,604 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Handle form submission (Final redirect)
-    rsvpForm.addEventListener('submit', async (e) => {
+    // Form submit is handled by the wizard next button, but we prevent default just in case
+    rsvpForm.addEventListener('submit', (e) => {
         e.preventDefault();
+    });
 
-        const submitBtn = rsvpForm.querySelector('button[type="submit"]');
-        const originalBtnText = submitBtn.textContent;
-        submitBtn.textContent = 'Redirecting...';
-        submitBtn.disabled = true;
+    // --- WIZARD HELPER FUNCTIONS ---
+    let currentStep = 1;
 
-        if (autoSaveTimeout) clearTimeout(autoSaveTimeout);
-        await triggerAutoSave();
+    function getVisiblePanes() {
+        const visiblePanes = [1, 2];
+        const choice = document.querySelector('input[name="attendance_choice"]:checked');
+        const hiddenInput = document.getElementById('attendance-hidden-input');
+        const isOnsite = window.guestData?.is_onsite_allowed;
 
-        const formData = new FormData(rsvpForm);
-        const attendance = formData.get('attendance');
+        if (choice && choice.value === 'attend') {
+            if (isOnsite) {
+                visiblePanes.push(3);
+            }
+            visiblePanes.push(4);
+            visiblePanes.push(5);
+        } else if (!choice && hiddenInput && hiddenInput.value && hiddenInput.value !== 'decline') {
+            if (isOnsite) {
+                visiblePanes.push(3);
+            }
+            visiblePanes.push(4);
+            visiblePanes.push(5);
+        } else if (!choice && (!hiddenInput || !hiddenInput.value)) {
+            if (isOnsite) {
+                visiblePanes.push(3);
+            }
+            visiblePanes.push(4);
+            visiblePanes.push(5);
+        }
+        return visiblePanes;
+    }
 
-        if (!attendance) {
-            alert("Please choose an attendance option before finishing.");
-            submitBtn.textContent = originalBtnText;
-            submitBtn.disabled = false;
+    function showStepPane(stepIndex) {
+        const visiblePanes = getVisiblePanes();
+        
+        // Hide all panes
+        document.querySelectorAll('.rsvp-step-pane').forEach(pane => {
+            pane.classList.remove('active');
+        });
+
+        // Show target pane
+        const targetPane = document.getElementById(`pane-${stepIndex}`);
+        if (targetPane) {
+            targetPane.classList.add('active');
+        }
+
+        currentStep = stepIndex;
+
+        // Update nav buttons
+        const btnBack = document.getElementById('btn-wizard-back');
+        const btnNext = document.getElementById('btn-wizard-next');
+
+        const currentIdx = visiblePanes.indexOf(stepIndex);
+
+        if (currentIdx === 0) {
+            btnBack.style.opacity = '0.5';
+            btnBack.style.cursor = 'not-allowed';
+            btnBack.disabled = true;
+        } else {
+            btnBack.style.opacity = '1';
+            btnBack.style.cursor = 'pointer';
+            btnBack.disabled = false;
+        }
+
+        if (currentIdx === visiblePanes.length - 1) {
+            btnNext.textContent = 'Finish & Dashboard';
+        } else {
+            btnNext.textContent = 'Next';
+        }
+
+        updateProgressBar();
+    }
+
+    function validateCurrentStep() {
+        // Step 1 validation (required name/phone)
+        if (currentStep === 1) {
+            const fullName = document.getElementById('fullName');
+            const phone = document.getElementById('phone');
+            if (fullName && !fullName.value.trim()) {
+                alert("Please enter your full name.");
+                fullName.focus();
+                return false;
+            }
+            if (phone && !phone.value.trim()) {
+                alert("Please enter your phone number.");
+                phone.focus();
+                return false;
+            }
+        }
+        // Step 2 validation (attendance required)
+        if (currentStep === 2) {
+            const choice = document.querySelector('input[name="attendance_choice"]:checked');
+            if (!choice) {
+                alert("Please select whether you will be attending.");
+                return false;
+            }
+        }
+        // Step 3 validation (accommodation required if visible)
+        if (currentStep === 3) {
+            const accommodationSelected = document.querySelector('input[name="accommodation"]:checked');
+            if (!accommodationSelected) {
+                alert("Please select your accommodation preference.");
+                return false;
+            }
+        }
+        return true;
+    }
+
+    function updateProgressBar() {
+        const dots = Array.from(document.querySelectorAll('.rsvp-progress-step'));
+        const visiblePanes = getVisiblePanes();
+        const totalSteps = visiblePanes.length;
+
+        let stepNumber = 1;
+        dots.forEach(dot => {
+            const paneId = parseInt(dot.getAttribute('data-step'));
+            const isPaneVisible = visiblePanes.includes(paneId);
+
+            if (isPaneVisible) {
+                dot.style.display = 'flex';
+                const dotCircle = dot.querySelector('.rsvp-progress-dot');
+                if (dotCircle) dotCircle.textContent = stepNumber;
+
+                const currentPaneIndex = visiblePanes.indexOf(currentStep);
+                const thisPaneIndex = visiblePanes.indexOf(paneId);
+
+                dot.classList.remove('active', 'completed');
+                if (thisPaneIndex === currentPaneIndex) {
+                    dot.classList.add('active');
+                } else if (thisPaneIndex < currentPaneIndex) {
+                    dot.classList.add('completed');
+                }
+
+                stepNumber++;
+            } else {
+                dot.style.display = 'none';
+            }
+        });
+
+        // Update progress line width
+        const currentPaneIndex = visiblePanes.indexOf(currentStep);
+        const progressLine = document.getElementById('wizard-progress-line');
+        if (progressLine) {
+            const percentage = totalSteps > 1 ? (currentPaneIndex / (totalSteps - 1)) * 100 : 0;
+            progressLine.style.width = `${percentage}%`;
+        }
+    }
+
+    function syncVisualSelections() {
+        // Attendance Choice yes/no cards
+        const hiddenInput = document.getElementById('attendance-hidden-input');
+        if (hiddenInput) {
+            const val = hiddenInput.value;
+            const yesCard = document.getElementById('card-attendance-yes');
+            const noCard = document.getElementById('card-attendance-decline');
+            const yesRadio = document.querySelector('input[name="attendance_choice"][value="attend"]');
+            const noRadio = document.querySelector('input[name="attendance_choice"][value="decline"]');
+            const dateSection = document.getElementById('date-selection-section');
+            
+            if (yesCard && noCard && yesRadio && noRadio) {
+                if (val && val !== 'decline') {
+                    yesRadio.checked = true;
+                    noRadio.checked = false;
+                    yesCard.classList.add('selected');
+                    noCard.classList.remove('selected');
+                    if (dateSection) dateSection.classList.remove('hidden');
+                } else if (val === 'decline') {
+                    yesRadio.checked = false;
+                    noRadio.checked = true;
+                    yesCard.classList.remove('selected');
+                    noCard.classList.add('selected');
+                    if (dateSection) dateSection.classList.add('hidden');
+                } else {
+                    // Empty/Unselected initial state!
+                    yesRadio.checked = false;
+                    noRadio.checked = false;
+                    yesCard.classList.remove('selected');
+                    noCard.classList.remove('selected');
+                    if (dateSection) dateSection.classList.add('hidden');
+                }
+            }
+        }
+
+        // Accommodation
+        document.querySelectorAll('input[name="accommodation"]').forEach(r => {
+            const card = r.closest('.rsvp-flash-card');
+            if (card) {
+                if (r.checked) {
+                    card.classList.add('selected');
+                } else {
+                    card.classList.remove('selected');
+                }
+            }
+        });
+
+        // Drink prefs
+        document.querySelectorAll('input[name="drink_pref"]').forEach(cb => {
+            const chip = cb.closest('.drink-chip');
+            if (chip) {
+                if (cb.checked) {
+                    chip.classList.add('selected');
+                } else {
+                    chip.classList.remove('selected');
+                }
+            }
+        });
+    }
+
+    function setupFlashCards() {
+        // Accommodation change listener to update cards
+        document.querySelectorAll('input[name="accommodation"]').forEach(radio => {
+            radio.addEventListener('change', () => {
+                document.querySelectorAll('input[name="accommodation"]').forEach(r => {
+                    const card = r.closest('.rsvp-flash-card');
+                    if (card) {
+                        if (r.checked) card.classList.add('selected');
+                        else card.classList.remove('selected');
+                    }
+                });
+                triggerAutoSave();
+            });
+        });
+
+        // Drink checkbox pills
+        const drinkChips = document.querySelectorAll('.drink-chip input[name="drink_pref"]');
+        drinkChips.forEach(cb => {
+            const chip = cb.closest('.drink-chip');
+            if (cb.checked) {
+                chip.classList.add('selected');
+            }
+
+            chip.addEventListener('click', (e) => {
+                if (e.target.tagName === 'INPUT') return;
+                
+                cb.checked = !cb.checked;
+                if (cb.checked) {
+                    chip.classList.add('selected');
+                } else {
+                    chip.classList.remove('selected');
+                }
+                triggerAutoSave();
+            });
+        });
+
+        // Make progress dots clickable
+        const dots = Array.from(document.querySelectorAll('.rsvp-progress-step'));
+        dots.forEach(dot => {
+            dot.style.cursor = 'pointer';
+            dot.addEventListener('click', () => {
+                const targetStep = parseInt(dot.getAttribute('data-step'));
+                const visiblePanes = getVisiblePanes();
+                if (visiblePanes.includes(targetStep)) {
+                    // Allow clicking back freely. If clicking forward, validate current step.
+                    if (targetStep < currentStep || validateCurrentStep()) {
+                        showStepPane(targetStep);
+                    }
+                }
+            });
+        });
+    }
+
+    function renderRoomTeaser(roomName) {
+        const placeholder = document.getElementById('room-teaser-placeholder');
+        if (!placeholder) return;
+
+        placeholder.innerHTML = '';
+        placeholder.style.display = 'none';
+        return;
+    }
+
+    function setupWizard() {
+        const btnBack = document.getElementById('btn-wizard-back');
+        const btnNext = document.getElementById('btn-wizard-next');
+
+        if (btnBack) {
+            btnBack.onclick = () => {
+                const visiblePanes = getVisiblePanes();
+                const currentIdx = visiblePanes.indexOf(currentStep);
+                if (currentIdx > 0) {
+                    showStepPane(visiblePanes[currentIdx - 1]);
+                }
+            };
+        }
+
+        if (btnNext) {
+            btnNext.onclick = async () => {
+                if (!validateCurrentStep()) return;
+
+                const visiblePanes = getVisiblePanes();
+                const currentIdx = visiblePanes.indexOf(currentStep);
+
+                if (currentIdx < visiblePanes.length - 1) {
+                    triggerAutoSave();
+                    showStepPane(visiblePanes[currentIdx + 1]);
+                } else {
+                    // Final submission
+                    btnNext.textContent = 'Saving...';
+                    btnNext.disabled = true;
+
+                    if (autoSaveTimeout) clearTimeout(autoSaveTimeout);
+                    try {
+                        await triggerAutoSave();
+                        
+                        // Show temporary success message
+                        const isDecline = document.querySelector('input[name="attendance_choice"]:checked')?.value === 'decline';
+                        const confirmTitle = document.getElementById('confirmation-title');
+                        
+                        rsvpForm.classList.add('hidden');
+                        if (isDecline) {
+                            if (confirmTitle) confirmTitle.innerHTML = "We'll miss you! 😢";
+                            confirmationMessage.innerHTML = `
+                                We're so sorry you can't make it to our wedding celebration. Thank you for letting us know!<br><br>
+                                <span style="font-size: 0.95rem; color: var(--text-main);">If your plans change, please message us directly to let us know. You can make changes up to the end of 2026.</span><br><br>
+                                <button class="btn-modal-submit" onclick="window.location.href='dashboard.html'" style="max-width: 250px; padding: 0.8rem 2rem; margin-top: 1rem; border-radius: 50px; font-family: 'Montserrat', sans-serif;">Return to Dashboard</button>
+                            `;
+                        } else {
+                            if (confirmTitle) confirmTitle.innerHTML = "RSVP Saved! 🎉";
+                            confirmationMessage.innerHTML = 'Thank you for updating your RSVP details. <br> Redirecting to your dashboard...';
+                            setTimeout(() => {
+                                window.location.href = 'dashboard.html';
+                            }, 1500);
+                        }
+                        confirmationDiv.classList.remove('hidden');
+                    } catch (e) {
+                        alert("Failed to save. Please try again.");
+                        btnNext.textContent = 'Finish & Dashboard';
+                        btnNext.disabled = false;
+                    }
+                }
+            };
+        }
+    }
+
+    // --- DATES & ATTENDANCE MAPPING LOGIC ---
+    function initRsvpDatesLogic(container) {
+        const yesRadio = container.querySelector('input[name="attendance_choice"][value="attend"]');
+        const noRadio = container.querySelector('input[name="attendance_choice"][value="decline"]');
+        const dateSection = container.querySelector('#date-selection-section') || container.querySelector('#rsvp-date-selection-section');
+        const arrivalSelect = container.querySelector('#arrival-date') || container.querySelector('#rsvp-arrival-date');
+        const departureSelect = container.querySelector('#departure-date') || container.querySelector('#rsvp-departure-date');
+        const hiddenInput = container.querySelector('#attendance-hidden-input') || container.querySelector('#rsvp-attendance-hidden-input');
+
+        if (!yesRadio || !noRadio || !dateSection || !arrivalSelect || !departureSelect || !hiddenInput) return;
+
+        function updateHiddenValue() {
+            if (noRadio.checked) {
+                hiddenInput.value = 'decline';
+                if (typeof handleAttendanceChange === 'function') {
+                    handleAttendanceChange('decline');
+                }
+                return;
+            }
+            if (!yesRadio.checked) {
+                hiddenInput.value = '';
+                return;
+            }
+            const arr = arrivalSelect.value;
+            const dep = departureSelect.value;
+            
+            let option = 'full_weekend';
+            if (arr === '2027-08-05' && dep === '2027-08-08') {
+                option = 'full_weekend';
+            } else if (arr === '2027-08-06' && dep === '2027-08-08') {
+                option = 'friday_arrival';
+            } else {
+                option = 'ceremony_only';
+            }
+            
+            hiddenInput.value = option;
+            
+            if (typeof handleAttendanceChange === 'function') {
+                handleAttendanceChange(option);
+            }
+        }
+
+        function syncDepartureOptions() {
+            const arrVal = arrivalSelect.value;
+            const depVal = departureSelect.value;
+            
+            departureSelect.innerHTML = '';
+            if (arrVal === '2027-08-05') {
+                departureSelect.innerHTML = `
+                    <option value="2027-08-06">Friday 6th August 2027</option>
+                    <option value="2027-08-07">Saturday 7th August 2027 (Actual Wedding Day)</option>
+                    <option value="2027-08-08">Sunday 8th August 2027</option>
+                `;
+            } else if (arrVal === '2027-08-06') {
+                departureSelect.innerHTML = `
+                    <option value="2027-08-07">Saturday 7th August 2027 (Actual Wedding Day)</option>
+                    <option value="2027-08-08">Sunday 8th August 2027</option>
+                `;
+            } else if (arrVal === '2027-08-07') {
+                departureSelect.innerHTML = `
+                    <option value="2027-08-08">Sunday 8th August 2027</option>
+                `;
+            }
+            
+            const optionsList = Array.from(departureSelect.options).map(o => o.value);
+            if (optionsList.includes(depVal)) {
+                departureSelect.value = depVal;
+            } else {
+                departureSelect.value = '2027-08-08';
+            }
+        }
+
+        const yesCard = yesRadio.closest('.rsvp-flash-card');
+        const noCard = noRadio.closest('.rsvp-flash-card');
+
+        function toggleDateSection() {
+            if (yesRadio.checked) {
+                dateSection.classList.remove('hidden');
+                if (yesCard) yesCard.classList.add('selected');
+                if (noCard) noCard.classList.remove('selected');
+            } else if (noRadio.checked) {
+                dateSection.classList.add('hidden');
+                if (yesCard) yesCard.classList.remove('selected');
+                if (noCard) noCard.classList.add('selected');
+            } else {
+                dateSection.classList.add('hidden');
+                if (yesCard) yesCard.classList.remove('selected');
+                if (noCard) noCard.classList.remove('selected');
+            }
+            updateHiddenValue();
+            updateProgressBar();
+            
+            // Refresh Next button text immediately so it shows "Confirm & Submit" or "Next"
+            if (typeof showStepPane === 'function') {
+                showStepPane(currentStep);
+            }
+        }
+
+        yesRadio.addEventListener('change', () => {
+            toggleDateSection();
+            triggerAutoSave();
+        });
+
+        noRadio.addEventListener('change', () => {
+            toggleDateSection();
+            triggerAutoSave();
+        });
+
+        arrivalSelect.addEventListener('change', () => {
+            syncDepartureOptions();
+            updateHiddenValue();
+            triggerAutoSave();
+        });
+
+        departureSelect.addEventListener('change', () => {
+            updateHiddenValue();
+            triggerAutoSave();
+        });
+
+        // Initialize state from saved hidden value
+        const savedOption = hiddenInput.value;
+        if (savedOption === 'decline') {
+            noRadio.checked = true;
+            yesRadio.checked = false;
+            dateSection.classList.add('hidden');
+            if (yesCard) yesCard.classList.remove('selected');
+            if (noCard) noCard.classList.add('selected');
+        } else if (savedOption) {
+            yesRadio.checked = true;
+            noRadio.checked = false;
+            dateSection.classList.remove('hidden');
+            if (yesCard) yesCard.classList.add('selected');
+            if (noCard) noCard.classList.remove('selected');
+            
+            if (savedOption === 'friday_arrival') {
+                arrivalSelect.value = '2027-08-06';
+            } else if (savedOption === 'ceremony_only') {
+                arrivalSelect.value = '2027-08-07';
+            } else {
+                arrivalSelect.value = '2027-08-05';
+            }
+            syncDepartureOptions();
+            departureSelect.value = '2027-08-08';
+        } else {
+            yesRadio.checked = false;
+            noRadio.checked = false;
+            dateSection.classList.add('hidden');
+            if (yesCard) yesCard.classList.remove('selected');
+            if (noCard) noCard.classList.remove('selected');
+        }
+    }
+
+    // Overwrite the original renderRoomTeaser to support Top-teaser layout & fallback messaging
+    window.renderRoomTeaser = function(roomName) {
+        const placeholder = document.getElementById('room-teaser-placeholder');
+        if (!placeholder) return;
+
+        const accLabel = document.getElementById('accommodation-label');
+
+        if (!roomName || !window.ROOM_LIBRARY || !window.ROOM_LIBRARY[roomName]) {
+            if (accLabel) {
+                accLabel.innerHTML = `Where will you stay? (rooms will be prioritised for full weekend guests).`;
+            }
+            placeholder.style.display = 'block';
+            placeholder.innerHTML = `
+                <div style="background: rgba(193, 162, 122, 0.05); border: 1.5px dashed rgba(193, 162, 122, 0.35); border-radius: 16px; padding: 1.25rem; margin-bottom: 1.5rem; text-align: left; font-family: 'Montserrat', sans-serif;">
+                    <span style="font-size: 1.15rem; margin-right: 0.5rem;">🏰</span>
+                    <strong style="font-weight: 700; color: var(--text-main); font-size: 0.95rem;">Stay On-Site</strong>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0.5rem 0 0 0; line-height: 1.45;">
+                        We want everyone to stay on-site! We are currently working on room allocations and will assign you a beautiful suite at Huntsham Court should you choose to stay on-site.
+                    </p>
+                </div>
+            `;
             return;
         }
 
-        // Show temporary success message
-        rsvpForm.classList.add('hidden');
-        confirmationMessage.innerHTML = 'RSVP Saved! <br> Redirecting to your dashboard...';
-        confirmationDiv.classList.remove('hidden');
+        if (accLabel) {
+            accLabel.innerHTML = `If you choose to join on site you'll be in the <strong>${roomName}</strong>. Will you stay on site or find your own accommodation?`;
+        }
 
-        // Redirect after 1.5 seconds
-        setTimeout(() => {
-            window.location.href = 'dashboard.html';
-        }, 1500);
-    });
+        placeholder.style.display = 'none';
+        placeholder.innerHTML = '';
+    };
+
+    // --- WHAT'S INCLUDED POPUP HANDLERS ---
+    window.openWhatsIncluded = async function(event) {
+        if (event) event.stopPropagation(); // Stop click bubbling to parent card
+        const modal = document.getElementById('whats-included-modal');
+        const textContainer = document.getElementById('whats-included-text');
+        
+        if (modal && textContainer) {
+            modal.classList.add('open');
+            const data = window.guestData;
+            const roomName = data?.room_assigned;
+            let roomPriceStr = data?.room_price ? `£${data.room_price} per night (total room cost, not per person)` : "£TBC";
+
+            if (roomName && window.Auth && window.Auth.client && (!data || !data.room_price)) {
+                let roomData = null;
+                let fetchErr = null;
+
+                // Try 1: rooms table, name column
+                let res = await window.Auth.client.from('rooms').select('*').eq('name', roomName).single();
+                if (res.data) roomData = res.data;
+                else {
+                    fetchErr = res.error;
+                    // Try 2: rooms table, room_name column
+                    res = await window.Auth.client.from('rooms').select('*').eq('room_name', roomName).single();
+                    if (res.data) roomData = res.data;
+                    else fetchErr = res.error;
+                }
+
+                if (roomData) {
+                    console.log("Fetched room data:", roomData);
+                    const price = roomData.price ?? roomData.price_per_night ?? roomData.prices_per_night ?? roomData.cost ?? roomData.room_price ?? roomData.rate;
+                    if (price !== null && price !== undefined) {
+                        roomPriceStr = `£${price} per night (total room cost, not per person)`;
+                    }
+                } else {
+                    console.warn("Could not find room pricing in 'rooms' table:", fetchErr);
+                }
+            }
+            
+            let roomHtml = '';
+            if (roomName && window.ROOM_LIBRARY && window.ROOM_LIBRARY[roomName]) {
+                const room = window.ROOM_LIBRARY[roomName];
+                const imageUrl = room.photos && room.photos.length > 0 ? room.photos[0] : 'huntsham_exterior.jpg';
+                roomHtml = `
+                    <div style="margin-bottom: 1.5rem; text-align: center;">
+                        <img src="${imageUrl}" style="width: 100%; max-height: 200px; object-fit: cover; border-radius: 12px; margin-bottom: 0.75rem;">
+                        <h4 style="margin: 0; font-family: 'Playfair Display', serif; font-size: 1.3rem; color: var(--text-main);">Proposed Room: ${roomName}</h4>
+                        <p style="margin: 0.25rem 0 0 0; font-weight: 600; color: var(--primary);">Room Price: ${roomPriceStr}</p>
+                    </div>
+                `;
+            } else {
+                roomHtml = `
+                    <div style="margin-bottom: 1.5rem; text-align: center;">
+                        <h4 style="margin: 0; font-family: 'Playfair Display', serif; font-size: 1.3rem; color: var(--text-main);">Your Room</h4>
+                        <p style="margin: 0.25rem 0 0 0; font-size: 0.9rem; color: var(--text-muted);">We are currently allocating rooms and will assign yours shortly.</p>
+                    </div>
+                `;
+            }
+            
+            textContainer.innerHTML = `
+                ${roomHtml}
+                <div style="text-align: left;">
+                    <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.75rem;">
+                        <li style="display: flex; gap: 0.5rem;"><span style="color: #10b981;">✓</span> Luxury bedroom on the estate grounds</li>
+                        <li style="display: flex; gap: 0.5rem;"><span style="color: #10b981;">✓</span> All meals (Breakfasts, lunches, dinners and the wedding breakfast)</li>
+                        <li style="display: flex; gap: 0.5rem;"><span style="color: #10b981;">✓</span> Open bar &amp; all drinks throughout the stay</li>
+                        <li style="display: flex; gap: 0.5rem;"><span style="color: #10b981;">✓</span> Daily snacks and late-night bites</li>
+                        <li style="display: flex; gap: 0.5rem;"><span style="color: #10b981;">✓</span> Total access to all games, lawns, and entertainment</li>
+                    </ul>
+                </div>
+                <p style="margin-top: 1.5rem; font-size: 0.75rem; color: var(--text-muted); font-style: italic; text-align: center;">*room subject to change</p>
+            `;
+        }
+    };
+
+    window.closeWhatsIncluded = function() {
+        const modal = document.getElementById('whats-included-modal');
+        if (modal) modal.classList.remove('open');
+    };
+
 });
