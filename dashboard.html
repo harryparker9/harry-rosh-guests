@@ -108,6 +108,7 @@
                             <div class="card-content">
                                 <h3 id="room-name-display">Allocating...</h3>
                                 <p id="room-desc-display">Your room at Huntsham Court</p>
+                                <p id="room-price-display" style="font-size: 0.9rem; margin-top: 4px; font-weight: 500; opacity: 0.95;"></p>
                             </div>
                             <button class="btn-card-action">View Room</button>
                         </div>
@@ -210,8 +211,26 @@
             <span class="close-modal close-payment">&times;</span>
             <div style="font-size: 3rem; margin-bottom: 1rem;">🏰</div>
             <h2 class="section-title" style="font-size: 1.8rem;">Secure Your Suite</h2>
-            <p style="color: #666; margin-bottom: 2rem;">To confirm your booking for <br><strong id="pay-room-name"
+            <p style="color: #666; margin-bottom: 1.5rem;">To confirm your booking for <br><strong id="pay-room-name"
                     style="color: var(--primary);">[Room Name]</strong>, please transfer the room cost.</p>
+
+            <!-- Cost details and toggle -->
+            <div id="payment-cost-container" style="display: none; margin-bottom: 1.5rem; background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 1rem; text-align: left;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                    <span style="font-weight: 600; color: #374151; font-size: 0.85rem;">Room Cost Details</span>
+                    <div style="display: flex; background: #f3f4f6; border-radius: 9999px; padding: 2px;">
+                        <button type="button" id="btn-cost-total" style="border: none; background: white; font-size: 0.7rem; font-weight: 600; padding: 4px 10px; border-radius: 9999px; cursor: pointer; color: #374151; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">Total Cost</button>
+                        <button type="button" id="btn-cost-person" style="border: none; background: transparent; font-size: 0.7rem; font-weight: 600; padding: 4px 10px; border-radius: 9999px; cursor: pointer; color: #6b7280;">Per Person</button>
+                    </div>
+                </div>
+                <div id="cost-display-wrapper" style="font-size: 1.25rem; font-weight: 700; color: #111827; display: flex; align-items: baseline; gap: 4px;">
+                    <span id="cost-amount">£0</span>
+                    <span id="cost-label" style="font-size: 0.75rem; font-weight: 500; color: #6b7280;">total room cost</span>
+                </div>
+                <div id="occupants-note" style="font-size: 0.75rem; color: #6b7280; margin-top: 0.5rem; display: none;">
+                    Based on 1 room occupant
+                </div>
+            </div>
 
             <div
                 style="background: #f9fafb; padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; text-align: left; border: 1px solid #eee;">

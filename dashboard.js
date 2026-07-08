@@ -652,6 +652,46 @@ document.addEventListener('DOMContentLoaded', async () => {
             // STATE: ASSIGNED (OFFERED or CONFIRMED)
             roomNameDisplay.textContent = user.room_assigned;
 
+            // Render price display on main card
+            const priceDisplay = document.getElementById('room-price-display');
+            if (priceDisplay) {
+                priceDisplay.textContent = "Loading price...";
+                (async () => {
+                    try {
+                        let roomData = null;
+                        let res = await supabase.from('rooms').select('*').eq('name', user.room_assigned).single();
+                        if (res.data) roomData = res.data;
+                        else {
+                            res = await supabase.from('rooms').select('*').eq('room_name', user.room_assigned).single();
+                            if (res.data) roomData = res.data;
+                        }
+
+                        if (roomData) {
+                            const price = roomData.price_per_night ?? roomData.price ?? 0;
+                            const nights = roomData.nights ?? 3;
+                            const totalCost = price * nights;
+
+                            const isPaid = (user.room_status === 'paid' || user.room_status === 'confirmed');
+                            if (isPaid) {
+                                priceDisplay.innerHTML = `Room Cost: <strong style="color: #166534;">Paid ✓</strong>`;
+                            } else if (user.shares_room_payment) {
+                                priceDisplay.innerHTML = `Owed: <strong>£${totalCost.toLocaleString()}</strong> (Paid Together)`;
+                            } else {
+                                const countRes = await supabase.from('guests').select('id', { count: 'exact', head: true }).eq('room_assigned', user.room_assigned);
+                                const occupantCount = countRes.count || 1;
+                                const costPerPerson = totalCost / occupantCount;
+                                priceDisplay.innerHTML = `Your Share: <strong>£${costPerPerson.toLocaleString(undefined, {maximumFractionDigits:0})}</strong> (Separately)`;
+                            }
+                        } else {
+                            priceDisplay.textContent = "Pricing details TBC";
+                        }
+                    } catch (err) {
+                        console.error("Failed to load room price on card:", err);
+                        priceDisplay.textContent = "";
+                    }
+                })();
+            }
+
             // Lookup Description
             const roomData = window.ROOM_LIBRARY ? window.ROOM_LIBRARY[user.room_assigned] : null;
             if (roomData && roomDescDisplay) {
@@ -1365,10 +1405,98 @@ document.addEventListener('DOMContentLoaded', async () => {
     const payModal = document.getElementById('payment-modal');
     const closePayBtn = document.querySelector('.close-payment');
 
-    window.openPaymentModal = function (roomName, accessCode) {
+    window.openPaymentModal = async function (roomName, accessCode) {
         if (!payModal) return;
         document.getElementById('pay-room-name').textContent = roomName;
         document.getElementById('pay-ref').textContent = accessCode;
+
+        // Fetch room cost from database
+        const costContainer = document.getElementById('payment-cost-container');
+        if (costContainer) {
+            costContainer.style.display = 'none'; // hide until loaded
+            try {
+                // Try 1: rooms table, name column
+                let roomData = null;
+                let res = await supabase.from('rooms').select('*').eq('name', roomName).single();
+                if (res.data) roomData = res.data;
+                else {
+                    // Try 2: rooms table, room_name column
+                    res = await supabase.from('rooms').select('*').eq('room_name', roomName).single();
+                    if (res.data) roomData = res.data;
+                }
+
+                const countRes = await supabase.from('guests').select('id', { count: 'exact', head: true }).eq('room_assigned', roomName);
+                
+                if (roomData) {
+                    const price = roomData.price_per_night ?? roomData.price ?? 0;
+                    const nights = roomData.nights ?? 3;
+                    const totalCost = price * nights;
+                    const occupantCount = countRes.count || 1;
+                    const costPerPerson = totalCost / occupantCount;
+
+                    const btnTotal = document.getElementById('btn-cost-total');
+                    const btnPerson = document.getElementById('btn-cost-person');
+                    const costAmount = document.getElementById('cost-amount');
+                    const costLabel = document.getElementById('cost-label');
+                    const occupantsNote = document.getElementById('occupants-note');
+
+                    if (btnTotal && btnPerson && costAmount && costLabel && occupantsNote) {
+                        // Reset buttons
+                        btnTotal.style.background = 'white';
+                        btnTotal.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+                        btnTotal.style.color = '#374151';
+                        btnPerson.style.background = 'transparent';
+                        btnPerson.style.boxShadow = 'none';
+                        btnPerson.style.color = '#6b7280';
+
+                        costAmount.textContent = `£${totalCost.toLocaleString()}`;
+                        costLabel.textContent = `total room cost (${nights} nights)`;
+                        occupantsNote.textContent = `Based on ${occupantCount} room occupants (£${costPerPerson.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} each)`;
+                        occupantsNote.style.display = 'none';
+
+                        btnTotal.onclick = () => {
+                            btnTotal.style.background = 'white';
+                            btnTotal.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+                            btnTotal.style.color = '#374151';
+                            btnPerson.style.background = 'transparent';
+                            btnPerson.style.boxShadow = 'none';
+                            btnPerson.style.color = '#6b7280';
+                            
+                            costAmount.textContent = `£${totalCost.toLocaleString()}`;
+                            costLabel.textContent = `total room cost (${nights} nights)`;
+                            occupantsNote.style.display = 'none';
+                        };
+
+                        btnPerson.onclick = () => {
+                            btnPerson.style.background = 'white';
+                            btnPerson.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+                            btnPerson.style.color = '#374151';
+                            btnTotal.style.background = 'transparent';
+                            btnTotal.style.boxShadow = 'none';
+                            btnTotal.style.color = '#6b7280';
+                            
+                            costAmount.textContent = `£${costPerPerson.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                            costLabel.textContent = `per person share`;
+                            if (occupantCount > 1) {
+                                occupantsNote.style.display = 'block';
+                            }
+                        };
+
+                        costContainer.style.display = 'block';
+
+                        // Pre-select based on user setting
+                        if (user && !user.shares_room_payment) {
+                            btnPerson.click();
+                        } else {
+                            btnTotal.click();
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error("Failed to load payment pricing details:", err);
+            }
+        }
+
         payModal.classList.add('open');
     };
 
