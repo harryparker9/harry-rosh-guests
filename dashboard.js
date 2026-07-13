@@ -1237,22 +1237,58 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         aiContext = content; // Sync global context
 
-        // Parse Md to HTML Accordion
+        // Helper to parse basic inline markdown (**bold**, [text](url), etc.)
+        const parseInlineMarkdown = (text) => {
+            return text
+                .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+                .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" style="color:var(--primary);text-decoration:underline;">$1</a>');
+        };
+
         const lines = content.split('\n');
         let html = '';
-        let inQuestion = false;
+        let inAnswer = false;
 
         lines.forEach(line => {
-            if (line.startsWith('## ')) {
-                if (inQuestion) html += '</div></details>';
-                const question = line.replace('## ', '').trim();
+            const trimmed = line.trim();
+            if (trimmed.startsWith('# ')) {
+                // Main Title - skip
+                return;
+            }
+            
+            if (trimmed.startsWith('## ')) {
+                // Category Header
+                if (inAnswer) {
+                    html += `</div></details>`;
+                    inAnswer = false;
+                }
+                const category = trimmed.replace('## ', '').trim();
+                html += `<h3 class="faq-category-header" style="font-family:'Montserrat', sans-serif; font-size:1.15rem; font-weight:700; color:var(--text-main); margin-top:28px; margin-bottom:12px; border-bottom: 2px solid #F1F5F9; padding-bottom:6px;">${category}</h3>`;
+            } else if (trimmed.startsWith('### ')) {
+                // Question
+                if (inAnswer) {
+                    html += `</div></details>`;
+                }
+                const question = trimmed.replace('### ', '').trim();
                 html += `<details class="faq-item"><summary>${question}</summary><div class="faq-answer">`;
-                inQuestion = true;
-            } else if (line.trim().length > 0 && inQuestion) {
-                html += `<p>${line.trim()}</p>`;
+                inAnswer = true;
+            } else if (inAnswer) {
+                if (trimmed.length > 0) {
+                    if (trimmed.startsWith('* ') || trimmed.startsWith('- ') || trimmed.startsWith('*')) {
+                        // Unordered list item
+                        const itemText = trimmed.replace(/^[\*\-]\s*/, '').trim();
+                        html += `<li style="margin-left:16px; margin-bottom:6px; font-size:0.925rem; list-style-type:disc;">${parseInlineMarkdown(itemText)}</li>`;
+                    } else {
+                        // Standard paragraph
+                        html += `<p style="margin-bottom:12px; font-size:0.925rem; line-height:1.5;">${parseInlineMarkdown(trimmed)}</p>`;
+                    }
+                }
             }
         });
-        if (inQuestion) html += '</div></details>';
+        
+        if (inAnswer) {
+            html += `</div></details>`;
+        }
 
         listContainer.innerHTML = html;
     }
