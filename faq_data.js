@@ -213,5 +213,3 @@ Either Rosh or Harry is on hand to answer any queries you may have.
 ### Who can I ask questions to during the event regarding logistics and timings etc?
 Please refrain from asking Rosh or Harry questions during the weekend. If anything is unclear, we will have our wedding coordinator Natalie on site, or please ask a member of the bridal party.
 `;
-
-export { FAQ_CONTENT };
