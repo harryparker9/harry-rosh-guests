@@ -59,10 +59,8 @@ You can view the payment information and bank details by clicking the **"Secure 
 ### Do I need to bring towels?
 No, bath towels are provided in all of the bedrooms on-site at Huntsham Court.
 
-### What train stations or airports are nearby?
-*   **Train:** **Tiverton Parkway** is the closest station (situated right next to Junction 27 of the M5). It is just a **12-minute drive** to the house and has excellent regional connections as well as a fast **2-hour London express service**.
-*   **Airport:** The nearest major airports are **Exeter Airport (30 mins)** and **Bristol Airport (50 mins)**.
-*   **Helicopter / Private Plane:** Helicopter landings are permitted on-site (weather permitting). There is also a private airstrip three miles away where landing and parking can be arranged.
+### What train station is nearby?
+**Tiverton Parkway** is the closest station (situated right next to Junction 27 of the M5). It is just a **12-minute drive** to the house and has excellent regional connections as well as a fast **2-hour London express service**.
 
 ### What local taxi companies do you recommend?
 We highly recommend booking taxis in advance as Huntsham is in a rural area. Here are local options recommended by the venue:
@@ -86,7 +84,7 @@ You certainly won't go hungry! Here is the culinary plan:
 *   **Sunday:** A hungover breakfast spread in the Butler's Pantry (8:00 AM - 10:00 AM).
 
 ### Do I need to pay for alcohol or drinks?
-No! An open bar and all drinks are included throughout your stay on-site. The venue has a strict no corkage policy, which we are fully taking advantage of!
+No! An open bar and all drinks are included throughout your stay on-site.
 
 ### How do I report a dietary requirement or allergy?
 Please list any allergies or dietary requirements in the RSVP section of this app so we can share them with our caterers.
