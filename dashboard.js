@@ -901,6 +901,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             // Trigger corresponding modals or actions
             if (target === 'room') {
+                if (user && user.room_assigned) {
                     const resolvedRoomKey = resolveRoomLibraryKey(user.room_assigned);
                     const roomData = window.ROOM_LIBRARY ? window.ROOM_LIBRARY[resolvedRoomKey] : null;
                     if (roomData && typeof openRoomModal === 'function') {
