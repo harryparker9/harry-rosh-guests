@@ -30,6 +30,21 @@ document.addEventListener('DOMContentLoaded', () => {
         return targetNames.includes(name.trim().toLowerCase());
     }
 
+    function resolveRoomLibraryKey(roomName) {
+        if (!roomName) return null;
+        const mappings = {
+            "Gate House - Back Bedroom": "Gate House Back",
+            "Gate House - Front Bedroom": "Gate House Front",
+            "Gate House - Lounge": "Gate House Lounge",
+            "Little Lodge - Talia Bedroom": "Talia",
+            "Little Lodge - Flora Bedroom": "Flora",
+            "Little Lodge - Zach Bedroom": "Zach",
+            "Little Lodge - Reubs Bedroom": "Reubs",
+            "Little Lodge - Oli Room": "Oli Room"
+        };
+        return mappings[roomName] || roomName;
+    }
+
     const rsvpForm = document.getElementById('rsvp-form');
     const rsvpGate = document.getElementById('rsvp-gate');
     const gateCodeInput = document.getElementById('gate-code');
@@ -1002,8 +1017,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const accLabel = document.getElementById('accommodation-label');
         const isRevealed = window.guestData && window.guestData.is_room_revealed !== false;
         const activeRoom = isRevealed ? roomName : null;
+        const resolvedKey = resolveRoomLibraryKey(activeRoom);
 
-        if (!activeRoom || !window.ROOM_LIBRARY || !window.ROOM_LIBRARY[activeRoom]) {
+        if (!resolvedKey || !window.ROOM_LIBRARY || !window.ROOM_LIBRARY[resolvedKey]) {
             if (accLabel) {
                 accLabel.innerHTML = `Where will you stay? (rooms will be prioritised for full weekend guests).`;
             }
@@ -1076,8 +1092,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             let roomHtml = '';
-            if (roomName && window.ROOM_LIBRARY && window.ROOM_LIBRARY[roomName]) {
-                const room = window.ROOM_LIBRARY[roomName];
+            const resolvedKey = resolveRoomLibraryKey(roomName);
+            if (resolvedKey && window.ROOM_LIBRARY && window.ROOM_LIBRARY[resolvedKey]) {
+                const room = window.ROOM_LIBRARY[resolvedKey];
                 const imageUrl = room.photos && room.photos.length > 0 ? room.photos[0] : 'huntsham_exterior.jpg';
                 roomHtml = `
                     <div style="margin-bottom: 1.5rem; text-align: center;">

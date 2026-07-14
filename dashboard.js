@@ -29,6 +29,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         return targetNames.includes(name.trim().toLowerCase());
     }
 
+    function resolveRoomLibraryKey(roomName) {
+        if (!roomName) return null;
+        const mappings = {
+            "Gate House - Back Bedroom": "Gate House Back",
+            "Gate House - Front Bedroom": "Gate House Front",
+            "Gate House - Lounge": "Gate House Lounge",
+            "Little Lodge - Talia Bedroom": "Talia",
+            "Little Lodge - Flora Bedroom": "Flora",
+            "Little Lodge - Zach Bedroom": "Zach",
+            "Little Lodge - Reubs Bedroom": "Reubs",
+            "Little Lodge - Oli Room": "Oli Room"
+        };
+        return mappings[roomName] || roomName;
+    }
+
     // --- HELPER: Render Itinerary ---
     // Moved to bottom of file
 
@@ -698,7 +713,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             // Lookup Description
-            const roomData = window.ROOM_LIBRARY ? window.ROOM_LIBRARY[user.room_assigned] : null;
+            const resolvedRoomKey = resolveRoomLibraryKey(user.room_assigned);
+            const roomData = window.ROOM_LIBRARY ? window.ROOM_LIBRARY[resolvedRoomKey] : null;
             if (roomData && roomDescDisplay) {
                 let cleanDesc = roomData.description.replace(/\[cite:.*?\]/g, '').trim();
                 roomDescDisplay.innerHTML = `<strong>${roomData.floor}</strong>`;
@@ -734,7 +750,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     // Make it clickable
                     roomSlideActionBtn.style.cursor = 'pointer';
                     roomSlideActionBtn.onclick = () => {
-                        const roomData = window.ROOM_LIBRARY ? window.ROOM_LIBRARY[user.room_assigned] : null;
+                        const resolvedRoomKey = resolveRoomLibraryKey(user.room_assigned);
+                        const roomData = window.ROOM_LIBRARY ? window.ROOM_LIBRARY[resolvedRoomKey] : null;
                         if (roomData) {
                             openRoomModal(roomData, user.room_assigned, user.room_status, user.access_code);
                         }
@@ -752,7 +769,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     roomSlideActionBtn.style.cursor = 'pointer';
 
                     roomSlideActionBtn.onclick = () => {
-                        const roomData = window.ROOM_LIBRARY ? window.ROOM_LIBRARY[user.room_assigned] : null;
+                        const resolvedRoomKey = resolveRoomLibraryKey(user.room_assigned);
+                        const roomData = window.ROOM_LIBRARY ? window.ROOM_LIBRARY[resolvedRoomKey] : null;
                         if (roomData) {
                             openRoomModal(roomData, user.room_assigned, user.room_status, user.access_code);
                         }
@@ -883,9 +901,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             // Trigger corresponding modals or actions
             if (target === 'room') {
-                if (user && user.room_assigned) {
-                    const normalizedRoom = user.room_assigned.replace(/'/g, '’');
-                    const roomData = window.ROOM_LIBRARY ? (window.ROOM_LIBRARY[user.room_assigned] || window.ROOM_LIBRARY[normalizedRoom]) : null;
+                    const resolvedRoomKey = resolveRoomLibraryKey(user.room_assigned);
+                    const roomData = window.ROOM_LIBRARY ? window.ROOM_LIBRARY[resolvedRoomKey] : null;
                     if (roomData && typeof openRoomModal === 'function') {
                         openRoomModal(roomData, user.room_assigned, user.room_status, user.access_code);
                     }
@@ -1446,8 +1463,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         let roomData = null;
         if (user && user.room_assigned && window.ROOM_LIBRARY) {
-            const normalizedRoom = user.room_assigned.replace(/'/g, '’');
-            roomData = window.ROOM_LIBRARY[user.room_assigned] || window.ROOM_LIBRARY[normalizedRoom];
+            const resolvedRoomKey = resolveRoomLibraryKey(user.room_assigned);
+            roomData = window.ROOM_LIBRARY[resolvedRoomKey];
         }
 
         const chatBubbles = chatOutput.querySelectorAll('.chat-bubble');
@@ -3364,8 +3381,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!placeholder) return;
 
         const accLabel = document.getElementById('rsvp-accommodation-label');
+        const resolvedRoomKey = resolveRoomLibraryKey(roomName);
 
-        if (!roomName || !window.ROOM_LIBRARY || !window.ROOM_LIBRARY[roomName]) {
+        if (!resolvedRoomKey || !window.ROOM_LIBRARY || !window.ROOM_LIBRARY[resolvedRoomKey]) {
             if (accLabel) {
                 accLabel.innerHTML = `Where will you stay? (rooms will be prioritised for full weekend guests).`;
             }
@@ -3438,8 +3456,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
             
             let roomHtml = '';
-            if (roomName && window.ROOM_LIBRARY && window.ROOM_LIBRARY[roomName]) {
-                const room = window.ROOM_LIBRARY[roomName];
+            const resolvedRoomKey = resolveRoomLibraryKey(roomName);
+            if (resolvedRoomKey && window.ROOM_LIBRARY && window.ROOM_LIBRARY[resolvedRoomKey]) {
+                const room = window.ROOM_LIBRARY[resolvedRoomKey];
                 const imageUrl = room.photos && room.photos.length > 0 ? room.photos[0] : 'huntsham_exterior.jpg';
                 roomHtml = `
                     <div style="margin-bottom: 1.5rem; text-align: center;">
