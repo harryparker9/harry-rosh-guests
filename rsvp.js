@@ -298,7 +298,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Auto-Save Function ---
-    async function triggerAutoSave() {
+    async function triggerAutoSave(isFinal = false) {
         const indicator = document.getElementById('rsvp-status-indicator');
         if (!indicator) return;
         const statusText = indicator.querySelector('.status-text');
@@ -314,10 +314,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const selectedDrinks = drinksHidden ? [] : Array.from(document.querySelectorAll('input[name="drink_pref"]:checked')).map(el => el.value);
         const specialRequests = drinksHidden ? "" : document.getElementById('special_drink_requests').value;
 
+        const hasExistingAttendance = !!(window.guestData && window.guestData.attendance_option);
+
         const payload = {
             full_name: formData.get('fullName'),
             phone: formData.get('phone'),
-            attendance_option: formData.get('attendance'),
             accommodation_preference: formData.get('accommodation') || null,
             dietary_requirements: formData.get('dietary'),
             drink_preferences: JSON.stringify({ drinks: selectedDrinks, special: specialRequests }),
@@ -326,6 +327,10 @@ document.addEventListener('DOMContentLoaded', () => {
             speech_prediction: formData.get('speechBet'),
             song_request: formData.get('song_request')
         };
+
+        if (isFinal || hasExistingAttendance) {
+            payload.attendance_option = formData.get('attendance') || null;
+        }
 
         try {
             const { data: updatedData, error: updateError } = await supabase
@@ -343,7 +348,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     full_name: payload.full_name,
                     room_assigned: updatedData[0].room_assigned || null,
                     room_status: updatedData[0].room_status || null,
-                    attendance_option: payload.attendance_option,
+                    attendance_option: updatedData[0].attendance_option || null,
                     is_onsite_allowed: updatedData[0].is_onsite_allowed || false,
                     photo_url: updatedData[0].photo_url || null
                 };
@@ -805,7 +810,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     if (autoSaveTimeout) clearTimeout(autoSaveTimeout);
                     try {
-                        await triggerAutoSave();
+                        await triggerAutoSave(true);
                         
                         // Show temporary success message
                         const isDecline = document.querySelector('input[name="attendance_choice"]:checked')?.value === 'decline';
@@ -1031,9 +1036,9 @@ document.addEventListener('DOMContentLoaded', () => {
             modal.classList.add('open');
             const data = window.guestData;
             const roomName = data?.room_assigned;
-            let roomPriceStr = data?.room_price ? `£${data.room_price} per night (total room cost, not per person)` : "£TBC";
+            let roomPriceStr = "£TBC";
 
-            if (roomName && window.Auth && window.Auth.client && (!data || !data.room_price)) {
+            if (roomName && window.Auth && window.Auth.client) {
                 let roomData = null;
                 let fetchErr = null;
 
@@ -1050,9 +1055,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (roomData) {
                     console.log("Fetched room data:", roomData);
-                    const price = roomData.price ?? roomData.price_per_night ?? roomData.prices_per_night ?? roomData.cost ?? roomData.room_price ?? roomData.rate;
-                    if (price !== null && price !== undefined) {
-                        roomPriceStr = `£${price} per night (total room cost, not per person)`;
+                    const price = roomData.price ?? roomData.price_per_night ?? roomData.price_per_night ?? roomData.cost ?? roomData.room_price ?? roomData.rate;
+                    const nights = roomData.nights ?? 3;
+                    const totalCost = price * nights;
+
+                    if (data && data.shares_room_payment === false) {
+                        const countRes = await window.Auth.client.from('guests').select('id', { count: 'exact', head: true }).eq('room_assigned', roomName);
+                        const occupantCount = countRes.count || 1;
+                        const costPerPerson = totalCost / occupantCount;
+                        roomPriceStr = `£${costPerPerson.toLocaleString(undefined, {maximumFractionDigits:0})} total for the 3 nights (your share, paid separately)`;
+                    } else {
+                        roomPriceStr = `£${totalCost.toLocaleString()} total for the 3 nights (total room cost, paid together)`;
                     }
                 } else {
                     console.warn("Could not find room pricing in 'rooms' table:", fetchErr);
