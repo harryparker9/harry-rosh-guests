@@ -1,5 +1,7 @@
 // @ts-ignore
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+// @ts-ignore
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.8"
 
 // ⚠️ DEBUGGING: Paste your key inside the quotes below
 const HARDCODED_KEY = "";
@@ -75,6 +77,32 @@ serve(async (req: any) => {
             throw new Error('No query provided')
         }
 
+        // 2.5. Fetch FAQs from Database
+        const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+        const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
+        const supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
+        
+        let faqContent = "";
+        try {
+            const { data: faqRows, error: faqErr } = await supabaseClient
+                .from('faqs')
+                .select('category, question, answer')
+                .order('display_order', { ascending: true });
+            
+            if (faqErr) throw faqErr;
+
+            if (faqRows && faqRows.length > 0) {
+                faqContent = faqRows.map(f => {
+                    return `Category: ${f.category}\nQ: ${f.question}\nA: ${f.answer}\n`;
+                }).join('\n');
+            } else {
+                faqContent = FAQ_CONTENT;
+            }
+        } catch (dbErr) {
+            console.error("Database FAQ fetch error, falling back to hardcoded:", dbErr);
+            faqContent = FAQ_CONTENT;
+        }
+
         // 3. Get API Key
         // Priority: Hardcoded -> Secret
         // @ts-ignore
@@ -125,7 +153,7 @@ Here is the wedding schedule/itinerary:
 ${itinerary ? JSON.stringify(itinerary, null, 2) : "Refer to general FAQs."}
 
 Here is the general wedding FAQ knowledge base:
-"${FAQ_CONTENT}"
+"${faqContent}"
 
 ${lastBotReply ? `Previous AI Response to the user in this chat session: "${lastBotReply}"\n` : ""}
 
