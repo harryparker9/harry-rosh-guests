@@ -9,6 +9,8 @@ CREATE TABLE IF NOT EXISTS faqs (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
+ALTER TABLE faqs DISABLE ROW LEVEL SECURITY;
+
 -- Delete existing to make this script re-runnable without duplicates
 TRUNCATE TABLE faqs;
 
