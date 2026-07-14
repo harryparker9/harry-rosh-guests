@@ -1728,6 +1728,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         // Parse bathroom details
+        const isShared = cleanDesc.toLowerCase().includes("shared") || cleanDesc.toLowerCase().includes("sharing") || roomData.floor === "Gate House Lodge" || roomData.floor === "Little Lodge";
+
         if (cleanDesc.toLowerCase().includes("twin baths")) {
             amenities.push("🛁 Twin Bathrooms");
         } else if (cleanDesc.toLowerCase().includes("bath and separate shower")) {
@@ -1735,9 +1737,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         } else if (cleanDesc.toLowerCase().includes("wet room")) {
             amenities.push("🚿 Accessible Wet Room");
         } else if (cleanDesc.toLowerCase().includes("shower")) {
-            amenities.push("🚿 En-suite Shower");
+            if (isShared) {
+                amenities.push("🚿 Shared Shower Room");
+            } else {
+                amenities.push("🚿 En-suite Shower");
+            }
         } else if (cleanDesc.toLowerCase().includes("bathroom")) {
-            amenities.push("🛁 Private Bathroom");
+            if (isShared) {
+                amenities.push("🛁 Shared Bathroom");
+            } else {
+                amenities.push("🛁 Private Bathroom");
+            }
         }
 
         // Build Slider HTML
