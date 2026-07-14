@@ -1268,6 +1268,64 @@ document.addEventListener('DOMContentLoaded', async () => {
         const listContainer = document.getElementById('faq-static-list');
         if (listContainer.children.length > 1) return;
 
+        const parseInlineMarkdown = (text) => {
+            return text
+                .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+                .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" style="color:var(--primary);text-decoration:underline;">$1</a>');
+        };
+
+        // Try live database first
+        try {
+            const { data: faqRows, error } = await supabase
+                .from('faqs')
+                .select('*')
+                .eq('is_published', true)
+                .order('display_order', { ascending: true });
+
+            if (error) throw error;
+
+            if (faqRows && faqRows.length > 0) {
+                // Construct aiContext for the bot
+                aiContext = faqRows.map(f => `Category: ${f.category}\nQ: ${f.question}\nA: ${f.answer}`).join('\n\n');
+
+                const grouped = {};
+                faqRows.forEach(f => {
+                    const cat = f.category || 'General';
+                    if (!grouped[cat]) grouped[cat] = [];
+                    grouped[cat].push(f);
+                });
+
+                let html = '';
+                Object.keys(grouped).forEach(cat => {
+                    html += `<h3 class="faq-category-header" style="font-family:'Montserrat', sans-serif; font-size:1.15rem; font-weight:700; color:var(--text-main); margin-top:28px; margin-bottom:12px; border-bottom: 2px solid #F1F5F9; padding-bottom:6px;">${cat}</h3>`;
+                    grouped[cat].forEach(f => {
+                        html += `<details class="faq-item"><summary>${f.question}</summary><div class="faq-answer">`;
+                        
+                        const lines = (f.answer || '').split('\n');
+                        lines.forEach(line => {
+                            const trimmed = line.trim();
+                            if (trimmed.length > 0) {
+                                if (trimmed.startsWith('* ') || trimmed.startsWith('- ') || trimmed.startsWith('*')) {
+                                    const itemText = trimmed.replace(/^[\*\-]\s*/, '').trim();
+                                    html += `<li style="margin-left:16px; margin-bottom:6px; font-size:0.925rem; list-style-type:disc;">${parseInlineMarkdown(itemText)}</li>`;
+                                } else {
+                                    html += `<p style="margin-bottom:12px; font-size:0.925rem; line-height:1.5;">${parseInlineMarkdown(trimmed)}</p>`;
+                                }
+                            }
+                        });
+                        
+                        html += `</div></details>`;
+                    });
+                });
+
+                listContainer.innerHTML = html;
+                return;
+            }
+        } catch (dbErr) {
+            console.warn("Database FAQ fetch failed, falling back to local file:", dbErr);
+        }
+
         // Use global variable from faq_data.js
         let content = (typeof FAQ_CONTENT !== 'undefined') ? FAQ_CONTENT : "";
 
@@ -1277,14 +1335,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         aiContext = content; // Sync global context
-
-        // Helper to parse basic inline markdown (**bold**, [text](url), etc.)
-        const parseInlineMarkdown = (text) => {
-            return text
-                .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-                .replace(/\*([^*]+)\*/g, '<em>$1</em>')
-                .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" style="color:var(--primary);text-decoration:underline;">$1</a>');
-        };
 
         const lines = content.split('\n');
         let html = '';

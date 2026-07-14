@@ -11,6 +11,8 @@ CREATE TABLE IF NOT EXISTS faqs (
 
 ALTER TABLE faqs DISABLE ROW LEVEL SECURITY;
 
+ALTER TABLE faqs ADD COLUMN IF NOT EXISTS is_published BOOLEAN DEFAULT true;
+
 -- Delete existing to make this script re-runnable without duplicates
 TRUNCATE TABLE faqs;
 
