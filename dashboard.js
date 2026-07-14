@@ -934,7 +934,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // NEW: Render Itinerary Function
-    function renderItineraryContent(currentUser) {
+    function renderItineraryContent(currentUser, targetSlide = 'first') {
         const timelineContainer = document.querySelector('.itinerary-scroll-container');
         const schedule = window.itinerarySchedule; // Get global data
 
@@ -1105,10 +1105,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
                 itinerarySwiper = new Swiper('.swiper-itinerary', {
                     pagination: { el: '.swiper-itinerary .swiper-pagination', clickable: true },
-                    navigation: { nextEl: '#itinerary-next-arrow', prevEl: '#itinerary-prev-arrow' },
                     loop: false,
                     observer: true,
                     observeParents: true,
+                    initialSlide: targetSlide === 'last' ? dayEvents.length - 1 : 0,
                     on: {
                         init: function () {
                             const activeSlide = this.slides[this.activeIndex];
@@ -1126,6 +1126,42 @@ document.addEventListener('DOMContentLoaded', async () => {
                         }
                     }
                 });
+
+                // Custom arrow handlers to transition between days automatically
+                const nextArrow = timelineContainer.querySelector('#itinerary-next-arrow');
+                const prevArrow = timelineContainer.querySelector('#itinerary-prev-arrow');
+                
+                if (nextArrow) {
+                    nextArrow.onclick = () => {
+                        if (itinerarySwiper) {
+                            if (itinerarySwiper.activeIndex === itinerarySwiper.slides.length - 1) {
+                                const currentIdx = days.findIndex(d => d.day === itineraryActiveDay);
+                                if (currentIdx < days.length - 1) {
+                                    itineraryActiveDay = days[currentIdx + 1].day;
+                                    renderItineraryContent(currentUser, 'first');
+                                }
+                            } else {
+                                itinerarySwiper.slideNext();
+                            }
+                        }
+                    };
+                }
+                
+                if (prevArrow) {
+                    prevArrow.onclick = () => {
+                        if (itinerarySwiper) {
+                            if (itinerarySwiper.activeIndex === 0) {
+                                const currentIdx = days.findIndex(d => d.day === itineraryActiveDay);
+                                if (currentIdx > 0) {
+                                    itineraryActiveDay = days[currentIdx - 1].day;
+                                    renderItineraryContent(currentUser, 'last');
+                                }
+                            } else {
+                                itinerarySwiper.slidePrev();
+                            }
+                        }
+                    };
+                }
             }, 0);
         } else {
             // Overview card click events
