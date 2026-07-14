@@ -97,7 +97,7 @@ CRITICAL BREVITY RULES:
 CRITICAL DASHBOARD LINKING RULES:
 If the user asks about their room, the itinerary/agenda, the estate/map, the photo gallery, or updating their RSVP, you must append a specific link at the end of your response in the format [Link Text](action://target).
 Targets:
-- Their room assignment/details: append [See room info](action://room)
+- Their room assignment/details: append [See room info](action://room) (ONLY if Room Revealed Yet is Yes)
 - The wedding schedule/timeline: append [See plan](action://itinerary)
 - The estate maps/directions: append [Explore estate](action://estate)
 - The photo gallery: append [View gallery](action://gallery)
@@ -107,6 +107,9 @@ Example:
 User: "Which room am I in?"
 Response: "You are staying in the Huntsham Suite. [See room info](action://room)"
 
+CRITICAL ROOM REVEAL RULE:
+- If "Room Revealed Yet" is "No", you MUST NOT mention their assigned room name (even if listed in context), pricing, or roommate info. If they ask about their room details, price, or booking status, politely tell them that room allocations are currently being finalized by Rosh & Harry and will be revealed in the coming months.
+- If "Room Revealed Yet" is "No", do NOT append the "[See room info](action://room)" action link.
 
 Here is the information about the currently logged-in guest:
 - Name: ${guest?.name || "Guest"}
@@ -114,6 +117,7 @@ Here is the information about the currently logged-in guest:
 - Dietary/Allergies: ${guest?.dietary || "None specified"}
 - Room Assigned: ${guest?.room_assigned || "None assigned yet"}
 - Room Payment Status: ${guest?.room_status || "n/a"}
+- Room Revealed Yet: ${guest?.is_room_revealed !== false ? "Yes" : "No"}
 
 ${roomDetails ? `Their assigned room details:\n${roomDetails}\n` : ""}
 

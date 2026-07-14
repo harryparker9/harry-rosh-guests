@@ -1000,8 +1000,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!placeholder) return;
 
         const accLabel = document.getElementById('accommodation-label');
+        const isRevealed = window.guestData && window.guestData.is_room_revealed !== false;
+        const activeRoom = isRevealed ? roomName : null;
 
-        if (!roomName || !window.ROOM_LIBRARY || !window.ROOM_LIBRARY[roomName]) {
+        if (!activeRoom || !window.ROOM_LIBRARY || !window.ROOM_LIBRARY[activeRoom]) {
             if (accLabel) {
                 accLabel.innerHTML = `Where will you stay? (rooms will be prioritised for full weekend guests).`;
             }
@@ -1019,7 +1021,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (accLabel) {
-            accLabel.innerHTML = `If you choose to join on site you'll be in the <strong>${roomName}</strong>. Will you stay on site or find your own accommodation?`;
+            accLabel.innerHTML = `If you choose to join on site you'll be in the <strong>${activeRoom}</strong>. Will you stay on site or find your own accommodation?`;
         }
 
         placeholder.style.display = 'none';
@@ -1035,7 +1037,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (modal && textContainer) {
             modal.classList.add('open');
             const data = window.guestData;
-            const roomName = data?.room_assigned;
+            const isRevealed = data && data.is_room_revealed !== false;
+            const roomName = isRevealed ? data?.room_assigned : null;
             let roomPriceStr = "£TBC";
 
             if (roomName && window.Auth && window.Auth.client) {
@@ -1086,8 +1089,10 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 roomHtml = `
                     <div style="margin-bottom: 1.5rem; text-align: center;">
-                        <h4 style="margin: 0; font-family: 'Playfair Display', serif; font-size: 1.3rem; color: var(--text-main);">Your Room</h4>
-                        <p style="margin: 0.25rem 0 0 0; font-size: 0.9rem; color: var(--text-muted);">We are currently allocating rooms and will assign yours shortly.</p>
+                        <img src="huntsham_exterior.jpg" style="width: 100%; max-height: 200px; object-fit: cover; border-radius: 12px; margin-bottom: 0.75rem;">
+                        <h4 style="margin: 0; font-family: 'Playfair Display', serif; font-size: 1.3rem; color: var(--text-main);">On-Site Room Selection</h4>
+                        <p style="margin: 0.25rem 0 0 0; font-size: 0.9rem; color: var(--text-muted); line-height: 1.4;">We are currently working on allocations. Your specific room will be assigned in the coming months.</p>
+                        <p style="margin: 0.5rem 0 0 0; font-weight: 600; color: var(--primary);">Estimated Price: ~£80 - £120 per person per night</p>
                     </div>
                 `;
             }

@@ -637,8 +637,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // A. Room Slide Logic (Strict Check)
     const roomSlide = document.getElementById('slide-room');
-    if (!user.is_onsite_allowed) {
-        // Remove slide if not allowed
+    if (!user.is_onsite_allowed || user.is_room_revealed === false) {
+        // Remove slide if not allowed or room not revealed yet
         if (roomSlide) roomSlide.remove();
     } else {
         // Update room details
@@ -1415,10 +1415,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 name: user.full_name,
                 attendance: user.attendance_option,
                 dietary: user.dietary_requirements,
-                room_assigned: user.room_assigned,
-                room_status: user.room_status
+                room_assigned: user.is_room_revealed !== false ? user.room_assigned : null,
+                room_status: user.room_status,
+                is_room_revealed: user.is_room_revealed
             } : null,
-            roomDetails: roomData ? 
+            roomDetails: (user && user.is_room_revealed !== false && roomData) ? 
                 `Room: ${user.room_assigned}\nDescription: ${roomData.description || ''}\nFloor: ${roomData.floor || ''}` : null,
             itinerary: window.itinerarySchedule || null,
             lastBotReply: lastBotReply || null
@@ -3348,7 +3349,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (modal && textContainer) {
             modal.classList.add('open');
             const data = window.Auth ? window.Auth.user : null;
-            const roomName = data?.room_assigned;
+            const isRevealed = data && data.is_room_revealed !== false;
+            const roomName = isRevealed ? data?.room_assigned : null;
             let roomPriceStr = "£TBC";
 
             if (roomName && window.Auth && window.Auth.client) {
@@ -3399,8 +3401,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             } else {
                 roomHtml = `
                     <div style="margin-bottom: 1.5rem; text-align: center;">
-                        <h4 style="margin: 0; font-family: 'Playfair Display', serif; font-size: 1.3rem; color: var(--text-main);">Your Room</h4>
-                        <p style="margin: 0.25rem 0 0 0; font-size: 0.9rem; color: var(--text-muted);">We are currently allocating rooms and will assign yours shortly.</p>
+                        <img src="huntsham_exterior.jpg" style="width: 100%; max-height: 200px; object-fit: cover; border-radius: 12px; margin-bottom: 0.75rem;">
+                        <h4 style="margin: 0; font-family: 'Playfair Display', serif; font-size: 1.3rem; color: var(--text-main);">On-Site Room Selection</h4>
+                        <p style="margin: 0.25rem 0 0 0; font-size: 0.9rem; color: var(--text-muted); line-height: 1.4;">We are currently working on allocations. Your specific room will be assigned in the coming months.</p>
+                        <p style="margin: 0.5rem 0 0 0; font-weight: 600; color: var(--primary);">Estimated Price: ~£80 - £120 per person per night</p>
                     </div>
                 `;
             }
