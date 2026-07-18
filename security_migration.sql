@@ -97,59 +97,61 @@
 
     -- 8. Secure all internal Admin Hub tables (No guest access allowed)
     ALTER TABLE hq_todos ENABLE ROW LEVEL SECURITY;
-    ALTER TABLE playlists ENABLE ROW LEVEL SECURITY;
-    ALTER TABLE run_of_show ENABLE ROW LEVEL SECURITY;
-    ALTER TABLE ros_streams ENABLE ROW LEVEL SECURITY;
-    ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
-    ALTER TABLE vendors ENABLE ROW LEVEL SECURITY;
-    ALTER TABLE vendor_categories ENABLE ROW LEVEL SECURITY;
+    ALTER TABLE hq_playlists ENABLE ROW LEVEL SECURITY;
+    ALTER TABLE hq_run_of_show ENABLE ROW LEVEL SECURITY;
+    ALTER TABLE hq_ros_streams ENABLE ROW LEVEL SECURITY;
+    ALTER TABLE hq_settings ENABLE ROW LEVEL SECURITY;
+    ALTER TABLE hq_vendors ENABLE ROW LEVEL SECURITY;
+    ALTER TABLE hq_vendor_categories ENABLE ROW LEVEL SECURITY;
+    ALTER TABLE hq_kanban_columns ENABLE ROW LEVEL SECURITY;
+    ALTER TABLE hq_budget_items ENABLE ROW LEVEL SECURITY;
+    ALTER TABLE hq_tables ENABLE ROW LEVEL SECURITY;
+    ALTER TABLE seating_tables ENABLE ROW LEVEL SECURITY;
+    ALTER TABLE seating_assignments ENABLE ROW LEVEL SECURITY;
     ALTER TABLE moodboards ENABLE ROW LEVEL SECURITY;
     ALTER TABLE moodboard_elements ENABLE ROW LEVEL SECURITY;
 
     DROP POLICY IF EXISTS "admin_todos_policy" ON hq_todos;
-    CREATE POLICY "admin_todos_policy" ON hq_todos FOR ALL
-    USING ((current_setting('request.headers', true)::json->>'x-access-code') IN ('HPRT0730', 'HPRTPLANNER'))
-    WITH CHECK ((current_setting('request.headers', true)::json->>'x-access-code') IN ('HPRT0730', 'HPRTPLANNER'));
+    CREATE POLICY "admin_todos_policy" ON hq_todos FOR ALL USING ((current_setting('request.headers', true)::json->>'x-access-code') IN ('HPRT0730', 'HPRTPLANNER')) WITH CHECK ((current_setting('request.headers', true)::json->>'x-access-code') IN ('HPRT0730', 'HPRTPLANNER'));
 
-    DROP POLICY IF EXISTS "admin_playlists_policy" ON playlists;
-    CREATE POLICY "admin_playlists_policy" ON playlists FOR ALL
-    USING ((current_setting('request.headers', true)::json->>'x-access-code') IN ('HPRT0730', 'HPRTPLANNER'))
-    WITH CHECK ((current_setting('request.headers', true)::json->>'x-access-code') IN ('HPRT0730', 'HPRTPLANNER'));
+    DROP POLICY IF EXISTS "admin_playlists_policy" ON hq_playlists;
+    CREATE POLICY "admin_playlists_policy" ON hq_playlists FOR ALL USING ((current_setting('request.headers', true)::json->>'x-access-code') IN ('HPRT0730', 'HPRTPLANNER')) WITH CHECK ((current_setting('request.headers', true)::json->>'x-access-code') IN ('HPRT0730', 'HPRTPLANNER'));
 
-    DROP POLICY IF EXISTS "admin_ros_policy" ON run_of_show;
-    CREATE POLICY "admin_ros_policy" ON run_of_show FOR ALL
-    USING ((current_setting('request.headers', true)::json->>'x-access-code') IN ('HPRT0730', 'HPRTPLANNER'))
-    WITH CHECK ((current_setting('request.headers', true)::json->>'x-access-code') IN ('HPRT0730', 'HPRTPLANNER'));
+    DROP POLICY IF EXISTS "admin_ros_policy" ON hq_run_of_show;
+    CREATE POLICY "admin_ros_policy" ON hq_run_of_show FOR ALL USING ((current_setting('request.headers', true)::json->>'x-access-code') IN ('HPRT0730', 'HPRTPLANNER')) WITH CHECK ((current_setting('request.headers', true)::json->>'x-access-code') IN ('HPRT0730', 'HPRTPLANNER'));
 
-    DROP POLICY IF EXISTS "admin_ros_streams_policy" ON ros_streams;
-    CREATE POLICY "admin_ros_streams_policy" ON ros_streams FOR ALL
-    USING ((current_setting('request.headers', true)::json->>'x-access-code') IN ('HPRT0730', 'HPRTPLANNER'))
-    WITH CHECK ((current_setting('request.headers', true)::json->>'x-access-code') IN ('HPRT0730', 'HPRTPLANNER'));
+    DROP POLICY IF EXISTS "admin_ros_streams_policy" ON hq_ros_streams;
+    CREATE POLICY "admin_ros_streams_policy" ON hq_ros_streams FOR ALL USING ((current_setting('request.headers', true)::json->>'x-access-code') IN ('HPRT0730', 'HPRTPLANNER')) WITH CHECK ((current_setting('request.headers', true)::json->>'x-access-code') IN ('HPRT0730', 'HPRTPLANNER'));
 
-    DROP POLICY IF EXISTS "admin_settings_policy" ON settings;
-    CREATE POLICY "admin_settings_policy" ON settings FOR ALL
-    USING ((current_setting('request.headers', true)::json->>'x-access-code') IN ('HPRT0730', 'HPRTPLANNER'))
-    WITH CHECK ((current_setting('request.headers', true)::json->>'x-access-code') IN ('HPRT0730', 'HPRTPLANNER'));
+    DROP POLICY IF EXISTS "admin_settings_policy" ON hq_settings;
+    CREATE POLICY "admin_settings_policy" ON hq_settings FOR ALL USING ((current_setting('request.headers', true)::json->>'x-access-code') IN ('HPRT0730', 'HPRTPLANNER')) WITH CHECK ((current_setting('request.headers', true)::json->>'x-access-code') IN ('HPRT0730', 'HPRTPLANNER'));
 
-    DROP POLICY IF EXISTS "admin_vendors_policy" ON vendors;
-    CREATE POLICY "admin_vendors_policy" ON vendors FOR ALL
-    USING ((current_setting('request.headers', true)::json->>'x-access-code') IN ('HPRT0730', 'HPRTPLANNER'))
-    WITH CHECK ((current_setting('request.headers', true)::json->>'x-access-code') IN ('HPRT0730', 'HPRTPLANNER'));
+    DROP POLICY IF EXISTS "admin_vendors_policy" ON hq_vendors;
+    CREATE POLICY "admin_vendors_policy" ON hq_vendors FOR ALL USING ((current_setting('request.headers', true)::json->>'x-access-code') IN ('HPRT0730', 'HPRTPLANNER')) WITH CHECK ((current_setting('request.headers', true)::json->>'x-access-code') IN ('HPRT0730', 'HPRTPLANNER'));
 
-    DROP POLICY IF EXISTS "admin_vendor_categories_policy" ON vendor_categories;
-    CREATE POLICY "admin_vendor_categories_policy" ON vendor_categories FOR ALL
-    USING ((current_setting('request.headers', true)::json->>'x-access-code') IN ('HPRT0730', 'HPRTPLANNER'))
-    WITH CHECK ((current_setting('request.headers', true)::json->>'x-access-code') IN ('HPRT0730', 'HPRTPLANNER'));
+    DROP POLICY IF EXISTS "admin_vendor_categories_policy" ON hq_vendor_categories;
+    CREATE POLICY "admin_vendor_categories_policy" ON hq_vendor_categories FOR ALL USING ((current_setting('request.headers', true)::json->>'x-access-code') IN ('HPRT0730', 'HPRTPLANNER')) WITH CHECK ((current_setting('request.headers', true)::json->>'x-access-code') IN ('HPRT0730', 'HPRTPLANNER'));
+
+    DROP POLICY IF EXISTS "admin_kanban_columns_policy" ON hq_kanban_columns;
+    CREATE POLICY "admin_kanban_columns_policy" ON hq_kanban_columns FOR ALL USING ((current_setting('request.headers', true)::json->>'x-access-code') IN ('HPRT0730', 'HPRTPLANNER')) WITH CHECK ((current_setting('request.headers', true)::json->>'x-access-code') IN ('HPRT0730', 'HPRTPLANNER'));
+
+    DROP POLICY IF EXISTS "admin_budget_items_policy" ON hq_budget_items;
+    CREATE POLICY "admin_budget_items_policy" ON hq_budget_items FOR ALL USING ((current_setting('request.headers', true)::json->>'x-access-code') IN ('HPRT0730', 'HPRTPLANNER')) WITH CHECK ((current_setting('request.headers', true)::json->>'x-access-code') IN ('HPRT0730', 'HPRTPLANNER'));
+
+    DROP POLICY IF EXISTS "admin_hq_tables_policy" ON hq_tables;
+    CREATE POLICY "admin_hq_tables_policy" ON hq_tables FOR ALL USING ((current_setting('request.headers', true)::json->>'x-access-code') IN ('HPRT0730', 'HPRTPLANNER')) WITH CHECK ((current_setting('request.headers', true)::json->>'x-access-code') IN ('HPRT0730', 'HPRTPLANNER'));
+
+    DROP POLICY IF EXISTS "admin_seating_tables_policy" ON seating_tables;
+    CREATE POLICY "admin_seating_tables_policy" ON seating_tables FOR ALL USING ((current_setting('request.headers', true)::json->>'x-access-code') IN ('HPRT0730', 'HPRTPLANNER')) WITH CHECK ((current_setting('request.headers', true)::json->>'x-access-code') IN ('HPRT0730', 'HPRTPLANNER'));
+
+    DROP POLICY IF EXISTS "admin_seating_assignments_policy" ON seating_assignments;
+    CREATE POLICY "admin_seating_assignments_policy" ON seating_assignments FOR ALL USING ((current_setting('request.headers', true)::json->>'x-access-code') IN ('HPRT0730', 'HPRTPLANNER')) WITH CHECK ((current_setting('request.headers', true)::json->>'x-access-code') IN ('HPRT0730', 'HPRTPLANNER'));
 
     DROP POLICY IF EXISTS "admin_moodboards_policy" ON moodboards;
-    CREATE POLICY "admin_moodboards_policy" ON moodboards FOR ALL
-    USING ((current_setting('request.headers', true)::json->>'x-access-code') IN ('HPRT0730', 'HPRTPLANNER'))
-    WITH CHECK ((current_setting('request.headers', true)::json->>'x-access-code') IN ('HPRT0730', 'HPRTPLANNER'));
+    CREATE POLICY "admin_moodboards_policy" ON moodboards FOR ALL USING ((current_setting('request.headers', true)::json->>'x-access-code') IN ('HPRT0730', 'HPRTPLANNER')) WITH CHECK ((current_setting('request.headers', true)::json->>'x-access-code') IN ('HPRT0730', 'HPRTPLANNER'));
 
     DROP POLICY IF EXISTS "admin_moodboard_elements_policy" ON moodboard_elements;
-    CREATE POLICY "admin_moodboard_elements_policy" ON moodboard_elements FOR ALL
-    USING ((current_setting('request.headers', true)::json->>'x-access-code') IN ('HPRT0730', 'HPRTPLANNER'))
-    WITH CHECK ((current_setting('request.headers', true)::json->>'x-access-code') IN ('HPRT0730', 'HPRTPLANNER'));
+    CREATE POLICY "admin_moodboard_elements_policy" ON moodboard_elements FOR ALL USING ((current_setting('request.headers', true)::json->>'x-access-code') IN ('HPRT0730', 'HPRTPLANNER')) WITH CHECK ((current_setting('request.headers', true)::json->>'x-access-code') IN ('HPRT0730', 'HPRTPLANNER'));
 
 
     -- 9. Re-create secure storage policies for guest photos
