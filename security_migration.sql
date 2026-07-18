@@ -251,3 +251,11 @@
               AND access_code = (current_setting('request.headers', true)::json->>'x-access-code')
         )
     );
+
+    DROP POLICY IF EXISTS "admin_delete_analytics" ON analytics_events;
+    CREATE POLICY "admin_delete_analytics" ON analytics_events FOR DELETE
+    USING ((current_setting('request.headers', true)::json->>'x-access-code') IN ('HPRT0730', 'HPRTPLANNER'));
+
+    DROP POLICY IF EXISTS "admin_delete_faq_logs" ON faq_logs;
+    CREATE POLICY "admin_delete_faq_logs" ON faq_logs FOR DELETE
+    USING ((current_setting('request.headers', true)::json->>'x-access-code') IN ('HPRT0730', 'HPRTPLANNER'));
