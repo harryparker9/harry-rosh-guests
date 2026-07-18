@@ -191,3 +191,7 @@
             )
         )
     );
+
+    -- 10. Add columns for tracking invitation status
+    ALTER TABLE guests ADD COLUMN IF NOT EXISTS invite_written BOOLEAN DEFAULT false;
+    ALTER TABLE guests ADD COLUMN IF NOT EXISTS invite_sent BOOLEAN DEFAULT false;
