@@ -224,6 +224,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         rsvpModal.classList.add('open');
         populateRsvpModal(user);
+
+        // Telemetry
+        if (user) {
+            supabase.from('analytics_events').insert([{
+                guest_id: user.id,
+                event_type: 'tab_click',
+                event_details: 'Viewed Slide: Your RSVP'
+            }]).then();
+        }
     }
 
     async function closeRsvpModal() {
@@ -879,6 +888,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (swiper && user) {
             let lastLoggedSlide = null;
 
+            // Log initial slide view on load
+            const initialSlide = swiper.slides[swiper.activeIndex];
+            if (initialSlide) {
+                const initialTitle = initialSlide.querySelector('h2')?.textContent || initialSlide.id || 'Home';
+                lastLoggedSlide = initialTitle;
+                
+                supabase.from('analytics_events').insert([{
+                    guest_id: user.id,
+                    event_type: 'tab_click',
+                    event_details: `Viewed Slide: ${initialTitle}`
+                }]).then();
+            }
+
             swiper.on('slideChangeTransitionEnd', async () => {
                 try {
                     const activeSlideEl = swiper.slides[swiper.activeIndex];
@@ -1453,6 +1475,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             loadFaqContext();
             // Render Static List (checks internally if needed)
             renderStaticFAQs();
+
+            // Telemetry
+            if (user) {
+                supabase.from('analytics_events').insert([{
+                    guest_id: user.id,
+                    event_type: 'tab_click',
+                    event_details: 'Viewed Slide: FAQ / Chatbot'
+                }]).then();
+            }
         });
     }
 
@@ -2735,6 +2766,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (sharedGalleryModal) {
                 sharedGalleryModal.classList.add('open');
                 loadSharedGallery();
+
+                // Telemetry
+                if (user) {
+                    supabase.from('analytics_events').insert([{
+                        guest_id: user.id,
+                        event_type: 'tab_click',
+                        event_details: 'Viewed Slide: Photo Gallery'
+                    }]).then();
+                }
             }
         });
     }
