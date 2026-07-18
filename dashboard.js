@@ -3484,7 +3484,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         <img src="huntsham_exterior.jpg" style="width: 100%; max-height: 200px; object-fit: cover; border-radius: 12px; margin-bottom: 0.75rem;">
                         <h4 style="margin: 0; font-family: 'Playfair Display', serif; font-size: 1.3rem; color: var(--text-main);">On-Site Room Selection</h4>
                         <p style="margin: 0.25rem 0 0 0; font-size: 0.9rem; color: var(--text-muted); line-height: 1.4;">We are currently working on allocations. Your specific room will be assigned in the coming months.</p>
-                        <p style="margin: 0.5rem 0 0 0; font-weight: 600; color: var(--primary);">Estimated Price: ~£80 - £120 per person per night</p>
+                        <p style="margin: 0.5rem 0 0 0; font-weight: 600; color: var(--primary);">Estimated Price: ~£80 - £100 per person per night</p>
                     </div>
                 `;
             }
