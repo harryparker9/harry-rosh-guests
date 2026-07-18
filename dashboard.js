@@ -877,22 +877,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     // E. Telemetry: Track Swiper slide switches & view events
     try {
         if (swiper && user) {
-            // Log initial slide view
-            const initialSlide = swiper.slides[swiper.activeIndex];
-            const initialTitle = initialSlide ? (initialSlide.querySelector('h2')?.textContent || initialSlide.id || 'Home') : 'Home';
-            
-            supabase.from('analytics_events').insert([{
-                guest_id: user.id,
-                event_type: 'tab_click',
-                event_details: `Viewed Slide: ${initialTitle}`
-            }]).then();
+            let lastLoggedSlide = null;
 
-            swiper.on('slideChange', async () => {
+            swiper.on('slideChangeTransitionEnd', async () => {
                 try {
                     const activeSlideEl = swiper.slides[swiper.activeIndex];
                     if (!activeSlideEl) return;
                     const slideTitle = activeSlideEl.querySelector('h2')?.textContent || activeSlideEl.id || 'Tab';
                     
+                    // Prevent duplicate consecutive logs for the same slide
+                    if (slideTitle === lastLoggedSlide) return;
+                    lastLoggedSlide = slideTitle;
+
                     const nowIso = new Date().toISOString();
                     // Update user's last activity timestamp in database
                     supabase.from('guests').update({
