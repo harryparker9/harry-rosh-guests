@@ -6,7 +6,6 @@
 ALTER TABLE guests ENABLE ROW LEVEL SECURITY;
 ALTER TABLE rooms ENABLE ROW LEVEL SECURITY;
 ALTER TABLE faqs ENABLE ROW LEVEL SECURITY;
-ALTER TABLE shared_gallery ENABLE ROW LEVEL SECURITY;
 
 -- 2. Create Security Definer helper function to check roommate assignments without infinite RLS loops
 CREATE OR REPLACE FUNCTION get_room_assigned_by_access_code(ac TEXT)
@@ -92,33 +91,6 @@ USING (
     (current_setting('request.headers', true)::json->>'x-access-code') IN ('HPRT0730', 'HPRTPLANNER')
 )
 WITH CHECK (
-    (current_setting('request.headers', true)::json->>'x-access-code') IN ('HPRT0730', 'HPRTPLANNER')
-);
-
-
--- 7. Re-create secure shared_gallery policies
-DROP POLICY IF EXISTS "shared_gallery_select_policy" ON shared_gallery;
-DROP POLICY IF EXISTS "shared_gallery_insert_policy" ON shared_gallery;
-DROP POLICY IF EXISTS "shared_gallery_admin_all_policy" ON shared_gallery;
-
-CREATE POLICY "shared_gallery_select_policy" ON shared_gallery FOR SELECT
-USING (
-    (current_setting('request.headers', true)::json->>'x-access-code') IN ('HPRT0730', 'HPRTPLANNER')
-    OR EXISTS (
-        SELECT 1 FROM guests WHERE access_code = (current_setting('request.headers', true)::json->>'x-access-code')
-    )
-);
-
-CREATE POLICY "shared_gallery_insert_policy" ON shared_gallery FOR INSERT
-WITH CHECK (
-    (current_setting('request.headers', true)::json->>'x-access-code') IN ('HPRT0730', 'HPRTPLANNER')
-    OR EXISTS (
-        SELECT 1 FROM guests WHERE access_code = (current_setting('request.headers', true)::json->>'x-access-code')
-    )
-);
-
-CREATE POLICY "shared_gallery_admin_all_policy" ON shared_gallery FOR ALL
-USING (
     (current_setting('request.headers', true)::json->>'x-access-code') IN ('HPRT0730', 'HPRTPLANNER')
 );
 
