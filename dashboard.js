@@ -874,6 +874,46 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
     window.mySwiperInstance = swiper;
 
+    // E. Telemetry: Track Swiper slide switches & view events
+    try {
+        if (swiper && user) {
+            // Log initial slide view
+            const initialSlide = swiper.slides[swiper.activeIndex];
+            const initialTitle = initialSlide ? (initialSlide.querySelector('h2')?.textContent || initialSlide.id || 'Home') : 'Home';
+            
+            supabase.from('analytics_events').insert([{
+                guest_id: user.id,
+                event_type: 'tab_click',
+                event_details: `Viewed Slide: ${initialTitle}`
+            }]).then();
+
+            swiper.on('slideChange', async () => {
+                try {
+                    const activeSlideEl = swiper.slides[swiper.activeIndex];
+                    if (!activeSlideEl) return;
+                    const slideTitle = activeSlideEl.querySelector('h2')?.textContent || activeSlideEl.id || 'Tab';
+                    
+                    const nowIso = new Date().toISOString();
+                    // Update user's last activity timestamp in database
+                    supabase.from('guests').update({
+                        last_active_at: nowIso
+                    }).eq('id', user.id).then();
+
+                    // Log tab click event
+                    supabase.from('analytics_events').insert([{
+                        guest_id: user.id,
+                        event_type: 'tab_click',
+                        event_details: `Viewed Slide: ${slideTitle}`
+                    }]).then();
+                } catch (e) {
+                    console.error("Telemetry slideChange error:", e);
+                }
+            });
+        }
+    } catch (err) {
+        console.error("Telemetry init error:", err);
+    }
+
     // Global helper to navigate dashboard from chatbot actions
     window.navigateDashboard = function (target) {
         // Close FAQ modal
@@ -1520,12 +1560,30 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 // Success
                 loadingBubble.remove();
+                let botReply = "I didn't get a clear answer.";
                 if (data && data.reply) {
+                    botReply = data.reply;
                     addBubble(data.reply, true);
                 } else if (data && data.error) {
-                    addBubble(`AI Error: ${data.error}`, true);
+                    botReply = `AI Error: ${data.error}`;
+                    addBubble(botReply, true);
                 } else {
-                    addBubble("I didn't get a clear answer.", true);
+                    addBubble(botReply, true);
+                }
+
+                // Log telemetry for chatbot queries
+                if (user) {
+                    supabase.from('faq_logs').insert([{
+                        guest_id: user.id,
+                        question_text: query,
+                        bot_response: botReply
+                    }]).then();
+
+                    supabase.from('analytics_events').insert([{
+                        guest_id: user.id,
+                        event_type: 'chatbot_query',
+                        event_details: `Asked: "${query.substring(0, 50)}${query.length > 50 ? '...' : ''}"`
+                    }]).then();
                 }
             })
             .catch(err => {
@@ -3393,7 +3451,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!placeholder) return;
 
         const accLabel = document.getElementById('rsvp-accommodation-label');
-        const resolvedRoomKey = resolveRoomLibraryKey(roomName);
+        const currentUser = window.guestData || (window.Auth && window.Auth.user);
+        const isRevealed = currentUser && currentUser.is_room_revealed !== false;
+        const activeRoom = isRevealed ? roomName : null;
+        const resolvedRoomKey = resolveRoomLibraryKey(activeRoom);
 
         if (!resolvedRoomKey || !window.ROOM_LIBRARY || !window.ROOM_LIBRARY[resolvedRoomKey]) {
             if (accLabel) {
@@ -3413,7 +3474,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         if (accLabel) {
-            accLabel.innerHTML = `If you choose to join on site you'll be in the <strong>${roomName}</strong>. Will you stay on site or find your own accommodation?`;
+            accLabel.innerHTML = `If you choose to join on site you'll be in the <strong>${activeRoom}</strong>. Will you stay on site or find your own accommodation?`;
         }
 
         placeholder.style.display = 'none';

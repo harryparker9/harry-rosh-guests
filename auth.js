@@ -81,6 +81,27 @@
             }
 
             this.user = data;
+            
+            try {
+                const newLoginCount = (data.login_count || 0) + 1;
+                const nowIso = new Date().toISOString();
+                await supabase.from('guests').update({
+                    login_count: newLoginCount,
+                    last_active_at: nowIso
+                }).eq('id', data.id);
+
+                data.login_count = newLoginCount;
+                data.last_active_at = nowIso;
+
+                await supabase.from('analytics_events').insert([{
+                    guest_id: data.id,
+                    event_type: 'login',
+                    event_details: 'Successful Login'
+                }]);
+            } catch (err) {
+                console.error("Telemetry failed:", err);
+            }
+
             localStorage.setItem('user', JSON.stringify(data));
             return data;
         },
