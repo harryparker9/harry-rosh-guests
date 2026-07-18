@@ -2251,7 +2251,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     if (rFloorIndex === currentFloor) {
                         // Check if this is the logged-in user's assigned room
                         const currentUser = JSON.parse(localStorage.getItem('user'));
-                        const isUserRoom = currentUser && currentUser.room_assigned === roomName;
+                        const isRevealed = currentUser && currentUser.is_room_revealed !== false;
+                        const isUserRoom = currentUser && isRevealed && currentUser.room_assigned === roomName;
                         
                         // IF Dev Mapper is open, render ALL pins. Otherwise, ONLY render the user's room
                         if (!isMapperOpen && !isUserRoom) return;
