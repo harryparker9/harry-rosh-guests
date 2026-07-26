@@ -39,19 +39,19 @@ window.itinerarySchedule = [
                 time: "10:00 AM - 11:00 AM",
                 summary: "Tennis (optional)",
                 location: "Tennis Courts",
-                details: "Optional tennis for anyone who's too hungover!",
+                details: "Optional tennis for anyone who is not too hungover.",
                 image: "Cartoon final images/Firefly_multi-edit_Firefly image 2026-06-08 12-58 737401 hJM.png"
             },
             {
                 time: "10:00 AM - 11:00 AM",
-                summary: "Pilates (optional) - Bring your own mat",
+                summary: "Pilates (optional)",
                 location: "Croquet Lawn",
-                details: "Optional Pilates class run by Liv, bring your own mat",
+                details: "Optional Pilates class run by Liv, bring your own mat if you want one!",
                 image: "Cartoon final images/Firefly_multi-edit_Firefly image 2026-06-08 13-05 306042 OpX.png"
             },
             {
                 time: "12:00 PM - 1:00 PM",
-                summary: "Picnic Lunch",
+                summary: "Picnic Lunch - Enjoy a picky lunch in the gardens ahead of the afternoon activities",
                 location: "Croquet Lawn",
                 details: "Enjoy a casual picky lunch in the gardens ahead of the afternoon activities",
                 image: "Cartoon final images/Firefly_multi-edit_Picnic lunch.png"
@@ -79,14 +79,14 @@ window.itinerarySchedule = [
             },
             {
                 time: "7:00 PM - 10:00 PM",
-                summary: "Poker (optional)",
+                summary: "Poker (optional) - Join Harry for a poker tournament",
                 location: "The Diamond Room",
                 details: "Optional friendly evening of poker for the lads (open to all)",
                 image: "Cartoon final images/Firefly_multi-edit_Poker.png"
             },
             {
                 time: "7:00 PM - 10:00 PM",
-                summary: "Cinema Night (optional)",
+                summary: "Cinema Night (optional) - Sit back and enjoy Mamma Mia with Rosh",
                 location: "The Yellow Room",
                 details: "Sit back and enjoy the classic pre wedding film - Mamma Mia of course!",
                 image: "Cartoon final images/Firefly_multi-edit_Film night.png"
@@ -133,7 +133,7 @@ window.itinerarySchedule = [
             },
             {
                 time: "2:00 PM - 4:00 PM",
-                summary: "Drinks Reception and Bao Buns",
+                summary: "Drinks Reception - Post ceremony drinks reception with nibbles",
                 location: "Croquet Lawn",
                 details: "Post ceremony drinks reception, accompanied by fresh bao buns",
                 image: "Cartoon final images/Firefly_multi-edit_Drinks reception and bao buns.png"
@@ -162,7 +162,7 @@ window.itinerarySchedule = [
             {
                 time: "10:00 PM - 12:00 AM",
                 summary: "Party Continues",
-                location: "The Ballroom",
+                location: "The Great Hall",
                 details: "Dancing into the night to round off the day!",
                 image: "Cartoon final images/Firefly_multi-edit_Dancefloor.png"
             }
