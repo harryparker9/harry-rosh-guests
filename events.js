@@ -51,9 +51,9 @@ window.itinerarySchedule = [
             },
             {
                 time: "12:00 PM - 1:00 PM",
-                summary: "Picnic Lunch - Enjoy a picky lunch in the gardens ahead of the afternoon activities",
+                summary: "Picnic Lunch",
                 location: "Croquet Lawn",
-                details: "Enjoy a casual picky lunch in the gardens ahead of the afternoon activities",
+                details: "Enjoy a picky lunch in the gardens ahead of the afternoon activities",
                 image: "Cartoon final images/Firefly_multi-edit_Picnic lunch.png"
             },
             {
@@ -79,16 +79,16 @@ window.itinerarySchedule = [
             },
             {
                 time: "7:00 PM - 10:00 PM",
-                summary: "Poker (optional) - Join Harry for a poker tournament",
+                summary: "Poker (optional)",
                 location: "The Diamond Room",
-                details: "Optional friendly evening of poker for the lads (open to all)",
+                details: "Join Harry for a poker tournament",
                 image: "Cartoon final images/Firefly_multi-edit_Poker.png"
             },
             {
                 time: "7:00 PM - 10:00 PM",
-                summary: "Cinema Night (optional) - Sit back and enjoy Mamma Mia with Rosh",
+                summary: "Cinema Night (optional)",
                 location: "The Yellow Room",
-                details: "Sit back and enjoy the classic pre wedding film - Mamma Mia of course!",
+                details: "Sit back and enjoy Mamma Mia with Rosh",
                 image: "Cartoon final images/Firefly_multi-edit_Film night.png"
             },
             {
@@ -133,9 +133,9 @@ window.itinerarySchedule = [
             },
             {
                 time: "2:00 PM - 4:00 PM",
-                summary: "Drinks Reception - Post ceremony drinks reception with nibbles",
+                summary: "Drinks Reception",
                 location: "Croquet Lawn",
-                details: "Post ceremony drinks reception, accompanied by fresh bao buns",
+                details: "Post ceremony drinks reception with nibbles",
                 image: "Cartoon final images/Firefly_multi-edit_Drinks reception and bao buns.png"
             },
             {
@@ -182,7 +182,7 @@ window.itinerarySchedule = [
                 time: "10:30 AM",
                 summary: "Checkout & Goodbyes",
                 location: "Courtyard",
-                details: "Final thank goodbyes",
+                details: "Guests depart",
                 image: "Cartoon final images/Firefly_multi-edit_Firefly image 2026-06-08 12-57 925510 gC4.png"
             }
         ]
