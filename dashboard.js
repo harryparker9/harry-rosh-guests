@@ -3240,17 +3240,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         drinkChips.forEach(cb => {
             const chip = cb.closest('.drink-chip');
             if (cb.checked) {
-                chip.classList.add('selected');
+                if (chip) chip.classList.add('selected');
             }
 
-            chip.addEventListener('click', (e) => {
-                if (e.target.tagName === 'INPUT') return;
-                
-                cb.checked = !cb.checked;
+            cb.addEventListener('change', () => {
                 if (cb.checked) {
-                    chip.classList.add('selected');
+                    if (chip) chip.classList.add('selected');
                 } else {
-                    chip.classList.remove('selected');
+                    if (chip) chip.classList.remove('selected');
                 }
                 triggerRsvpAutoSave();
             });
