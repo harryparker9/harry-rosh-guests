@@ -170,9 +170,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     if (parsed && typeof parsed === 'object') {
                         if (Array.isArray(parsed.drinks)) {
-                            parsed.drinks.forEach(val => {
-                                const cb = document.querySelector(`input[name="drink_pref"][value="${val}"]`);
-                                if (cb) {
+                            document.querySelectorAll('input[name="drink_pref"]').forEach(cb => {
+                                const match = parsed.drinks.some(d => String(d).trim().toLowerCase() === cb.value.trim().toLowerCase());
+                                if (match) {
                                     cb.checked = true;
                                     const chip = cb.closest('.drink-chip');
                                     if (chip) chip.classList.add('selected');

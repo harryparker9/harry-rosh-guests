@@ -432,9 +432,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
                 if (parsed && typeof parsed === 'object') {
                     if (Array.isArray(parsed.drinks)) {
-                        parsed.drinks.forEach(val => {
-                            const cb = rsvpModalForm.querySelector(`input[name="drink_pref"][value="${val}"]`);
-                            if (cb) {
+                        rsvpModalForm.querySelectorAll('input[name="drink_pref"]').forEach(cb => {
+                            const match = parsed.drinks.some(d => String(d).trim().toLowerCase() === cb.value.trim().toLowerCase());
+                            if (match) {
                                 cb.checked = true;
                                 const chip = cb.closest('.drink-chip');
                                 if (chip) chip.classList.add('selected');
@@ -574,6 +574,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 triggerRsvpAutoSave();
             }
             if (e.target.tagName === 'INPUT' && e.target.type === 'checkbox') {
+                if (e.target.name === 'drink_pref') {
+                    const chip = e.target.closest('.drink-chip');
+                    if (chip) {
+                        if (e.target.checked) chip.classList.add('selected');
+                        else chip.classList.remove('selected');
+                    }
+                }
                 triggerRsvpAutoSave();
             }
             if ((e.target.tagName === 'INPUT' && (e.target.type === 'text' || e.target.type === 'tel')) || e.target.tagName === 'TEXTAREA') {
