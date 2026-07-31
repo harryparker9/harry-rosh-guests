@@ -148,7 +148,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data.song_request) document.getElementById('song_request').value = data.song_request;
 
             // Load Drink Preferences
-            document.querySelectorAll('input[name="drink_pref"]').forEach(cb => cb.checked = false);
+            document.querySelectorAll('input[name="drink_pref"]').forEach(cb => {
+                cb.checked = false;
+                const chip = cb.closest('.drink-chip');
+                if (chip) chip.classList.remove('selected');
+            });
             document.getElementById('special_drink_requests').value = '';
             
             const drinksSection = document.getElementById('drinks-section');
@@ -160,15 +164,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (data.drink_preferences) {
                 try {
-                    const parsed = JSON.parse(data.drink_preferences);
-                    if (parsed && Array.isArray(parsed.drinks)) {
-                        parsed.drinks.forEach(val => {
-                            const cb = document.querySelector(`input[name="drink_pref"][value="${val}"]`);
-                            if (cb) cb.checked = true;
-                        });
+                    let parsed = typeof data.drink_preferences === 'string' ? JSON.parse(data.drink_preferences) : data.drink_preferences;
+                    if (typeof parsed === 'string') {
+                        try { parsed = JSON.parse(parsed); } catch(e) {}
                     }
-                    if (parsed && parsed.special) {
-                        document.getElementById('special_drink_requests').value = parsed.special;
+                    if (parsed && typeof parsed === 'object') {
+                        if (Array.isArray(parsed.drinks)) {
+                            parsed.drinks.forEach(val => {
+                                const cb = document.querySelector(`input[name="drink_pref"][value="${val}"]`);
+                                if (cb) {
+                                    cb.checked = true;
+                                    const chip = cb.closest('.drink-chip');
+                                    if (chip) chip.classList.add('selected');
+                                }
+                            });
+                        }
+                        if (parsed.special) {
+                            document.getElementById('special_drink_requests').value = parsed.special;
+                        }
+                    } else if (typeof data.drink_preferences === 'string') {
+                        document.getElementById('special_drink_requests').value = data.drink_preferences;
                     }
                 } catch (e) {
                     document.getElementById('special_drink_requests').value = data.drink_preferences;
