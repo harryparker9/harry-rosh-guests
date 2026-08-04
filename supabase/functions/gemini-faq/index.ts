@@ -42,21 +42,22 @@ A: Yes, there is plenty of parking available free of charge.
 
 function scoreFaq(faq: any, queryLower: string) {
     const qLower = (faq.question + " " + faq.answer + " " + faq.category).toLowerCase();
-    const queryTokens = queryLower.split(/\s+/).filter((t: string) => t.length > 2);
+    const cleanTokens = queryLower.replace(/[^\w\s]/g, '').split(/\s+/).filter((t: string) => t.length > 2);
     let score = 0;
     
-    // Explicit keyword boosts
-    if ((queryLower.includes('kid') || queryLower.includes('child') || queryLower.includes('baby') || queryLower.includes('toddler')) && 
-        (qLower.includes('kid') || qLower.includes('child') || qLower.includes('babysitting'))) {
-        score += 50;
+    // Exact keyword boosts
+    if (queryLower.includes('bridesmaid') || queryLower.includes('bridesmaids')) {
+        if (qLower.includes('bridesmaid') || qLower.includes('bridesmaids')) score += 500;
     }
-    if ((queryLower.includes('bridesmaid') || queryLower.includes('girls') || queryLower.includes('wear') || queryLower.includes('dress')) && 
-        (qLower.includes('bridesmaid') || qLower.includes('wear') || qLower.includes('dress code') || qLower.includes('sage green'))) {
-        score += 50;
+    if (queryLower.includes('kid') || queryLower.includes('kids') || queryLower.includes('child') || queryLower.includes('children') || queryLower.includes('baby') || queryLower.includes('toddler')) {
+        if (qLower.includes('kid') || qLower.includes('child') || qLower.includes('children')) score += 500;
+    }
+    if (queryLower.includes('room') || queryLower.includes('staying') || queryLower.includes('sleep') || queryLower.includes('bed')) {
+        if (qLower.includes('room') || qLower.includes('hotel') || qLower.includes('accommodation')) score += 200;
     }
 
-    queryTokens.forEach((token: string) => {
-        if (qLower.includes(token)) score += 10;
+    cleanTokens.forEach((token: string) => {
+        if (qLower.includes(token)) score += 20;
     });
 
     return score;
@@ -117,7 +118,7 @@ serve(async (req: any) => {
             faqContent = FAQ_CONTENT;
         }
 
-        // 3. Get API Key from Environment
+        // 3. Get API Key from Supabase Environment Secret
         // @ts-ignore
         const apiKey = Deno.env.get('GEMINI_API_KEY');
         if (!apiKey) {
@@ -139,6 +140,12 @@ SMART SEMANTIC UNDERSTANDING:
 - Understand the intent behind any guest question, even when phrased in casual, indirect, or different words (e.g. "what's the vibe?", "can I bring my baby?", "what are the girls wearing?", "where do I park?", "can I get a cab?").
 - Use the entire Knowledge Base below (FAQ list, guest details, itinerary) as your source of truth. Express the answers in your own natural, friendly, conversational words rather than repeating robotic template sentences.
 
+DIRECT KNOWLEDGE MAPPING & INTENT RULES:
+- BRIDESMAIDS / BRIDESMAID DRESSES: If the guest asks what bridesmaids are wearing, can wear, dress style, or colours (e.g. "what are bridesmaids wearing?", "what can bridesmaids wear?", "bridesmaid dresses"), ALWAYS respond warmly that the bridesmaids will be wearing sage green! Do NOT say you don't have information.
+- CHILDREN / KIDS / BABIES: If the guest asks about kids, children, toddlers, or babies (e.g. "are kids allowed?", "can we bring our children?", "kids info"), ALWAYS explain gently that Harry & Rosh have decided to make the wedding an adults-only celebration due to the nature of the venue and activities. Do NOT say you don't have information.
+- DRESS CODE & FOOTWEAR: Share the dress code for each day (Day 1: Summer Cocktail, Day 2: Garden Party, Day 3: Summer Wedding Attire). Mention croquet lawn footwear recommendations if asked about heels/shoes.
+- TENNIS & ACTIVITIES: Use the itinerary and FAQs to answer activity questions warmly (e.g. tennis is available on Friday).
+
 CRITICAL DASHBOARD LINKING RULES:
 If the user asks about their room, the itinerary/agenda, the estate/map, the photo gallery, or updating their RSVP, append a helpful action link at the end of your response in the format [Link Text](action://target).
 Targets:
@@ -148,8 +155,9 @@ Targets:
 - Photo gallery: [View gallery](action://gallery)
 - Updating RSVP: [Update RSVP](action://rsvp)
 
-CRITICAL ROOM REVEAL RULE:
-- If "Room Revealed Yet" is "No", do NOT mention assigned room names, prices, or roommate details. Politely let them know that room allocations are currently being finalized by Harry & Rosh and will be revealed in the coming months! Do not append the room action link.
+CRITICAL ROOM ALLOCATION RULE:
+- If (and ONLY if) the guest asks about their own assigned bedroom, room name, price, or roommates, AND "Room Revealed Yet" is "No", politely let them know that room allocations are currently being finalized by Harry & Rosh and will be revealed in the coming months!
+- For all other questions (such as dress code, bridesmaids, food, schedule, directions, kids, etc.), answer normally using the FAQs!
 
 Here is the information about the currently logged-in guest:
 - Name: ${guest?.name || "Guest"}
@@ -208,7 +216,7 @@ Guest Question: ${query}
 
         // 7. Return Result
         return new Response(
-            JSON.stringify({ reply }),
+            JSON.stringify({ reply, rawGoogleResponse: data, usedKeySnippet: apiKey.substring(0, 10) }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
         )
 
