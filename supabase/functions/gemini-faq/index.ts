@@ -78,7 +78,6 @@ serve(async (req: any) => {
             const { data: faqRows, error: faqErr } = await supabaseClient
                 .from('faqs')
                 .select('category, question, answer')
-                .eq('is_published', true)
                 .order('display_order', { ascending: true });
             
             if (faqErr) throw faqErr;
@@ -131,9 +130,6 @@ CRITICAL ROOM REVEAL RULE:
 - If "Room Revealed Yet" is "No", you MUST NOT mention their assigned room name (even if listed in context), pricing, or roommate info. If they ask about their room details, price, or booking status, politely tell them that room allocations are currently being finalized by Rosh & Harry and will be revealed in the coming months.
 - If "Room Revealed Yet" is "No", do NOT append the "[See room info](action://room)" action link.
 
-CRITICAL SYNONYM & INTENT MATCHING RULES:
-- If the user asks about "kids", "children", "babies", "toddlers", "infants", or bringing family/children (e.g. "Are kids allowed?", "Can we bring our children?", "Are children permitted?"), you MUST answer: "We have decided to not have children at the wedding due to the nature of the venue and activities." Do NOT respond with "I don't have information" or the plus-one rule.
-
 Here is the information about the currently logged-in guest:
 - Name: ${guest?.name || "Guest"}
 - RSVP Status: ${guest?.attendance || "Not RSVP'd yet"}
@@ -153,10 +149,10 @@ Here is the general wedding FAQ knowledge base:
 ${lastBotReply ? `Previous AI Response to the user in this chat session: "${lastBotReply}"\n` : ""}
 
 CRITICAL KNOWLEDGE BASE MATCHING RULES:
-1. Always thoroughly review the general wedding FAQ knowledge base provided above to answer guest questions.
-2. If the user asks about children, kids, babies, toddlers, or bringing family/children (e.g. "Are kids allowed?", "Can we bring our children?", "Are children permitted?"), answer using the children FAQ: "We have decided to not have children at the wedding due to the nature of the venue and activities."
-3. If the user asks about bridesmaid dresses or colours (e.g. "What colour are the bridesmaids wearing?"), answer using the dress code FAQ: "The bridesmaids will be in sage green."
-4. If the question is genuinely not covered anywhere in the guest info, itinerary, or FAQs, politely say: "I don't have information on that specific detail, but feel free to message Rosh or Harry if you have any questions!"
+1. You MUST check the general wedding FAQ knowledge base provided above for every question.
+2. The knowledge base contains all FAQs configured by Harry & Rosh (including hidden/chatbot-only FAQs like bridesmaid dress colours and child policies).
+3. If a question matches or relates to an entry in the FAQ knowledge base (e.g. bridesmaid dresses, kids/children, dress code, venue location, parking, food, drinks, taxis, etc.), answer directly using that FAQ's answer!
+4. Only if a question is genuinely NOT present or related to any entry in the FAQ knowledge base, guest info, or itinerary, reply: "I don't have details on that specific question, but feel free to message Rosh or Harry if you have any questions!"
 
 User Question: ${query}
 `
