@@ -3,9 +3,6 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 // @ts-ignore
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.8"
 
-// ⚠️ DEBUGGING: Paste your key inside the quotes below
-const HARDCODED_KEY = "AIzaSyDzr7F9YgXcCO2uryRcU5a_2xN7PQ5TwUo";
-
 const FAQ_CONTENT = `
 # Wedding FAQs & Information
 
@@ -42,6 +39,28 @@ A: Huntsham Court, Huntsham, Tiverton EX16 7NA.
 Q: Is there parking available on-site, and is it free?
 A: Yes, there is plenty of parking available free of charge.
 `;
+
+function scoreFaq(faq: any, queryLower: string) {
+    const qLower = (faq.question + " " + faq.answer + " " + faq.category).toLowerCase();
+    const queryTokens = queryLower.split(/\s+/).filter((t: string) => t.length > 2);
+    let score = 0;
+    
+    // Explicit keyword boosts
+    if ((queryLower.includes('kid') || queryLower.includes('child') || queryLower.includes('baby') || queryLower.includes('toddler')) && 
+        (qLower.includes('kid') || qLower.includes('child') || qLower.includes('babysitting'))) {
+        score += 50;
+    }
+    if ((queryLower.includes('bridesmaid') || queryLower.includes('girls') || queryLower.includes('wear') || queryLower.includes('dress')) && 
+        (qLower.includes('bridesmaid') || qLower.includes('wear') || qLower.includes('dress code') || qLower.includes('sage green'))) {
+        score += 50;
+    }
+
+    queryTokens.forEach((token: string) => {
+        if (qLower.includes(token)) score += 10;
+    });
+
+    return score;
+}
 
 // @ts-ignore
 serve(async (req: any) => {
@@ -83,7 +102,11 @@ serve(async (req: any) => {
             if (faqErr) throw faqErr;
 
             if (faqRows && faqRows.length > 0) {
-                faqContent = faqRows.map(f => {
+                const queryLower = query.toLowerCase();
+                const scoredFaqs = faqRows.map(f => ({ ...f, score: scoreFaq(f, queryLower) }));
+                scoredFaqs.sort((a, b) => b.score - a.score);
+
+                faqContent = scoredFaqs.map(f => {
                     return `Category: ${f.category}\nQ: ${f.question}\nA: ${f.answer}\n`;
                 }).join('\n');
             } else {
@@ -94,12 +117,11 @@ serve(async (req: any) => {
             faqContent = FAQ_CONTENT;
         }
 
-        // 3. Get API Key
-        // Priority: Hardcoded -> Secret
+        // 3. Get API Key from Environment
         // @ts-ignore
-        const apiKey = HARDCODED_KEY || Deno.env.get('GEMINI_API_KEY');
+        const apiKey = Deno.env.get('GEMINI_API_KEY');
         if (!apiKey) {
-            throw new Error('API Key is missing! Set GEMINI_API_KEY secret or paste into HARDCODED_KEY.')
+            throw new Error('GEMINI_API_KEY environment variable is not set in Supabase Secrets!')
         }
 
         // 4. Construct Prompt
@@ -116,11 +138,6 @@ SMART SEMANTIC UNDERSTANDING:
 - Do NOT rely on rigid, word-for-word question matching!
 - Understand the intent behind any guest question, even when phrased in casual, indirect, or different words (e.g. "what's the vibe?", "can I bring my baby?", "what are the girls wearing?", "where do I park?", "can I get a cab?").
 - Use the entire Knowledge Base below (FAQ list, guest details, itinerary) as your source of truth. Express the answers in your own natural, friendly, conversational words rather than repeating robotic template sentences.
-
-SPECIFIC INTENT GUIDANCE:
-- Bridesmaid Dresses / Attire / Colours: If asked about what bridesmaids are wearing, their dresses, or colours (e.g., "what are the girls wearing?", "what can bridesmaids wear?"), share warmly that the bridesmaids will be wearing sage green.
-- Children / Kids / Babies: If asked about kids, babies, toddlers, or family attendance (e.g., "can I bring my baby?", "are kids allowed?", "kids info"), explain gently that due to the venue and activities, Harry & Rosh have decided to make the wedding an adults-only celebration.
-- Dress Code & Event Days: Explain the dress code for each day (Day 1: Summer Cocktail, Day 2: Garden Party / Games, Day 3: Summer Wedding Attire) with helpful, practical context (e.g., croquet lawn footwear recommendations).
 
 CRITICAL DASHBOARD LINKING RULES:
 If the user asks about their room, the itinerary/agenda, the estate/map, the photo gallery, or updating their RSVP, append a helpful action link at the end of your response in the format [Link Text](action://target).
@@ -147,7 +164,7 @@ ${roomDetails ? `Their assigned room details:\n${roomDetails}\n` : ""}
 Here is the wedding schedule/itinerary:
 ${itinerary ? JSON.stringify(itinerary, null, 2) : "Refer to general FAQs."}
 
-Here is the general wedding FAQ knowledge base:
+Here are the most relevant general wedding FAQs from Harry & Rosh:
 "${faqContent}"
 
 ${lastBotReply ? `Previous AI Response to the user in this chat session: "${lastBotReply}"\n` : ""}
@@ -184,7 +201,6 @@ Guest Question: ${query}
 
         // 6. Parse Response
         if (data.error) {
-            // Throw the ACTUAL Google error so we can see it
             throw new Error(`Google Error: ${data.error.message}`);
         }
 
@@ -192,12 +208,11 @@ Guest Question: ${query}
 
         // 7. Return Result
         return new Response(
-            JSON.stringify({ reply, debugFaqLength: faqContent.length, isDbUsed: faqContent !== FAQ_CONTENT }),
+            JSON.stringify({ reply }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
         )
 
     } catch (error: any) {
-        // Return 200 even on error so the client can read the error message
         return new Response(
             JSON.stringify({ error: error.message }),
             { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
