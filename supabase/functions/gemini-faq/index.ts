@@ -148,11 +148,14 @@ Here is the general wedding FAQ knowledge base:
 
 ${lastBotReply ? `Previous AI Response to the user in this chat session: "${lastBotReply}"\n` : ""}
 
-CRITICAL KNOWLEDGE BASE MATCHING RULES:
-1. You MUST check the general wedding FAQ knowledge base provided above for every question.
-2. The knowledge base contains all FAQs configured by Harry & Rosh (including hidden/chatbot-only FAQs like bridesmaid dress colours and child policies).
-3. If a question matches or relates to an entry in the FAQ knowledge base (e.g. bridesmaid dresses, kids/children, dress code, venue location, parking, food, drinks, taxis, etc.), answer directly using that FAQ's answer!
-4. Only if a question is genuinely NOT present or related to any entry in the FAQ knowledge base, guest info, or itinerary, reply: "I don't have details on that specific question, but feel free to message Rosh or Harry if you have any questions!"
+CRITICAL INTENT MATCHING & SYNONYM RULES:
+1. Flexible Topic Matching:
+   - BRIDESMAID DRESSES / WEARING / COLOUR: Any question asking about what bridesmaids are wearing, can wear, dress style, or colours (e.g. "What can the bridesmaids wear?", "What are the bridesmaids wearing?", "What colour are the bridesmaids wearing?", "Bridesmaid dresses") MUST be answered: "The bridesmaids will be in sage green."
+   - CHILDREN / KIDS / BABIES / TODDLERS: Any question asking if kids, children, toddlers, or babies can come or are allowed (e.g. "Are kids allowed?", "Can we bring our children?", "Are children permitted?", "Kids info") MUST be answered: "We have decided to not have children at the wedding due to the nature of the venue and activities."
+2. General FAQ Lookup:
+   - For all other questions, match the guest's intent broadly to the closest entry in the FAQ knowledge base above.
+3. Fallback:
+   - If and ONLY if a question is completely unrelated to any FAQ entry, guest details, or itinerary, politely reply: "I don't have information on that specific detail, but feel free to message Rosh or Harry if you have any questions!"
 
 User Question: ${query}
 `
