@@ -40,29 +40,6 @@ Q: Is there parking available on-site, and is it free?
 A: Yes, there is plenty of parking available free of charge.
 `;
 
-function scoreFaq(faq: any, queryLower: string) {
-    const qLower = (faq.question + " " + faq.answer + " " + faq.category).toLowerCase();
-    const cleanTokens = queryLower.replace(/[^\w\s]/g, '').split(/\s+/).filter((t: string) => t.length > 2);
-    let score = 0;
-    
-    // Exact keyword boosts
-    if (queryLower.includes('bridesmaid') || queryLower.includes('bridesmaids')) {
-        if (qLower.includes('bridesmaid') || qLower.includes('bridesmaids')) score += 500;
-    }
-    if (queryLower.includes('kid') || queryLower.includes('kids') || queryLower.includes('child') || queryLower.includes('children') || queryLower.includes('baby') || queryLower.includes('toddler')) {
-        if (qLower.includes('kid') || qLower.includes('child') || qLower.includes('children')) score += 500;
-    }
-    if (queryLower.includes('room') || queryLower.includes('staying') || queryLower.includes('sleep') || queryLower.includes('bed')) {
-        if (qLower.includes('room') || qLower.includes('hotel') || qLower.includes('accommodation')) score += 200;
-    }
-
-    cleanTokens.forEach((token: string) => {
-        if (qLower.includes(token)) score += 20;
-    });
-
-    return score;
-}
-
 // @ts-ignore
 serve(async (req: any) => {
     // 1. CORS Setup
@@ -103,12 +80,8 @@ serve(async (req: any) => {
             if (faqErr) throw faqErr;
 
             if (faqRows && faqRows.length > 0) {
-                const queryLower = query.toLowerCase();
-                const scoredFaqs = faqRows.map(f => ({ ...f, score: scoreFaq(f, queryLower) }));
-                scoredFaqs.sort((a, b) => b.score - a.score);
-
-                faqContent = scoredFaqs.map(f => {
-                    return `Category: ${f.category}\nQ: ${f.question}\nA: ${f.answer}\n`;
+                faqContent = faqRows.map(f => {
+                    return `[Category: ${f.category}]\nQuestion: ${f.question}\nAnswer: ${f.answer}\n`;
                 }).join('\n');
             } else {
                 faqContent = FAQ_CONTENT;
@@ -131,25 +104,30 @@ You are the official AI Wedding Concierge for Harry & Rosh's wedding celebration
 Your goal is to be a warm, welcoming, friendly, and helpful AI assistant for all guests.
 
 TONE & BEHAVIOR:
-- Be warm, hospitable, and conversational, while keeping responses clear and helpful.
+- Be warm, hospitable, conversational, and clear.
 - Speak naturally as a friendly wedding host/assistant.
-- Always remain truthful to the provided Knowledge Base below—never invent unconfirmed wedding details.
+- Always remain truthful to the Knowledge Base below—never invent unconfirmed details.
 
-SMART SEMANTIC UNDERSTANDING:
-- Do NOT rely on rigid, word-for-word question matching!
-- Understand the intent behind any guest question, even when phrased in casual, indirect, or different words (e.g. "what's the vibe?", "can I bring my baby?", "what are the girls wearing?", "where do I park?", "can I get a cab?").
-- Use the entire Knowledge Base below (FAQ list, guest details, itinerary) as your source of truth. Express the answers in your own natural, friendly, conversational words rather than repeating robotic template sentences.
+SMART INTENT & TYPO TOLERANCE:
+- Tolerate typos and misspellings in the user's message (e.g. "weraing" -> wearing, "bridsmaids" -> bridesmaids, "chidlren" -> children, "devin" -> Devon).
+- Understand the guest's underlying question even when phrased casually or indirectly.
 
-MANDATORY DIRECT ANSWER RULES (HIGHEST PRIORITY):
-1. BRIDESMAID DRESSES / BRIDESMAID DRESS CODE / WEARING / COLOUR:
-   If the guest asks ANYTHING about bridesmaids, bridesmaid dresses, bridesmaid dress code, what bridesmaids are wearing, or what colour bridesmaids are wearing (e.g. "Bridesmaids dress code?", "What are bridesmaids wearing?", "What can bridesmaids wear?"), your answer MUST state clearly and warmly:
-   "The bridesmaids will be wearing sage green!"
-   Do NOT say "I don't have information on the bridesmaids' dress code" or offer to show guest dress code instead.
-
-2. CHILDREN / KIDS / BABIES / TODDLERS:
-   If the guest asks ANYTHING about kids, children, babies, toddlers, or bringing children (e.g. "Are kids allowed?", "Can we bring our children?", "Kids info"), your answer MUST state clearly and gently:
-   "We have decided to keep our wedding an adults-only celebration due to the nature of the venue and activities."
-   Do NOT say "Only guests named on your invites are included" or confuse this with the plus-one rule!
+TOPIC MATCHING DIRECTIVES:
+1. BRIDESMAID DRESSES & COLOUR:
+   - Any query asking about what bridesmaids are wearing, what they can wear, dress style, outfit, or dress colours (e.g. "what are bridesmaids weraing", "bridesmaids dress code?", "what colour are bridesmaids wearing?"):
+   - ALWAYS answer warmly: "The bridesmaids will be wearing sage green!"
+2. CHILDREN & KIDS POLICY:
+   - Any query asking if kids, children, toddlers, or babies can attend (e.g. "are kids allowed?", "can I bring my child?", "can we bring children?"):
+   - ALWAYS answer gently: "We have decided to keep our wedding an adults-only celebration due to the nature of the venue and activities."
+   - DO NOT confuse children with plus-ones! Do NOT say "Only guests named on invites are included" when asked about children/kids.
+3. PLUS-ONES & PARTNERS:
+   - Any query asking specifically about plus-ones or bringing an uninvited partner:
+   - Answer: "Please do not bring a plus-one; only guests named on the invitations are invited."
+4. DEVON & LOCAL AREA / ACTIVITIES:
+   - If asked about what to do in Devon or local activities:
+   - Share warmly: "Guests are welcome to explore Devon in the mornings! At the venue, optional activities like tennis, croquet, and games are planned. You can check out the full weekend schedule in the app!"
+5. DRESS CODES:
+   - Share the dress code for each day: Day 1 (Summer Cocktail), Day 2 (Garden Party / Outdoor Games), Day 3 (Summer Wedding Attire). Recommend suitable footwear for the croquet lawn.
 
 CRITICAL DASHBOARD LINKING RULES:
 If the user asks about their room, the itinerary/agenda, the estate/map, the photo gallery, or updating their RSVP, append a helpful action link at the end of your response in the format [Link Text](action://target).
@@ -162,7 +140,6 @@ Targets:
 
 CRITICAL ROOM ALLOCATION RULE:
 - If (and ONLY if) the guest asks about their own assigned bedroom, room name, price, or roommates, AND "Room Revealed Yet" is "No", politely let them know that room allocations are currently being finalized by Harry & Rosh and will be revealed in the coming months!
-- For all other questions (such as dress code, bridesmaids, food, schedule, directions, kids, etc.), answer normally using the FAQs!
 
 Here is the information about the currently logged-in guest:
 - Name: ${guest?.name || "Guest"}
@@ -177,12 +154,12 @@ ${roomDetails ? `Their assigned room details:\n${roomDetails}\n` : ""}
 Here is the wedding schedule/itinerary:
 ${itinerary ? JSON.stringify(itinerary, null, 2) : "Refer to general FAQs."}
 
-Here are the most relevant general wedding FAQs from Harry & Rosh:
+Here is the complete wedding FAQ knowledge base from Harry & Rosh:
 "${faqContent}"
 
 ${lastBotReply ? `Previous AI Response to the user in this chat session: "${lastBotReply}"\n` : ""}
 
-If a query is genuinely not covered anywhere in the knowledge base, guest info, or itinerary, answer warmly and helpfully:
+If a query is genuinely not covered anywhere in the knowledge base, guest info, or itinerary, answer warmly:
 "I don't have that specific detail just yet, but feel free to reach out directly to Harry or Rosh and they'll be happy to help!"
 
 Guest Question: ${query}
@@ -221,7 +198,7 @@ Guest Question: ${query}
 
         // 7. Return Result
         return new Response(
-            JSON.stringify({ reply, rawGoogleResponse: data, usedKeySnippet: apiKey.substring(0, 10) }),
+            JSON.stringify({ reply }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
         )
 
