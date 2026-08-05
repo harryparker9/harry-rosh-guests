@@ -1520,15 +1520,35 @@ document.addEventListener('DOMContentLoaded', async () => {
     const chatSubmit = document.getElementById('faq-chat-submit');
     const chatOutput = document.getElementById('faq-chat-output');
 
+    function parseBotMarkdown(text) {
+        if (!text) return "";
+        let html = text;
+
+        // 1. Action Links: [Link Text](action://target)
+        html = html.replace(/\[([^\]]+)\]\(action:\/\/([a-zA-Z0-9_-]+)\)/g, (match, linkText, action) => {
+            return `<a href="#" onclick="window.navigateDashboard('${action}'); return false;" style="color: var(--primary); text-decoration: underline; font-weight: 600;">${linkText}</a>`;
+        });
+
+        // 2. Bold text: **text** -> <strong>text</strong>
+        html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+
+        // 3. Bullet points: * item or - item -> bulleted line
+        html = html.replace(/(?:^|\n)[\*\-]\s+(.+)/g, '<br>• $1');
+
+        // 4. Line breaks: \n -> <br>
+        html = html.replace(/\n/g, '<br>');
+
+        // Clean up redundant leading <br>
+        html = html.replace(/^(<br>)+/, '');
+
+        return html;
+    }
+
     function addBubble(text, isBot = false) {
         const bubble = document.createElement('div');
         bubble.className = `chat-bubble ${isBot ? 'bot' : 'user'}`;
         if (isBot) {
-            // Replace [Link Text](action://target) with HTML link triggering navigateDashboard
-            let html = text.replace(/\[([^\]]+)\]\(action:\/\/([a-zA-Z0-9_-]+)\)/g, (match, linkText, action) => {
-                return `<a href="#" onclick="window.navigateDashboard('${action}'); return false;" style="color: var(--primary); text-decoration: underline; font-weight: 600;">${linkText}</a>`;
-            });
-            bubble.innerHTML = html;
+            bubble.innerHTML = parseBotMarkdown(text);
         } else {
             bubble.textContent = text;
         }
