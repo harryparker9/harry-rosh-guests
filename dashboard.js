@@ -1557,15 +1557,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             roomData = window.ROOM_LIBRARY[resolvedRoomKey];
         }
 
-        const chatBubbles = chatOutput.querySelectorAll('.chat-bubble');
-        let lastBotReply = "";
-        for (let i = chatBubbles.length - 1; i >= 0; i--) {
-            if (chatBubbles[i].classList.contains('bot') && chatBubbles[i].textContent !== 'Thinking...') {
-                lastBotReply = chatBubbles[i].textContent;
-                break;
-            }
-        }
-
         const reqBody = {
             query: query,
             guest: user ? {
@@ -1578,8 +1569,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             } : null,
             roomDetails: (user && user.is_room_revealed !== false && roomData) ? 
                 `Room: ${user.room_assigned}\nDescription: ${roomData.description || ''}\nFloor: ${roomData.floor || ''}` : null,
-            itinerary: window.itinerarySchedule || null,
-            lastBotReply: lastBotReply || null
+            itinerary: window.itinerarySchedule || null
         };
 
         supabase.functions.invoke('gemini-faq', {
