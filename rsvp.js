@@ -190,10 +190,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            // Set saved value to hidden input
+            // Set saved value to hidden input and sync radio choices
             const hiddenInput = document.getElementById('attendance-hidden-input');
             if (hiddenInput) {
-                hiddenInput.value = data.attendance_option || 'full_weekend';
+                hiddenInput.value = data.attendance_option || '';
+            }
+
+            if (data.attendance_option === 'decline') {
+                const decRadio = document.querySelector('input[name="attendance_choice"][value="decline"]');
+                if (decRadio) decRadio.checked = true;
+            } else if (data.attendance_option) {
+                const attRadio = document.querySelector('input[name="attendance_choice"][value="attend"]');
+                if (attRadio) attRadio.checked = true;
             }
 
             // Radio Buttons: Accommodation
@@ -201,8 +209,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const radio = document.querySelector(`input[name="accommodation"][value="${data.accommodation_preference}"]`);
                 if (radio) radio.checked = true;
             }
-
-
 
             // 3. Conditional Visibility setup
             handleAttendanceChange(data.attendance_option);
@@ -238,10 +244,90 @@ document.addEventListener('DOMContentLoaded', () => {
                 return JSON.parse(photoUrlField);
             } catch (e) {
                 console.error("Failed to parse photo URLs JSON:", e);
-                return [photoUrlField];
             }
         }
         return [photoUrlField];
+    }
+
+    // --- Auto-Save ---
+    async function triggerAutoSave(isFinal = false) {
+        const indicator = document.getElementById('rsvp-status-indicator');
+        if (!indicator) return;
+        const statusText = indicator.querySelector('.status-text');
+        const statusDot = indicator.querySelector('.status-dot');
+        statusText.textContent = 'Saving...';
+        statusDot.style.background = '#eab308'; // Amber
+
+        const formData = new FormData(rsvpForm);
+        const codeToUpdate = document.getElementById('gate-code').value || formData.get('accessCode');
+        if (!codeToUpdate) return;
+
+        const drinksHidden = shouldHideDrinks(formData.get('fullName'));
+        const selectedDrinks = drinksHidden ? [] : Array.from(document.querySelectorAll('input[name="drink_pref"]:checked')).map(el => el.value);
+        const specialRequests = drinksHidden ? "" : document.getElementById('special_drink_requests').value;
+
+        const payload = {
+            full_name: formData.get('fullName'),
+            phone: formData.get('phone'),
+            accommodation_preference: formData.get('accommodation') || null,
+            dietary_requirements: formData.get('dietary'),
+            drink_preferences: JSON.stringify({ drinks: selectedDrinks, special: specialRequests }),
+            funny_story: formData.get('funnyStory'),
+            marriage_advice: formData.get('advice'),
+            speech_prediction: formData.get('speechBet'),
+            song_request: formData.get('song_request')
+        };
+
+        const attChoice = rsvpForm.querySelector('input[name="attendance_choice"]:checked')?.value;
+        const attVal = formData.get('attendance');
+
+        if (attVal && attVal.trim() !== '') {
+            payload.attendance_option = attVal;
+        } else if (attChoice === 'decline') {
+            payload.attendance_option = 'decline';
+        } else if (attChoice === 'attend') {
+            const arr = document.getElementById('arrival-date')?.value || '2027-08-05';
+            const dep = document.getElementById('departure-date')?.value || '2027-08-08';
+            if (arr === '2027-08-05' && dep === '2027-08-08') payload.attendance_option = 'full_weekend';
+            else if (arr === '2027-08-06' && dep === '2027-08-08') payload.attendance_option = 'friday_arrival';
+            else payload.attendance_option = 'ceremony_only';
+        } else if (window.guestData && window.guestData.attendance_option) {
+            payload.attendance_option = window.guestData.attendance_option;
+        } else if (isFinal) {
+            payload.attendance_option = null;
+        }
+
+        try {
+            const { data: updatedData, error: updateError } = await supabase
+                .from('guests')
+                .update(payload)
+                .eq('access_code', codeToUpdate)
+                .select();
+
+            if (updateError) throw updateError;
+
+            // Sync user to localStorage
+            if (updatedData && updatedData[0]) {
+                const userSession = {
+                    access_code: codeToUpdate,
+                    full_name: payload.full_name,
+                    room_assigned: updatedData[0].room_assigned || null,
+                    room_status: updatedData[0].room_status || null,
+                    attendance_option: updatedData[0].attendance_option || null,
+                    is_onsite_allowed: updatedData[0].is_onsite_allowed || false,
+                    photo_url: updatedData[0].photo_url || null
+                };
+                localStorage.setItem('user', JSON.stringify(userSession));
+                window.guestData = updatedData[0];
+            }
+
+            statusText.textContent = 'All changes saved';
+            statusDot.style.background = '#10b981'; // Green
+        } catch (err) {
+            console.error('Auto-save error:', err);
+            statusText.textContent = 'Save failed';
+            statusDot.style.background = '#ef4444'; // Red
+        }
     }
 
     function renderPhotoGallery(urls, containerId, onDeleteCallback) {

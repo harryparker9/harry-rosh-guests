@@ -452,10 +452,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         }
 
-        // Set saved value to hidden input
+        // Set saved value to hidden input and sync radio button selections
         const hiddenInput = document.getElementById('rsvp-attendance-hidden-input');
         if (hiddenInput) {
-            hiddenInput.value = data.attendance_option || 'full_weekend';
+            hiddenInput.value = data.attendance_option || '';
+        }
+
+        if (data.attendance_option === 'decline') {
+            const decRadio = rsvpModalForm.querySelector('input[name="attendance_choice"][value="decline"]');
+            if (decRadio) decRadio.checked = true;
+        } else if (data.attendance_option) {
+            const attRadio = rsvpModalForm.querySelector('input[name="attendance_choice"][value="attend"]');
+            if (attRadio) attRadio.checked = true;
         }
 
         // Radio Buttons: Accommodation
@@ -508,8 +516,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         const selectedDrinks = drinksHidden ? [] : Array.from(rsvpModalForm.querySelectorAll('input[name="drink_pref"]:checked')).map(el => el.value);
         const specialRequests = drinksHidden ? "" : document.getElementById('rsvp-special_drink_requests').value;
 
-        const hasExistingAttendance = !!(user && user.attendance_option);
-
         const payload = {
             full_name: formData.get('fullName'),
             phone: formData.get('phone'),
@@ -522,8 +528,23 @@ document.addEventListener('DOMContentLoaded', async () => {
             song_request: formData.get('song_request')
         };
 
-        if (isFinal || hasExistingAttendance) {
-            payload.attendance_option = formData.get('attendance') || null;
+        const attChoice = rsvpModalForm.querySelector('input[name="attendance_choice"]:checked')?.value;
+        const attVal = formData.get('attendance');
+
+        if (attVal && attVal.trim() !== '') {
+            payload.attendance_option = attVal;
+        } else if (attChoice === 'decline') {
+            payload.attendance_option = 'decline';
+        } else if (attChoice === 'attend') {
+            const arr = document.getElementById('rsvp-arrival-date')?.value || '2027-08-05';
+            const dep = document.getElementById('rsvp-departure-date')?.value || '2027-08-08';
+            if (arr === '2027-08-05' && dep === '2027-08-08') payload.attendance_option = 'full_weekend';
+            else if (arr === '2027-08-06' && dep === '2027-08-08') payload.attendance_option = 'friday_arrival';
+            else payload.attendance_option = 'ceremony_only';
+        } else if (user && user.attendance_option) {
+            payload.attendance_option = user.attendance_option;
+        } else if (isFinal) {
+            payload.attendance_option = null;
         }
 
         try {
@@ -568,8 +589,24 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         rsvpModalForm.addEventListener('change', (e) => {
             if (e.target.tagName === 'INPUT' && e.target.type === 'radio') {
-                if (e.target.name === 'attendance') {
-                    handleModalAttendanceChange(e.target.value);
+                if (e.target.name === 'attendance' || e.target.name === 'attendance_choice') {
+                    const choice = rsvpModalForm.querySelector('input[name="attendance_choice"]:checked')?.value;
+                    if (choice === 'decline') {
+                        handleModalAttendanceChange('decline');
+                        const hidden = document.getElementById('rsvp-attendance-hidden-input');
+                        if (hidden) hidden.value = 'decline';
+                    } else if (choice === 'attend') {
+                        const arr = document.getElementById('rsvp-arrival-date')?.value || '2027-08-05';
+                        const dep = document.getElementById('rsvp-departure-date')?.value || '2027-08-08';
+                        let option = 'full_weekend';
+                        if (arr === '2027-08-05' && dep === '2027-08-08') option = 'full_weekend';
+                        else if (arr === '2027-08-06' && dep === '2027-08-08') option = 'friday_arrival';
+                        else option = 'ceremony_only';
+                        
+                        const hidden = document.getElementById('rsvp-attendance-hidden-input');
+                        if (hidden) hidden.value = option;
+                        handleModalAttendanceChange(option);
+                    }
                 }
                 triggerRsvpAutoSave();
             }
