@@ -217,7 +217,7 @@ window.ROOM_LIBRARY = {
         }
     },
     "Quinton": {
-        "description": "Flexible room in the high eaves. Can sleep 3-5 people in various configurations.",
+        "description": "Flexible room in the high eaves. Can sleep up to 6 people in various configurations.",
         "floor": "Third Floor",
         "photos": [
             "https://jkxxswxpykdyrpjriizx.supabase.co/storage/v1/object/public/guest-photos/Quinton1.jpg",
