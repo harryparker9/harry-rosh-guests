@@ -833,22 +833,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             // STATE: ASSIGNED (OFFERED or CONFIRMED)
             roomNameDisplay.textContent = user.room_assigned;
 
-            // Render price & sharing display on main card
+            // Render price display on main card
             const priceDisplay = document.getElementById('room-price-display');
-            const sharingDisplay = document.getElementById('room-sharing-display');
-            if (priceDisplay || sharingDisplay) {
-                if (priceDisplay) priceDisplay.textContent = "Loading price...";
+            if (priceDisplay) {
+                priceDisplay.textContent = "Loading price...";
                 (async () => {
                     try {
                         const occupancy = await getRoomOccupancyInfo(user.room_assigned, user);
-
-                        if (sharingDisplay) {
-                            if (occupancy.roommates && occupancy.roommates.length > 0) {
-                                sharingDisplay.innerHTML = `Sharing with: <strong>${occupancy.roommates.join(', ')}</strong>`;
-                            } else {
-                                sharingDisplay.innerHTML = `<span style="opacity: 0.85;">Solo Occupancy</span>`;
-                            }
-                        }
 
                         let roomData = null;
                         let res = await supabase.from('rooms').select('*').eq('name', user.room_assigned).single();
@@ -865,20 +856,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                             const isPaid = (user.room_status === 'paid' || user.room_status === 'confirmed');
                             if (isPaid) {
-                                if (priceDisplay) priceDisplay.innerHTML = `Room Cost: <strong style="color: #166534;">Paid ✓</strong>`;
+                                priceDisplay.innerHTML = `Room Cost: <strong style="color: #166534;">Paid ✓</strong>`;
                             } else if (user.shares_room_payment) {
-                                if (priceDisplay) priceDisplay.innerHTML = `Owed: <strong>£${totalCost.toLocaleString()}</strong> (Paid Together)`;
+                                priceDisplay.innerHTML = `Owed: <strong>£${totalCost.toLocaleString()}</strong> (Paid Together)`;
                             } else {
                                 const occupantCount = occupancy.count || 1;
                                 const costPerPerson = totalCost / occupantCount;
-                                if (priceDisplay) priceDisplay.innerHTML = `Your Share: <strong>£${costPerPerson.toLocaleString(undefined, {maximumFractionDigits:0})}</strong> (Separately)`;
+                                priceDisplay.innerHTML = `Your Share: <strong>£${costPerPerson.toLocaleString(undefined, {maximumFractionDigits:0})}</strong> (Separately)`;
                             }
                         } else {
-                            if (priceDisplay) priceDisplay.textContent = "Pricing details TBC";
+                            priceDisplay.textContent = "Pricing details TBC";
                         }
                     } catch (err) {
                         console.error("Failed to load room details on card:", err);
-                        if (priceDisplay) priceDisplay.textContent = "";
+                        priceDisplay.textContent = "";
                     }
                 })();
             }
@@ -888,8 +879,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const roomData = window.ROOM_LIBRARY ? window.ROOM_LIBRARY[resolvedRoomKey] : null;
             if (roomData && roomDescDisplay) {
                 let cleanDesc = roomData.description.replace(/\[cite:.*?\]/g, '').trim();
-                const isShared = SHARED_BATHROOM_ROOMS.includes(user.room_assigned);
-                roomDescDisplay.innerHTML = `<strong>${roomData.floor}</strong>${isShared ? ' &bull; <span style="color: #b45309; font-weight: 600;">Shared Bathroom</span>' : ''}`;
+                roomDescDisplay.innerHTML = `<strong>${roomData.floor}</strong>`;
 
                 // Hide the explicit image frame (we are using background now)
                 const roomImgFrame = document.getElementById('room-image-frame');
