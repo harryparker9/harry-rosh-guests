@@ -1862,6 +1862,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                         occupantsNote.textContent = `Based on ${occupantCount} room occupants (£${costPerPerson.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} each)`;
                         occupantsNote.style.display = 'none';
 
+                        const payNightsDesc = document.getElementById('pay-nights-desc');
+                        if (payNightsDesc) {
+                            if (nights === 2 || (user && user.attendance_option === 'friday_arrival')) {
+                                payNightsDesc.innerHTML = `<strong>2 Nights Accommodation:</strong> Your historic room right on-site at Huntsham Court (Friday &ndash; Sunday).`;
+                            } else {
+                                payNightsDesc.innerHTML = `<strong>3 Nights Accommodation:</strong> Your historic room right on-site at Huntsham Court across the full weekend (Thursday &ndash; Sunday).`;
+                            }
+                        }
+
                         btnTotal.onclick = () => {
                             btnTotal.style.background = 'white';
                             btnTotal.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
