@@ -1865,9 +1865,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                         const payNightsDesc = document.getElementById('pay-nights-desc');
                         if (payNightsDesc) {
                             if (nights === 2 || (user && user.attendance_option === 'friday_arrival')) {
-                                payNightsDesc.innerHTML = `<strong>2 Nights Accommodation:</strong> Your historic room right on-site at Huntsham Court (Friday &ndash; Sunday).`;
+                                payNightsDesc.innerHTML = `<strong>2 Nights Accommodation:</strong> Across Friday to Sunday`;
                             } else {
-                                payNightsDesc.innerHTML = `<strong>3 Nights Accommodation:</strong> Your historic room right on-site at Huntsham Court across the full weekend (Thursday &ndash; Sunday).`;
+                                payNightsDesc.innerHTML = `<strong>3 Nights Accommodation:</strong> Across the full weekend (Thurs&ndash;Sun)`;
                             }
                         }
 
