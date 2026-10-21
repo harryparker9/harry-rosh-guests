@@ -65,7 +65,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const supabase = window.Auth.client;
     let user = null;
 
-    // 8 Shared Bathroom Rooms explicitly identified
+    // Shared Bathroom Rooms explicitly identified
     const SHARED_BATHROOM_ROOMS = [
         "The Baroness",
         "Tilly",
@@ -74,7 +74,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         "Little Loft",
         "Big Loft",
         "The Duchess",
-        "The Duke"
+        "The Duke",
+        "The Den",
+        "The Hideout"
     ];
 
     // Connected bathroom suites mapping
@@ -86,7 +88,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         "Little Loft": "Big Loft",
         "Big Loft": "Little Loft",
         "Kenmare": "Kennington",
-        "Kennington": "Kenmare"
+        "Kennington": "Kenmare",
+        "The Den": "The Hideout",
+        "The Hideout": "The Den"
     };
 
     window._roomOccupancyCache = window._roomOccupancyCache || {};

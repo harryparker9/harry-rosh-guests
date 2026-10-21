@@ -230,7 +230,7 @@ window.ROOM_LIBRARY = {
         }
     },
     "The Den": {
-        "description": "Large ground floor multi-function room. Ideal for the less able.",
+        "description": "Large ground floor multi-function room with shared bathroom (shares with The Hideout). Ideal for the less able.",
         "floor": "Ground Floor",
         "photos": [
             "https://jkxxswxpykdyrpjriizx.supabase.co/storage/v1/object/public/guest-photos/Den1.jpg",
@@ -242,7 +242,7 @@ window.ROOM_LIBRARY = {
         }
     },
     "The Hideout": {
-        "description": "Small ground floor double room. Shares shower room with the Den.",
+        "description": "Small ground floor double room with shared bathroom (shares with The Den).",
         "floor": "Ground Floor",
         "photos": [
             "https://jkxxswxpykdyrpjriizx.supabase.co/storage/v1/object/public/guest-photos/Hide_Out1.jpg",
