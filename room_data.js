@@ -133,7 +133,7 @@ window.ROOM_LIBRARY = {
         }
     },
     "Tilly": {
-        "description": "Small west-facing double bedroom with own shower room.",
+        "description": "Small west-facing double bedroom with shared bathroom.",
         "floor": "First Floor",
         "photos": [
             "https://jkxxswxpykdyrpjriizx.supabase.co/storage/v1/object/public/guest-photos/Tilly1.jpg",
@@ -163,7 +163,7 @@ window.ROOM_LIBRARY = {
         }
     },
     "The Duke": {
-        "description": "Dual aspect super-king (can be twin) with en-suite bath. Part of Family Suite 3.",
+        "description": "Dual aspect super-king (can be twin) sharing a bathroom with The Duchess. Part of Family Suite 3.",
         "floor": "Second Floor",
         "photos": [
             "https://jkxxswxpykdyrpjriizx.supabase.co/storage/v1/object/public/guest-photos/Duke1.jpg",
@@ -322,7 +322,7 @@ window.ROOM_LIBRARY = {
         }
     },
     "Little Loft": {
-        "description": "Character eaves and beams. Links to Big Loft (FS2).",
+        "description": "Character eaves and beams with shared bathroom. Links to Big Loft (Family Suite 2).",
         "floor": "Second Floor",
         "photos": [
             "https://jkxxswxpykdyrpjriizx.supabase.co/storage/v1/object/public/guest-photos/Little_Loft1.jpg",
@@ -334,7 +334,7 @@ window.ROOM_LIBRARY = {
         }
     },
     "Big Loft": {
-        "description": "Large loft bedroom with superking bed. Links to Little Loft (FS2).",
+        "description": "Large loft bedroom with superking bed and shared bathroom. Links to Little Loft (Family Suite 2).",
         "floor": "Second Floor",
         "photos": [
             "https://jkxxswxpykdyrpjriizx.supabase.co/storage/v1/object/public/guest-photos/Big_Loft1.jpg",

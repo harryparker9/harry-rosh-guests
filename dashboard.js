@@ -65,6 +65,99 @@ document.addEventListener('DOMContentLoaded', async () => {
     const supabase = window.Auth.client;
     let user = null;
 
+    // 8 Shared Bathroom Rooms explicitly identified
+    const SHARED_BATHROOM_ROOMS = [
+        "The Baroness",
+        "Tilly",
+        "Kenmare",
+        "Kennington",
+        "Little Loft",
+        "Big Loft",
+        "The Duchess",
+        "The Duke"
+    ];
+
+    // Connected bathroom suites mapping
+    const SHARED_BATHROOM_ADJOINING = {
+        "The Baroness": "The Baron",
+        "The Baron": "The Baroness",
+        "The Duke": "The Duchess",
+        "The Duchess": "The Duke",
+        "Little Loft": "Big Loft",
+        "Big Loft": "Little Loft",
+        "Kenmare": "Kennington",
+        "Kennington": "Kenmare"
+    };
+
+    window._roomOccupancyCache = window._roomOccupancyCache || {};
+
+    async function getRoomOccupancyInfo(roomName, currentGuest) {
+        if (!roomName) return { roommates: [], adjoiningGuests: [], count: 1 };
+        if (window._roomOccupancyCache[roomName]) {
+            return window._roomOccupancyCache[roomName];
+        }
+
+        try {
+            const { data: guests, error } = await supabase
+                .from('guests')
+                .select('id, full_name, has_plus_one, plus_one_full_name, access_code, room_assigned');
+
+            if (error || !guests) {
+                return { roommates: [], adjoiningGuests: [], count: 1 };
+            }
+
+            const currentGuestId = currentGuest ? currentGuest.id : null;
+            const currentGuestCode = currentGuest ? currentGuest.access_code : null;
+
+            // Roommates in the same room
+            const roomGuests = guests.filter(g => g.room_assigned === roomName);
+            const roommates = [];
+            roomGuests.forEach(g => {
+                const isSelf = (currentGuest && (g.id === currentGuestId || g.access_code === currentGuestCode));
+                if (!isSelf && g.full_name && g.full_name.trim()) {
+                    roommates.push(g.full_name.trim());
+                }
+                if (g.has_plus_one && g.plus_one_full_name && g.plus_one_full_name.trim()) {
+                    const plusOne = g.plus_one_full_name.trim();
+                    if (!roommates.includes(plusOne)) {
+                        roommates.push(plusOne);
+                    }
+                }
+            });
+
+            // Adjoining room guests (for connected bathroom suites)
+            const adjoiningRoomName = SHARED_BATHROOM_ADJOINING[roomName];
+            const adjoiningGuests = [];
+            if (adjoiningRoomName) {
+                const adjGuests = guests.filter(g => g.room_assigned === adjoiningRoomName);
+                adjGuests.forEach(g => {
+                    if (g.full_name && g.full_name.trim()) {
+                        adjoiningGuests.push(g.full_name.trim());
+                    }
+                    if (g.has_plus_one && g.plus_one_full_name && g.plus_one_full_name.trim()) {
+                        const plusOne = g.plus_one_full_name.trim();
+                        if (!adjoiningGuests.includes(plusOne)) {
+                            adjoiningGuests.push(plusOne);
+                        }
+                    }
+                });
+            }
+
+            const res = {
+                roommates,
+                adjoiningRoomName,
+                adjoiningGuests,
+                count: Math.max(roomGuests.length, 1)
+            };
+
+            window._roomOccupancyCache[roomName] = res;
+            return res;
+        } catch (e) {
+            console.error("Failed to get room occupancy info:", e);
+            return { roommates: [], adjoiningGuests: [], count: 1 };
+        }
+    }
+
     const controller = new AbortController();
     const timeoutId = setTimeout(() => {
         console.warn('Supabase fetch timed out after 5s, falling back to local cache.');
@@ -740,12 +833,23 @@ document.addEventListener('DOMContentLoaded', async () => {
             // STATE: ASSIGNED (OFFERED or CONFIRMED)
             roomNameDisplay.textContent = user.room_assigned;
 
-            // Render price display on main card
+            // Render price & sharing display on main card
             const priceDisplay = document.getElementById('room-price-display');
-            if (priceDisplay) {
-                priceDisplay.textContent = "Loading price...";
+            const sharingDisplay = document.getElementById('room-sharing-display');
+            if (priceDisplay || sharingDisplay) {
+                if (priceDisplay) priceDisplay.textContent = "Loading price...";
                 (async () => {
                     try {
+                        const occupancy = await getRoomOccupancyInfo(user.room_assigned, user);
+
+                        if (sharingDisplay) {
+                            if (occupancy.roommates && occupancy.roommates.length > 0) {
+                                sharingDisplay.innerHTML = `Sharing with: <strong>${occupancy.roommates.join(', ')}</strong>`;
+                            } else {
+                                sharingDisplay.innerHTML = `<span style="opacity: 0.85;">Solo Occupancy</span>`;
+                            }
+                        }
+
                         let roomData = null;
                         let res = await supabase.from('rooms').select('*').eq('name', user.room_assigned).single();
                         if (res.data) roomData = res.data;
@@ -761,21 +865,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                             const isPaid = (user.room_status === 'paid' || user.room_status === 'confirmed');
                             if (isPaid) {
-                                priceDisplay.innerHTML = `Room Cost: <strong style="color: #166534;">Paid ✓</strong>`;
+                                if (priceDisplay) priceDisplay.innerHTML = `Room Cost: <strong style="color: #166534;">Paid ✓</strong>`;
                             } else if (user.shares_room_payment) {
-                                priceDisplay.innerHTML = `Owed: <strong>£${totalCost.toLocaleString()}</strong> (Paid Together)`;
+                                if (priceDisplay) priceDisplay.innerHTML = `Owed: <strong>£${totalCost.toLocaleString()}</strong> (Paid Together)`;
                             } else {
-                                const countRes = await supabase.from('guests').select('id', { count: 'exact', head: true }).eq('room_assigned', user.room_assigned);
-                                const occupantCount = countRes.count || 1;
+                                const occupantCount = occupancy.count || 1;
                                 const costPerPerson = totalCost / occupantCount;
-                                priceDisplay.innerHTML = `Your Share: <strong>£${costPerPerson.toLocaleString(undefined, {maximumFractionDigits:0})}</strong> (Separately)`;
+                                if (priceDisplay) priceDisplay.innerHTML = `Your Share: <strong>£${costPerPerson.toLocaleString(undefined, {maximumFractionDigits:0})}</strong> (Separately)`;
                             }
                         } else {
-                            priceDisplay.textContent = "Pricing details TBC";
+                            if (priceDisplay) priceDisplay.textContent = "Pricing details TBC";
                         }
                     } catch (err) {
-                        console.error("Failed to load room price on card:", err);
-                        priceDisplay.textContent = "";
+                        console.error("Failed to load room details on card:", err);
+                        if (priceDisplay) priceDisplay.textContent = "";
                     }
                 })();
             }
@@ -785,7 +888,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             const roomData = window.ROOM_LIBRARY ? window.ROOM_LIBRARY[resolvedRoomKey] : null;
             if (roomData && roomDescDisplay) {
                 let cleanDesc = roomData.description.replace(/\[cite:.*?\]/g, '').trim();
-                roomDescDisplay.innerHTML = `<strong>${roomData.floor}</strong>`;
+                const isShared = SHARED_BATHROOM_ROOMS.includes(user.room_assigned);
+                roomDescDisplay.innerHTML = `<strong>${roomData.floor}</strong>${isShared ? ' &bull; <span style="color: #b45309; font-weight: 600;">Shared Bathroom</span>' : ''}`;
 
                 // Hide the explicit image frame (we are using background now)
                 const roomImgFrame = document.getElementById('room-image-frame');
@@ -821,7 +925,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         const resolvedRoomKey = resolveRoomLibraryKey(user.room_assigned);
                         const roomData = window.ROOM_LIBRARY ? window.ROOM_LIBRARY[resolvedRoomKey] : null;
                         if (roomData) {
-                            openRoomModal(roomData, user.room_assigned, user.room_status, user.access_code);
+                            openRoomModal(roomData, user.room_assigned, user.room_status, user.access_code, window._roomOccupancyCache ? window._roomOccupancyCache[user.room_assigned] : null);
                         }
                     };
                 }
@@ -840,7 +944,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         const resolvedRoomKey = resolveRoomLibraryKey(user.room_assigned);
                         const roomData = window.ROOM_LIBRARY ? window.ROOM_LIBRARY[resolvedRoomKey] : null;
                         if (roomData) {
-                            openRoomModal(roomData, user.room_assigned, user.room_status, user.access_code);
+                            openRoomModal(roomData, user.room_assigned, user.room_status, user.access_code, window._roomOccupancyCache ? window._roomOccupancyCache[user.room_assigned] : null);
                         }
                     };
                 }
@@ -1022,7 +1126,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const resolvedRoomKey = resolveRoomLibraryKey(user.room_assigned);
                     const roomData = window.ROOM_LIBRARY ? window.ROOM_LIBRARY[resolvedRoomKey] : null;
                     if (roomData && typeof openRoomModal === 'function') {
-                        openRoomModal(roomData, user.room_assigned, user.room_status, user.access_code);
+                        openRoomModal(roomData, user.room_assigned, user.room_status, user.access_code, window._roomOccupancyCache ? window._roomOccupancyCache[user.room_assigned] : null);
                     }
                 }
             } else if (target === 'itinerary') {
@@ -1829,7 +1933,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const galleryModal = document.getElementById('gallery-modal');
     const closeGalleryBtn = document.querySelector('.close-gallery');
     let gallerySwiper = null; // Keeping reference in case we revert, but not used in new flow
-    window.openRoomModal = function (roomData, roomName, roomStatus, accessCode) {
+    window.openRoomModal = function (roomData, roomName, roomStatus, accessCode, preloadedOccupancy) {
         if (!galleryModal) return;
 
         let contentContainer = document.getElementById('room-detail-content');
@@ -1871,7 +1975,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             amenities.unshift("🛏&nbsp;King Four-Poster Bed");
         } else if (cleanDesc.toLowerCase().includes("super-king")) {
             amenities.unshift("🛏&nbsp;Super-King Bed");
-        } else if (cleanDesc.toLowerCase().includes("king-size")) {
+        } else if (cleanDesc.toLowerCase().includes("king-size") || cleanDesc.toLowerCase().includes("king bed")) {
             amenities.unshift("🛏&nbsp;King Bed");
         } else if (cleanDesc.toLowerCase().includes("double bed")) {
             amenities.unshift("🛏&nbsp;Double Bed");
@@ -1882,27 +1986,80 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         // Parse bathroom details
-        const isShared = cleanDesc.toLowerCase().includes("shared") || cleanDesc.toLowerCase().includes("sharing") || roomData.floor === "Gate House Lodge" || roomData.floor === "Little Lodge";
+        const isSharedBathroom = SHARED_BATHROOM_ROOMS.includes(roomName) ||
+            cleanDesc.toLowerCase().includes("shared") || 
+            cleanDesc.toLowerCase().includes("sharing") || 
+            roomData.floor === "Gate House Lodge" || 
+            roomData.floor === "Little Lodge";
 
-        if (cleanDesc.toLowerCase().includes("twin baths")) {
+        if (SHARED_BATHROOM_ROOMS.includes(roomName)) {
+            amenities.push("🛁 Shared Bathroom");
+        } else if (cleanDesc.toLowerCase().includes("twin baths")) {
             amenities.push("🛁 Twin Bathrooms");
         } else if (cleanDesc.toLowerCase().includes("bath and separate shower")) {
             amenities.push("🛁 Bath & Separate Shower");
         } else if (cleanDesc.toLowerCase().includes("wet room")) {
             amenities.push("🚿 Accessible Wet Room");
         } else if (cleanDesc.toLowerCase().includes("shower")) {
-            if (isShared) {
+            if (isSharedBathroom) {
                 amenities.push("🚿 Shared Shower Room");
             } else {
                 amenities.push("🚿 En-suite Shower");
             }
         } else if (cleanDesc.toLowerCase().includes("bathroom")) {
-            if (isShared) {
+            if (isSharedBathroom) {
                 amenities.push("🛁 Shared Bathroom");
             } else {
                 amenities.push("🛁 Private Bathroom");
             }
         }
+
+        // Helper to format sharing section
+        function renderSharingHtml(occupancy) {
+            if (!occupancy) {
+                return `
+                    <div style="margin-bottom: 1.25rem; padding: 0.75rem 1rem; background: rgba(0, 0, 0, 0.03); border-radius: 12px; border: 1px solid rgba(0, 0, 0, 0.05); font-size: 0.92rem; color: #777;">
+                        Loading occupancy details...
+                    </div>
+                `;
+            }
+
+            const { roommates, adjoiningRoomName, adjoiningGuests } = occupancy;
+            let html = `
+                <div style="margin-bottom: 1.25rem; padding: 0.85rem 1rem; background: rgba(0, 0, 0, 0.03); border-radius: 14px; border: 1px solid rgba(0, 0, 0, 0.06); font-size: 0.92rem;">
+            `;
+
+            if (roommates && roommates.length > 0) {
+                html += `
+                    <div style="display: flex; align-items: baseline; gap: 0.5rem; flex-wrap: wrap;">
+                        <span style="font-family: 'Montserrat', sans-serif; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; color: #666;">Sharing Room With:</span>
+                        <span style="font-weight: 600; color: var(--text-main); font-size: 0.95rem;">${roommates.join(', ')}</span>
+                    </div>
+                `;
+            } else {
+                html += `
+                    <div style="display: flex; align-items: baseline; gap: 0.5rem; flex-wrap: wrap;">
+                        <span style="font-family: 'Montserrat', sans-serif; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; color: #666;">Room Occupancy:</span>
+                        <span style="font-weight: 500; color: var(--text-main); font-size: 0.95rem;">Solo Occupancy</span>
+                    </div>
+                `;
+            }
+
+            if (adjoiningGuests && adjoiningGuests.length > 0 && adjoiningRoomName) {
+                html += `
+                    <div style="margin-top: 0.55rem; padding-top: 0.55rem; border-top: 1px dashed rgba(0, 0, 0, 0.08); display: flex; align-items: baseline; gap: 0.5rem; flex-wrap: wrap;">
+                        <span style="font-family: 'Montserrat', sans-serif; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; color: #666;">Shared Bathroom With:</span>
+                        <span style="font-weight: 500; color: var(--text-main); font-size: 0.95rem;">${adjoiningRoomName} (${adjoiningGuests.join(', ')})</span>
+                    </div>
+                `;
+            }
+
+            html += `</div>`;
+            return html;
+        }
+
+        const initialOccupancy = preloadedOccupancy || (window._roomOccupancyCache && window._roomOccupancyCache[roomName]) || null;
+        const initialSharingHtml = renderSharingHtml(initialOccupancy);
 
         // Build Slider HTML
         let sliderHtml = '';
@@ -1989,7 +2146,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <span class="room-badge">${roomData.floor}</span>
                 <h2 style="font-family: 'Playfair Display', serif; font-size: 2.2rem; color: var(--text-main); margin-bottom: 0.5rem; line-height:1.2;">${roomName}</h2>
                 
-                <p style="color: #444; line-height: 1.6; font-size: 0.95rem; margin-bottom: 1.5rem;">${cleanDesc}</p>
+                <p style="color: #444; line-height: 1.6; font-size: 0.95rem; margin-bottom: 1.25rem;">${cleanDesc}</p>
+                
+                <div id="modal-room-sharing-container">
+                    ${initialSharingHtml}
+                </div>
                 
                 <h3 style="font-family: 'Montserrat', sans-serif; font-size: 1rem; font-weight:600; margin-bottom: 0.75rem; color: var(--text-main);">Suite Amenities</h3>
                 <div class="amenity-grid">
@@ -2003,6 +2164,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             </div>
             <div style="height:10px;"></div>
         `;
+
+        // Asynchronously hydrate sharing container if it wasn't preloaded
+        if (!initialOccupancy) {
+            getRoomOccupancyInfo(roomName, window.Auth ? window.Auth.user : null).then(info => {
+                const container = document.getElementById('modal-room-sharing-container');
+                if (container) {
+                    container.innerHTML = renderSharingHtml(info);
+                }
+            });
+        }
 
         // Initialize Swiper for photos
         setTimeout(() => {
