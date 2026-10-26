@@ -2002,7 +2002,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         } else if (cleanDesc.toLowerCase().includes("bath and separate shower")) {
             amenities.push("🛁 Bath & Separate Shower");
         } else if (cleanDesc.toLowerCase().includes("wet room")) {
-            amenities.push("🚿 Accessible Wet Room");
+            if (isSharedBathroom) {
+                amenities.push("🚿 Shared Wet Room");
+            } else {
+                amenities.push("🚿 En-suite Wet Room");
+            }
         } else if (cleanDesc.toLowerCase().includes("shower")) {
             if (isSharedBathroom) {
                 amenities.push("🚿 Shared Shower Room");

@@ -230,7 +230,7 @@ window.ROOM_LIBRARY = {
         }
     },
     "The Den": {
-        "description": "Large ground floor multi-function room with shared bathroom (shares with The Hideout). Ideal for the less able.",
+        "description": "Spacious ground floor double bedroom with shared bathroom (shares with The Hideout).",
         "floor": "Ground Floor",
         "photos": [
             "https://jkxxswxpykdyrpjriizx.supabase.co/storage/v1/object/public/guest-photos/Den1.jpg",
@@ -255,7 +255,7 @@ window.ROOM_LIBRARY = {
         }
     },
     "Manchuria": {
-        "description": "Ground floor zip link bed with en-suite wet room catering for wheelchair access.",
+        "description": "Ground floor zip-link super-king (can be twin) with en-suite wet room.",
         "floor": "Ground Floor",
         "photos": [
             "https://jkxxswxpykdyrpjriizx.supabase.co/storage/v1/object/public/guest-photos/Manchuria1.jpg",
@@ -270,7 +270,7 @@ window.ROOM_LIBRARY = {
         }
     },
     "Coco": {
-        "description": "West facing bedroom with a super-king bed. Shares Manchuria’s accessible wet room.",
+        "description": "West-facing bedroom with a super-king bed. Shares wet room with Manchuria.",
         "floor": "Ground Floor",
         "photos": [
             "https://jkxxswxpykdyrpjriizx.supabase.co/storage/v1/object/public/guest-photos/Coco1.jpg",
